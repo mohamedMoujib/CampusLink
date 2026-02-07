@@ -17,6 +17,13 @@ public class Invoices {
         this.details = details;
     }
 
+    public Invoices(int invId, int payId, Timestamp invDate, String details) {
+        this.id = invId;
+        this.paymentId = payId;
+        this.invoiceDate = invDate;
+        this.details = details;
+    }
+
     public int getPaymentId() {
         return paymentId;
     }
