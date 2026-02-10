@@ -1,7 +1,7 @@
 package org.example.campusLink.services;
 
 
-import org.example.campusLink.units.MyDatabase;
+import org.example.campusLink.utils.MyDatabase;
 import org.example.campusLink.entities.Invoices;
 
 
@@ -37,8 +37,6 @@ public class ServiceInvoices implements IServices<Invoices> {
         ps.setString(3,invoices.getDetails());
         ps.executeUpdate();
         System.out.println("invoice modifie");
-
-
     }
 
     @Override

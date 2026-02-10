@@ -18,6 +18,14 @@ public Payments(int reservationId, float amount, Method method, Status status){
     this.status = status;
 }
 
+    public Payments(int payId, int resId, Float amount, String method, String status) {
+    this.id = payId;
+        this.reservationId = resId;
+        this.amount = amount;
+        this.method = Method.valueOf(method.toUpperCase());
+        this.status = Status.valueOf(status);
+    }
+
     public int getReservationId() {
         return reservationId;
     }

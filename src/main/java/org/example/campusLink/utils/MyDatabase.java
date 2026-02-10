@@ -1,4 +1,4 @@
-package org.example.campusLink.units;
+package org.example.campusLink.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
