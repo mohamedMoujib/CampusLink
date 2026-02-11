@@ -1,4 +1,4 @@
-package org.example.campusLink.ReviewServices;
+package org.example.campusLink.Services;
 import org.example.campusLink.entities.Reviews;   // ✅ OBLIGATOIRE
 import org.example.campusLink.units.MyDatabase;
 

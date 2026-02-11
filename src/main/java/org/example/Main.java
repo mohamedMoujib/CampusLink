@@ -2,10 +2,7 @@ package org.example;
 
 
 import org.example.campusLink.entities.Reviews;
-import org.example.campusLink.entities.TrustPoints;
-import org.example.campusLink.ReviewServices.ReviewsService;
-import org.example.campusLink.ReviewServices.ReviewsDAO;
-import org.example.campusLink.ReviewServices.TrustPointsService;
+import org.example.campusLink.Services.ReviewsService;
 
 
 public class Main {
