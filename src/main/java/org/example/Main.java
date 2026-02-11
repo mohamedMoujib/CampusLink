@@ -19,6 +19,12 @@ public class Main {
         catch(SQLException e){
             System.out.println(e.getMessage());
         }
+        try{
+            invoices.recuperer();
+        }
+        catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
 
     }
 }

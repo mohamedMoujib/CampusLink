@@ -18,12 +18,12 @@ public Payments(int reservationId, float amount, Method method, Status status){
     this.status = status;
 }
 
-    public Payments(int payId, int resId, Float amount, String method, String status) {
+    public Payments(int payId, int resId, float amount, Method method, Status status) {
     this.id = payId;
         this.reservationId = resId;
         this.amount = amount;
-        this.method = Method.valueOf(method.toUpperCase());
-        this.status = Status.valueOf(status);
+        this.method = method;
+        this.status = status;
     }
 
     public int getReservationId() {
@@ -66,5 +66,13 @@ public Payments(int reservationId, float amount, Method method, Status status){
                 ", method=" + method +
                 ", status=" + status +
                 '}';
+    }
+
+    public int getId() {
+    return id;
+    }
+
+    public void setId(int id) {
+    this.id = id;
     }
 }

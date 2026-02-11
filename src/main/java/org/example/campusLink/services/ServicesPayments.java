@@ -1,6 +1,8 @@
 package org.example.campusLink.services;
 
 
+import org.example.campusLink.enumeration.Method;
+import org.example.campusLink.enumeration.Status;
 import org.example.campusLink.utils.MyDatabase;
 import org.example.campusLink.entities.Payments;
 
@@ -18,7 +20,7 @@ public class ServicesPayments implements IServices<Payments> {
     @Override
     public void ajouter(Payments payments) throws SQLException {
 
-        String sql = "INSERT INTO invoices (reservation_id, amount, method, status) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO payments (reservation_id, amount, method, status) VALUES (?, ?, ?, ?)";
 
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, payments.getReservationId());
@@ -31,15 +33,17 @@ public class ServicesPayments implements IServices<Payments> {
 
     @Override
     public void modifier(Payments payments) throws SQLException {
-        String req = "update payments set reservation_id=?, amount=?, method=?, status=?, where reservation_id=?";
+        String req = "UPDATE payments SET reservation_id=?, amount=?, method=?, status=? WHERE id=?";
         PreparedStatement ps = connection.prepareStatement(req);
         ps.setInt(1, payments.getReservationId());
         ps.setFloat(2, payments.getAmount());
         ps.setString(3, payments.getMethod().toString());
         ps.setString(4, payments.getStatus().toString());
+        ps.setInt(5, payments.getId()); // use the payment ID as the WHERE condition
         ps.executeUpdate();
-        System.out.println("payments modifie");
+        System.out.println("Payment modified successfully for ID " + payments.getId());
     }
+
 
     @Override
     public void supprimer(Payments payments) throws SQLException {
@@ -59,8 +63,8 @@ public class ServicesPayments implements IServices<Payments> {
             int payId = rs.getInt(1);
             int resId = rs.getInt(2);
             Float amount = rs.getFloat(3);
-            String method = rs.getString(4);
-            String status = rs.getString(5);
+            Method method = Method.valueOf(rs.getString(4));
+            Status status = Status.valueOf(rs.getString(5));
             Payments payment = new Payments(payId, resId, amount, method,status);
             payments.add(payment);
 
@@ -68,4 +72,24 @@ public class ServicesPayments implements IServices<Payments> {
 
         return payments;
     }
+
+    public void deleteInvoicesForPayment(int paymentId) throws SQLException {
+        String sql = "DELETE FROM invoices WHERE payment_id = ?";
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, paymentId);
+        ps.executeUpdate();
+    }
+    public int getLastInsertedPaymentId() throws SQLException {
+        String sql = "SELECT id FROM payments ORDER BY id DESC LIMIT 1";
+        try (Statement st = connection.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            } else {
+                throw new SQLException("No payment found");
+            }
+        }
+    }
+
+
 }

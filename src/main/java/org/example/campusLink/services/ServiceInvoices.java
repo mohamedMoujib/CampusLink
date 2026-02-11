@@ -30,14 +30,18 @@ public class ServiceInvoices implements IServices<Invoices> {
 
     @Override
     public void modifier(Invoices invoices) throws SQLException {
-        String req = "update invoices set payment_id=?, issue_date=?, details=? where payment_id=?";
+        String req = "UPDATE invoices SET payment_id=?, issue_date=?, details=? WHERE payment_id=?";
         PreparedStatement ps = connection.prepareStatement(req);
+
         ps.setInt(1, invoices.getPaymentId());
         ps.setTimestamp(2, invoices.getInvoiceDate());
-        ps.setString(3,invoices.getDetails());
+        ps.setString(3, invoices.getDetails());
+        ps.setInt(4, invoices.getPaymentId());
+
         ps.executeUpdate();
         System.out.println("invoice modifie");
     }
+
 
     @Override
     public void supprimer(Invoices invoices) throws SQLException {
