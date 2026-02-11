@@ -9,18 +9,12 @@ public class MyDatabase {
     private static final String URL =
             "jdbc:mysql://localhost:3306/campusLink?serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = ""; // 👈 XAMPP
+    private static final String PASSWORD = "";
 
     private static MyDatabase instance;
-    private Connection connection;
 
     private MyDatabase() {
-        try {
-            this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("✅ Connection established");
-        } catch (SQLException e) {
-            throw new RuntimeException("❌ Error connecting to database", e);
-        }
+        System.out.println("✅ Database ready");
     }
 
     public static MyDatabase getInstance() {
@@ -30,7 +24,8 @@ public class MyDatabase {
         return instance;
     }
 
-    public Connection getConnection() {
-        return connection;
+    // 🔥 Nouvelle connexion à chaque appel
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }

@@ -7,7 +7,8 @@ public class ReviewsService {
     private ReviewsDAO reviewsDAO = new ReviewsDAO();
     private TrustPointsService trustService = new TrustPointsService();
 
-    // CREATE
+    // ===================== CREATE =====================
+
     public void addReview(Reviews r) {
 
         if (reviewsDAO.existsByStudentAndService(
@@ -15,21 +16,28 @@ public class ReviewsService {
             throw new IllegalStateException("Avis déjà existant");
         }
 
+        // 1️⃣ Sauvegarde review
         reviewsDAO.save(r);
 
-        // + points selon la note
-        trustService.applyPoints(
-                r.getPrestataireId(),
-                r.getRating()
-        );
+        // 2️⃣ Appliquer points (sécurisé)
+        try {
+            trustService.applyPoints(
+                    r.getPrestataireId(),
+                    r.getRating()
+            );
+        } catch (Exception e) {
+            System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
+        }
     }
 
-    // READ
+    // ===================== READ =====================
+
     public Reviews getReview(int id) {
         return reviewsDAO.findById(id);
     }
 
-    // UPDATE (SANS TEMPS)
+    // ===================== UPDATE =====================
+
     public void updateReview(int id, int newRating, String newComment) {
 
         Reviews old = reviewsDAO.findById(id);
@@ -43,14 +51,18 @@ public class ReviewsService {
         old.setComment(newComment);
         reviewsDAO.update(old);
 
-        // appliquer la différence
-        trustService.applyPoints(
-                old.getPrestataireId(),
-                diff
-        );
+        try {
+            trustService.applyPoints(
+                    old.getPrestataireId(),
+                    diff
+            );
+        } catch (Exception e) {
+            System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
+        }
     }
 
-    // DELETE (SANS TEMPS)
+    // ===================== DELETE =====================
+
     public void deleteReview(int id) {
 
         Reviews r = reviewsDAO.findById(id);
@@ -60,10 +72,13 @@ public class ReviewsService {
 
         reviewsDAO.delete(id);
 
-        // retirer les points
-        trustService.applyPoints(
-                r.getPrestataireId(),
-                -r.getRating()
-        );
+        try {
+            trustService.applyPoints(
+                    r.getPrestataireId(),
+                    -r.getRating()
+            );
+        } catch (Exception e) {
+            System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
+        }
     }
 }

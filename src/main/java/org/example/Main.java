@@ -13,11 +13,11 @@ public class Main {
 
         // 1️⃣ AJOUT AVIS
         Reviews review = new Reviews(
-                2, // studentId
-                1, // prestataireId
-                2, // reservationId
-                3, // rating (+3)
-                "très Bon service"
+                1, // studentId
+                2, // prestataireId
+                7, // reservationId
+                1, // rating (+3)
+                "Médicore service"
         );
 
         reviewsService.addReview(review);
@@ -25,20 +25,20 @@ public class Main {
 
         // 2️⃣ MODIFICATION AVIS
         reviewsService.updateReview(
-                6, // reviewId
-                -2,
+                34, // reviewId
+                1,
                 "Excellent service"
         );
         System.out.println("Avis modifié");
 
         // 3️⃣ AFFICHER AVIS
-        Reviews r = reviewsService.getReview(4);
+        Reviews r = reviewsService.getReview(34);
         System.out.println(
                 "Note: " + r.getRating() + " | " + r.getComment()
         );
 
         // 4️⃣ SUPPRESSION AVIS (-5)
-        reviewsService.deleteReview(1);
+        reviewsService.deleteReview(33);
         System.out.println("Avis supprimé");
     }
 }
