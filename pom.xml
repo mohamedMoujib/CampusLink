@@ -22,6 +22,7 @@
             <version>8.0.33</version>
         </dependency>
 
+
         <!-- JavaFX  -->
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -41,6 +42,12 @@
             <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
     </dependencies>
 
     <!--  Maven plugin to run JavaFX -->
