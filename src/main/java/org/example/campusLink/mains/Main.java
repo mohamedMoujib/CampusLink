@@ -1,4 +1,4 @@
-package org.example;
+package org.example.campusLink.mains;
 
 
 import org.example.campusLink.entities.Reviews;

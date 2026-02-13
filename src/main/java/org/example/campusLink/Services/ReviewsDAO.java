@@ -4,6 +4,8 @@ import org.example.campusLink.entities.Reviews;
 import org.example.campusLink.units.MyDatabase;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReviewsDAO {
 
@@ -29,7 +31,6 @@ public class ReviewsDAO {
 
             ps.executeUpdate();
 
-            // 🔥 récupérer l'id généré automatiquement
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
                     r.setId(rs.getInt(1));
@@ -41,7 +42,7 @@ public class ReviewsDAO {
         }
     }
 
-    // ===================== READ =====================
+    // ===================== READ BY ID =====================
 
     public Reviews findById(int id) {
 
@@ -71,6 +72,42 @@ public class ReviewsDAO {
         }
 
         return null;
+    }
+
+    // 🔥 NOUVELLE MÉTHODE POUR LE CONTROLLER
+
+    public List<Reviews> findByStudent(int studentId) {
+
+        List<Reviews> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM reviews WHERE student_id = ?";
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, studentId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+
+                    Reviews r = new Reviews();
+                    r.setId(rs.getInt("id"));
+                    r.setStudentId(rs.getInt("student_id"));
+                    r.setPrestataireId(rs.getInt("prestataire_id"));
+                    r.setReservationId(rs.getInt("reservation_id"));
+                    r.setRating(rs.getInt("rating"));
+                    r.setComment(rs.getString("comment"));
+
+                    list.add(r);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
     // ===================== CHECK EXISTENCE =====================

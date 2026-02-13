@@ -2,6 +2,8 @@ package org.example.campusLink.Services;
 
 import org.example.campusLink.entities.Reviews;
 
+import java.util.List;
+
 public class ReviewsService {
 
     private ReviewsDAO reviewsDAO = new ReviewsDAO();
@@ -16,10 +18,8 @@ public class ReviewsService {
             throw new IllegalStateException("Avis déjà existant");
         }
 
-        // 1️⃣ Sauvegarde review
         reviewsDAO.save(r);
 
-        // 2️⃣ Appliquer points (sécurisé)
         try {
             trustService.applyPoints(
                     r.getPrestataireId(),
@@ -34,6 +34,11 @@ public class ReviewsService {
 
     public Reviews getReview(int id) {
         return reviewsDAO.findById(id);
+    }
+
+    // 🔥 NOUVELLE MÉTHODE POUR LE CONTROLLER
+    public List<Reviews> getReviewsByStudent(int studentId) {
+        return reviewsDAO.findByStudent(studentId);
     }
 
     // ===================== UPDATE =====================
