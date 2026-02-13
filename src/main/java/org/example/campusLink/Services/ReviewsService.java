@@ -36,9 +36,14 @@ public class ReviewsService {
         return reviewsDAO.findById(id);
     }
 
-    // 🔥 NOUVELLE MÉTHODE POUR LE CONTROLLER
+    // Ancienne méthode conservée
     public List<Reviews> getReviewsByStudent(int studentId) {
         return reviewsDAO.findByStudent(studentId);
+    }
+
+    // 🔥 NOUVELLE MÉTHODE AVEC DÉTAILS (noms service et prestataire)
+    public List<ReviewsDAO.ReviewWithDetails> getReviewsByStudentWithDetails(int studentId) {
+        return reviewsDAO.findByStudentWithDetails(studentId);
     }
 
     // ===================== UPDATE =====================

@@ -8,6 +8,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
 import org.example.campusLink.Services.ReviewsService;
 import org.example.campusLink.entities.Reviews;
 
@@ -24,9 +25,6 @@ public class ReviewController {
     private TextArea commentField;
 
     @FXML
-    private Spinner<Integer> ratingSpinner;
-
-    @FXML
     private Button addButton;
 
     @FXML
@@ -34,6 +32,9 @@ public class ReviewController {
 
     @FXML
     private VBox formContainer;
+
+    @FXML
+    private HBox starsRatingBox;
 
     private ReviewsService reviewsService;
 
@@ -44,19 +45,77 @@ public class ReviewController {
     // 🔥 Pour savoir si on est en mode édition
     private Integer editingReviewId = null;
 
+    // 🔥 Note sélectionnée
+    private int selectedRating = 5;
+
+    // 🔥 Labels des étoiles cliquables
+    private Label[] starLabels = new Label[5];
+
     @FXML
     public void initialize() {
         reviewsService = new ReviewsService();
 
-        ratingSpinner.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 5, 5)
-        );
+        // 🔥 Créer les étoiles cliquables
+        createStarRating();
 
         // Cacher le formulaire au départ
         formContainer.setVisible(false);
         formContainer.setManaged(false);
 
         loadReviews();
+    }
+
+    // 🔥 CRÉER LES ÉTOILES CLIQUABLES
+    private void createStarRating() {
+        starsRatingBox.getChildren().clear();
+        starsRatingBox.setSpacing(5);
+        starsRatingBox.setAlignment(Pos.CENTER_LEFT);
+
+        for (int i = 0; i < 5; i++) {
+            final int starIndex = i + 1;
+            Label star = new Label("★");
+            star.setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+
+            // Survol
+            star.setOnMouseEntered(e -> updateStarPreview(starIndex));
+
+            // Clic
+            star.setOnMouseClicked(e -> {
+                selectedRating = starIndex;
+                updateStarDisplay(starIndex);
+            });
+
+            starLabels[i] = star;
+            starsRatingBox.getChildren().add(star);
+        }
+
+        // Quand la souris sort de la zone, revenir à la sélection
+        starsRatingBox.setOnMouseExited(e -> updateStarDisplay(selectedRating));
+
+        // Initialiser à 5 étoiles
+        updateStarDisplay(5);
+    }
+
+    // 🔥 METTRE À JOUR L'APERÇU AU SURVOL
+    private void updateStarPreview(int hoverRating) {
+        for (int i = 0; i < 5; i++) {
+            if (i < hoverRating) {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #fbbf24;");
+            } else {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+            }
+        }
+    }
+
+    // 🔥 METTRE À JOUR L'AFFICHAGE DES ÉTOILES SÉLECTIONNÉES
+    private void updateStarDisplay(int rating) {
+        for (int i = 0; i < 5; i++) {
+            if (i < rating) {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #fbbf24;");
+            } else {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+            }
+        }
     }
 
     // ===================== SHOW FORM =====================
@@ -67,7 +126,8 @@ public class ReviewController {
         formContainer.setManaged(true);
         editingReviewId = null;
         commentField.clear();
-        ratingSpinner.getValueFactory().setValue(5);
+        selectedRating = 5;
+        updateStarDisplay(5);
         formTitle.setText("Laisser un avis");
         addButton.setText("Publier");
     }
@@ -85,6 +145,13 @@ public class ReviewController {
 
         List<Reviews> reviews = reviewsService.getReviewsByStudent(studentId);
 
+        if (reviews.isEmpty()) {
+            Label emptyLabel = new Label("Aucun avis pour le moment");
+            emptyLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+            reviewContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
         for (Reviews r : reviews) {
             VBox card = createReviewCard(r);
             reviewContainer.getChildren().add(card);
@@ -100,10 +167,10 @@ public class ReviewController {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox titleSection = new VBox(3);
-        Label title = new Label("Nom du service"); // À adapter selon tes données
+        Label title = new Label("Nom du service");
         title.getStyleClass().add("review-title");
 
-        Label subtitle = new Label("avec Nom Prestataire"); // À adapter
+        Label subtitle = new Label("avec Nom Prestataire");
         subtitle.getStyleClass().add("review-subtitle");
 
         titleSection.getChildren().addAll(title, subtitle);
@@ -117,12 +184,10 @@ public class ReviewController {
         header.getChildren().addAll(titleSection, spacer, date);
 
         // === STARS ===
-        HBox starsBox = new HBox(2);
-        for (int i = 0; i < review.getRating(); i++) {
-            Label star = new Label("⭐");
-            star.setStyle("-fx-font-size: 16px;");
-            starsBox.getChildren().add(star);
-        }
+        String starsText = "★".repeat(review.getRating()) + "☆".repeat(5 - review.getRating());
+
+        Label starsLabel = new Label(starsText);
+        starsLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: #fbbf24; -fx-padding: 5 0 5 0;");
 
         // === COMMENT ===
         Label comment = new Label(review.getComment());
@@ -152,7 +217,7 @@ public class ReviewController {
 
         footer.getChildren().addAll(likes, footerSpacer, btnModifier, btnSupprimer);
 
-        card.getChildren().addAll(header, starsBox, comment, footer);
+        card.getChildren().addAll(header, starsLabel, comment, footer);
         return card;
     }
 
@@ -163,7 +228,8 @@ public class ReviewController {
         formContainer.setManaged(true);
 
         editingReviewId = review.getId();
-        ratingSpinner.getValueFactory().setValue(review.getRating());
+        selectedRating = review.getRating();
+        updateStarDisplay(review.getRating());
         commentField.setText(review.getComment());
 
         formTitle.setText("Modifier l'avis");
@@ -177,7 +243,7 @@ public class ReviewController {
         if (editingReviewId != null) {
             reviewsService.updateReview(
                     editingReviewId,
-                    ratingSpinner.getValue(),
+                    selectedRating,
                     commentField.getText()
             );
         } else {
@@ -185,7 +251,7 @@ public class ReviewController {
                     studentId,
                     prestataireId,
                     10,
-                    ratingSpinner.getValue(),
+                    selectedRating,
                     commentField.getText()
             );
             reviewsService.addReview(review);

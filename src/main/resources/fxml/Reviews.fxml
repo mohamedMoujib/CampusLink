@@ -61,18 +61,23 @@
             <VBox fx:id="formContainer" spacing="15" styleClass="form-card">
                 <Label fx:id="formTitle" text="Laisser un avis" styleClass="form-title"/>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="Note :" style="-fx-font-weight:bold;"/>
-                    <Spinner fx:id="ratingSpinner" prefWidth="70"/>
-                    <Label text="⭐" style="-fx-font-size: 18px;"/>
-                </HBox>
+                <!-- 🔥 SECTION NOTE AVEC ÉTOILES CLIQUABLES -->
+                <VBox spacing="8">
+                    <Label text="Votre note :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                    <HBox fx:id="starsRatingBox" spacing="5"/>
+                </VBox>
 
-                <TextArea fx:id="commentField"
-                          promptText="Partagez votre expérience..."
-                          prefHeight="100"
-                          wrapText="true"
-                          styleClass="comment-area"/>
+                <!-- COMMENTAIRE -->
+                <VBox spacing="5">
+                    <Label text="Votre commentaire :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                    <TextArea fx:id="commentField"
+                              promptText="Partagez votre expérience..."
+                              prefHeight="100"
+                              wrapText="true"
+                              styleClass="comment-area"/>
+                </VBox>
 
+                <!-- BOUTONS -->
                 <HBox spacing="10">
                     <Button fx:id="addButton"
                             text="Publier"
