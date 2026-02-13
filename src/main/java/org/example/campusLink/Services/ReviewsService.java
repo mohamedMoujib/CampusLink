@@ -36,15 +36,14 @@ public class ReviewsService {
         return reviewsDAO.findById(id);
     }
 
-    // Ancienne méthode conservée
-    public List<Reviews> getReviewsByStudent(int studentId) {
-        return reviewsDAO.findByStudent(studentId);
-    }
+
 
     // 🔥 NOUVELLE MÉTHODE AVEC DÉTAILS (noms service et prestataire)
-    public List<ReviewsDAO.ReviewWithDetails> getReviewsByStudentWithDetails(int studentId) {
+
+    public List<Reviews> getReviewsByStudentWithDetails(int studentId) {
         return reviewsDAO.findByStudentWithDetails(studentId);
     }
+
 
     // ===================== UPDATE =====================
 
@@ -90,5 +89,15 @@ public class ReviewsService {
         } catch (Exception e) {
             System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
         }
+    }
+    // ===================== READ TUTOR =====================
+
+    public List<Reviews> getReviewsByTutor(int tutorId) {
+        return reviewsDAO.findByTutorWithDetails(tutorId);
+    }
+    // ===================== GET TRUST POINTS =====================
+
+    public int getTrustPoints(int userId) {
+        return reviewsDAO.getTrustPointsByUserId(userId);
     }
 }

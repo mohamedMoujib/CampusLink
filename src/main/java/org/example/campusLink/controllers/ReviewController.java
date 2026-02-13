@@ -62,6 +62,15 @@ public class ReviewController {
         formContainer.setVisible(false);
         formContainer.setManaged(false);
 
+        // 🔥 VALIDATION EN TEMPS RÉEL (optionnel)
+        commentField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.trim().isEmpty()) {
+                commentField.setStyle("-fx-border-color: #ef4444; -fx-border-width: 2px;");
+            } else {
+                commentField.setStyle("");
+            }
+        });
+
         loadReviews();
     }
 
@@ -126,6 +135,7 @@ public class ReviewController {
         formContainer.setManaged(true);
         editingReviewId = null;
         commentField.clear();
+        commentField.setStyle(""); // Réinitialiser le style
         selectedRating = 5;
         updateStarDisplay(5);
         formTitle.setText("Laisser un avis");
@@ -136,6 +146,7 @@ public class ReviewController {
     private void hideForm() {
         formContainer.setVisible(false);
         formContainer.setManaged(false);
+        commentField.setStyle(""); // Réinitialiser le style
     }
 
     // ===================== LOAD =====================
@@ -143,7 +154,7 @@ public class ReviewController {
     private void loadReviews() {
         reviewContainer.getChildren().clear();
 
-        List<Reviews> reviews = reviewsService.getReviewsByStudent(studentId);
+        List<Reviews> reviews = reviewsService.getReviewsByStudentWithDetails(studentId);
 
         if (reviews.isEmpty()) {
             Label emptyLabel = new Label("Aucun avis pour le moment");
@@ -167,10 +178,10 @@ public class ReviewController {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox titleSection = new VBox(3);
-        Label title = new Label("Nom du service");
+        Label title = new Label(review.getServiceTitle());
         title.getStyleClass().add("review-title");
 
-        Label subtitle = new Label("avec Nom Prestataire");
+        Label subtitle = new Label("avec " + review.getPrestataireName());
         subtitle.getStyleClass().add("review-subtitle");
 
         titleSection.getChildren().addAll(title, subtitle);
@@ -231,6 +242,7 @@ public class ReviewController {
         selectedRating = review.getRating();
         updateStarDisplay(review.getRating());
         commentField.setText(review.getComment());
+        commentField.setStyle(""); // Réinitialiser le style
 
         formTitle.setText("Modifier l'avis");
         addButton.setText("Mettre à jour");
@@ -240,11 +252,28 @@ public class ReviewController {
 
     @FXML
     private void handleAddReview() {
+        // 🔥 CONTRÔLE DE SAISIE
+
+        // Vérifier que le commentaire n'est pas vide
+        String comment = commentField.getText().trim();
+        if (comment.isEmpty()) {
+            showAlert("Commentaire requis", "Veuillez saisir un commentaire avant de publier votre avis.");
+            commentField.setStyle("-fx-border-color: #ef4444; -fx-border-width: 2px;");
+            return;
+        }
+
+        // Vérifier qu'une note a été sélectionnée (optionnel car déjà initialisé à 5)
+        if (selectedRating < 1 || selectedRating > 5) {
+            showAlert("Note invalide", "Veuillez sélectionner une note entre 1 et 5 étoiles.");
+            return;
+        }
+
+        // Si tout est valide, procéder à l'ajout/modification
         if (editingReviewId != null) {
             reviewsService.updateReview(
                     editingReviewId,
                     selectedRating,
-                    commentField.getText()
+                    comment
             );
         } else {
             Reviews review = new Reviews(
@@ -252,12 +281,21 @@ public class ReviewController {
                     prestataireId,
                     10,
                     selectedRating,
-                    commentField.getText()
+                    comment
             );
             reviewsService.addReview(review);
         }
 
         hideForm();
         loadReviews();
+    }
+
+    // 🔥 MÉTHODE POUR AFFICHER LES ALERTES
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
