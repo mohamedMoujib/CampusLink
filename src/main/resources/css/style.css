@@ -18,6 +18,13 @@
     -fx-text-fill: #4f46e5;
 }
 
+/* ============= LOGO TUTOR (couleur verte) ============= */
+.logo-tutor {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #059669;
+}
+
 /* ============= NAV TABS ============= */
 .nav-tabs {
     -fx-background-color: white;
@@ -45,6 +52,31 @@
     -fx-text-fill: #4f46e5;
     -fx-padding: 12 20 12 20;
     -fx-border-color: #4f46e5;
+    -fx-border-width: 0 0 3 0;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* ============= NAV TABS TUTOR (thème vert) ============= */
+.nav-tab-tutor {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6b7280;
+    -fx-padding: 12 20 12 20;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+
+.nav-tab-tutor:hover {
+    -fx-text-fill: #059669;
+    -fx-background-color: #f0fdf4;
+}
+
+.nav-tab-active-tutor {
+    -fx-background-color: transparent;
+    -fx-text-fill: #059669;
+    -fx-padding: 12 20 12 20;
+    -fx-border-color: #059669;
     -fx-border-width: 0 0 3 0;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
@@ -79,6 +111,21 @@
 
 .primary-button:hover {
     -fx-background-color: #4338ca;
+}
+
+/* ============= BUTTONS TUTOR (thème vert) ============= */
+.primary-button-tutor {
+    -fx-background-color: #059669;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 12 24;
+    -fx-font-weight: 600;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.primary-button-tutor:hover {
+    -fx-background-color: #047857;
 }
 
 .secondary-button {
@@ -202,6 +249,7 @@
     -fx-background-radius: 6;
     -fx-border-color: #d1d5db;
 }
+
 /* ============= STATS CARDS ============= */
 .stats-card {
     -fx-background-color: white;
@@ -244,4 +292,20 @@
 
 .filter-button-active:hover {
     -fx-background-color: #4338ca;
+}
+
+/* ============= FILTER BUTTONS TUTOR (thème vert) ============= */
+.filter-button-active-tutor {
+    -fx-background-color: #059669;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.filter-button-active-tutor:hover {
+    -fx-background-color: #047857;
 }

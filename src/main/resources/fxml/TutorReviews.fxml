@@ -16,7 +16,7 @@
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Label text="📚" style="-fx-font-size: 24px;"/>
                     <VBox spacing="2">
-                        <Label text="CampusLink" styleClass="logo"/>
+                        <Label text="CampusLink" styleClass="logo-tutor"/>
                         <Label text="Espace Tuteur" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
                     </VBox>
                 </HBox>
@@ -26,8 +26,8 @@
                 <HBox spacing="20" alignment="CENTER_RIGHT">
                     <Label text="🔔" style="-fx-font-size: 20px;"/>
                     <VBox alignment="CENTER_RIGHT" spacing="2">
-                        <Label fx:id="tutorName" text="Jean Martin" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
-                        <Label fx:id="tutorEmail" text="jean.martin@service.fr" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        <Label fx:id="tutorName" text="Sami Prestataire" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                        <Label fx:id="tutorEmail" text="sami@pro.tn" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
                     </VBox>
                     <Label text="👤" style="-fx-font-size: 24px;"/>
                 </HBox>
@@ -35,12 +35,12 @@
 
             <!-- Navigation tabs -->
             <HBox spacing="0" styleClass="nav-tabs">
-                <Button text="📊 Tableau de bord" styleClass="nav-tab"/>
-                <Button text="🛠️ Mes services" styleClass="nav-tab"/>
-                <Button text="📅 Réservations" styleClass="nav-tab"/>
-                <Button text="⭐ Avis reçus" styleClass="nav-tab-active"/>
-                <Button text="💰 Revenus" styleClass="nav-tab"/>
-                <Button text="👤 Mon profil" styleClass="nav-tab"/>
+                <Button text="📊 Tableau de bord" styleClass="nav-tab-tutor"/>
+                <Button text="🛠️ Mes services" styleClass="nav-tab-tutor"/>
+                <Button text="📅 Réservations" styleClass="nav-tab-tutor"/>
+                <Button text="⭐ Avis reçus" styleClass="nav-tab-active-tutor"/>
+                <Button text="💰 Revenus" styleClass="nav-tab-tutor"/>
+                <Button text="👤 Mon profil" styleClass="nav-tab-tutor"/>
             </HBox>
         </VBox>
     </top>
@@ -54,35 +54,35 @@
                 <Label text="Avis reçus" styleClass="page-title"/>
 
                 <!-- Statistiques -->
-                <HBox spacing="20">
+                <HBox spacing="20" alignment="CENTER">
                     <!-- Note moyenne -->
-                    <VBox spacing="8" styleClass="stats-card">
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
                         <Label text="Note moyenne" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
-                        <HBox spacing="8" alignment="CENTER_LEFT">
+                        <HBox spacing="8" alignment="CENTER">
                             <Label fx:id="averageRatingLabel" text="4.5" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
                             <Label text="★" style="-fx-font-size:32px; -fx-text-fill:#fbbf24;"/>
                         </HBox>
                     </VBox>
 
                     <!-- Total avis -->
-                    <VBox spacing="8" styleClass="stats-card">
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
                         <Label text="Total d'avis" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
                         <Label fx:id="totalReviewsLabel" text="28" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
                     </VBox>
 
                     <!-- Points de confiance -->
-                    <VBox spacing="8" styleClass="stats-card">
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
                         <Label text="Points de confiance" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label fx:id="trustPointsLabel" text="23" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#10b981;"/>
+                        <HBox spacing="8" alignment="CENTER">
+                            <Label fx:id="trustPointsLabel" text="16" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#059669;"/>
                             <Label text="🏆" style="-fx-font-size:28px;"/>
                         </HBox>
                     </VBox>
 
                     <!-- Avis récents -->
-                    <VBox spacing="8" styleClass="stats-card">
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
                         <Label text="Ce mois-ci" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
-                        <Label fx:id="monthReviewsLabel" text="5" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#4f46e5;"/>
+                        <Label fx:id="monthReviewsLabel" text="5" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#059669;"/>
                     </VBox>
                 </HBox>
             </VBox>
@@ -90,7 +90,7 @@
             <!-- Filtres -->
             <HBox spacing="15" alignment="CENTER_LEFT">
                 <Label text="Filtrer par note :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
-                <Button text="Tous" styleClass="filter-button-active" onAction="#filterAll"/>
+                <Button text="Tous" styleClass="filter-button-active-tutor" onAction="#filterAll"/>
                 <Button text="⭐⭐⭐⭐⭐ 5" styleClass="filter-button" onAction="#filter5Stars"/>
                 <Button text="⭐⭐⭐⭐ 4" styleClass="filter-button" onAction="#filter4Stars"/>
                 <Button text="⭐⭐⭐ 3" styleClass="filter-button" onAction="#filter3Stars"/>

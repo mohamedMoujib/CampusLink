@@ -9,7 +9,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.example.campusLink.Services.ReviewsService;
 import org.example.campusLink.entities.Reviews;
+import org.example.campusLink.units.MyDatabase;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -49,11 +54,37 @@ public class TutorReviewsController {
     @FXML
     public void initialize() {
         reviewsService = new ReviewsService();
+
+        // 🔥 CHARGER LES INFOS DU TUTEUR
+        loadUserInfo();
+
         loadReviews();
         updateStatistics();
     }
 
-    // ===================== LOAD =====================
+    // ===================== LOAD USER INFO =====================
+
+    private void loadUserInfo() {
+        String sql = "SELECT name, email FROM users WHERE id = ?";
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tutorId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    tutorName.setText(rs.getString("name"));
+                    tutorEmail.setText(rs.getString("email"));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===================== LOAD REVIEWS =====================
 
     private void loadReviews() {
         allReviews = reviewsService.getReviewsByTutor(tutorId);
