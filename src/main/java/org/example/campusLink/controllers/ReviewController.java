@@ -1,14 +1,12 @@
 package org.example.campusLink.controllers;
 
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.input.MouseEvent;
 import org.example.campusLink.Services.ReviewsService;
 import org.example.campusLink.entities.Reviews;
 
@@ -45,11 +43,11 @@ public class ReviewController {
     // 🔥 Pour savoir si on est en mode édition
     private Integer editingReviewId = null;
 
-    // 🔥 Note sélectionnée
-    private int selectedRating = 5;
+    // 🔥 Note sélectionnée (maintenant de -5 à +5)
+    private int selectedRating = 0;
 
-    // 🔥 Labels des étoiles cliquables
-    private Label[] starLabels = new Label[5];
+    // 🔥 Labels des étoiles cliquables (10 étoiles : 5 négatives + 5 positives)
+    private Label[] starLabels = new Label[10];
 
     @FXML
     public void initialize() {
@@ -74,14 +72,15 @@ public class ReviewController {
         loadReviews();
     }
 
-    // 🔥 CRÉER LES ÉTOILES CLIQUABLES
+    // 🔥 CRÉER LES ÉTOILES CLIQUABLES (-5 à +5)
     private void createStarRating() {
         starsRatingBox.getChildren().clear();
         starsRatingBox.setSpacing(5);
         starsRatingBox.setAlignment(Pos.CENTER_LEFT);
 
+        // 5 étoiles négatives (rouges) - de -5 à -1
         for (int i = 0; i < 5; i++) {
-            final int starIndex = i + 1;
+            final int starIndex = -(5 - i); // -5, -4, -3, -2, -1
             Label star = new Label("★");
             star.setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
 
@@ -98,17 +97,53 @@ public class ReviewController {
             starsRatingBox.getChildren().add(star);
         }
 
+        // Séparateur visuel
+        Label separator = new Label("|");
+        separator.setStyle("-fx-font-size: 32px; -fx-text-fill: #9ca3af; -fx-padding: 0 10 0 10;");
+        starsRatingBox.getChildren().add(separator);
+
+        // 5 étoiles positives (jaunes/dorées) - de 1 à 5
+        for (int i = 0; i < 5; i++) {
+            final int starIndex = i + 1; // 1, 2, 3, 4, 5
+            Label star = new Label("★");
+            star.setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+
+            // Survol
+            star.setOnMouseEntered(e -> updateStarPreview(starIndex));
+
+            // Clic
+            star.setOnMouseClicked(e -> {
+                selectedRating = starIndex;
+                updateStarDisplay(starIndex);
+            });
+
+            starLabels[i + 5] = star;
+            starsRatingBox.getChildren().add(star);
+        }
+
         // Quand la souris sort de la zone, revenir à la sélection
         starsRatingBox.setOnMouseExited(e -> updateStarDisplay(selectedRating));
 
-        // Initialiser à 5 étoiles
-        updateStarDisplay(5);
+        // Initialiser à 0 étoiles (neutre)
+        updateStarDisplay(0);
     }
 
     // 🔥 METTRE À JOUR L'APERÇU AU SURVOL
     private void updateStarPreview(int hoverRating) {
+        // Étoiles négatives (-5 à -1)
         for (int i = 0; i < 5; i++) {
-            if (i < hoverRating) {
+            int starValue = -(5 - i); // -5, -4, -3, -2, -1
+            if (hoverRating < 0 && starValue >= hoverRating) {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #ef4444;");
+            } else {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+            }
+        }
+
+        // Étoiles positives (1 à 5)
+        for (int i = 5; i < 10; i++) {
+            int starValue = (i - 5) + 1; // 1, 2, 3, 4, 5
+            if (hoverRating > 0 && starValue <= hoverRating) {
                 starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #fbbf24;");
             } else {
                 starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
@@ -118,8 +153,20 @@ public class ReviewController {
 
     // 🔥 METTRE À JOUR L'AFFICHAGE DES ÉTOILES SÉLECTIONNÉES
     private void updateStarDisplay(int rating) {
+        // Étoiles négatives (-5 à -1)
         for (int i = 0; i < 5; i++) {
-            if (i < rating) {
+            int starValue = -(5 - i); // -5, -4, -3, -2, -1
+            if (rating < 0 && starValue >= rating) {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #ef4444;");
+            } else {
+                starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
+            }
+        }
+
+        // Étoiles positives (1 à 5)
+        for (int i = 5; i < 10; i++) {
+            int starValue = (i - 5) + 1; // 1, 2, 3, 4, 5
+            if (rating > 0 && starValue <= rating) {
                 starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #fbbf24;");
             } else {
                 starLabels[i].setStyle("-fx-font-size: 32px; -fx-cursor: hand; -fx-text-fill: #d1d5db;");
@@ -136,8 +183,8 @@ public class ReviewController {
         editingReviewId = null;
         commentField.clear();
         commentField.setStyle(""); // Réinitialiser le style
-        selectedRating = 5;
-        updateStarDisplay(5);
+        selectedRating = 0;
+        updateStarDisplay(0);
         formTitle.setText("Laisser un avis");
         addButton.setText("Publier");
     }
@@ -195,10 +242,7 @@ public class ReviewController {
         header.getChildren().addAll(titleSection, spacer, date);
 
         // === STARS ===
-        String starsText = "★".repeat(review.getRating()) + "☆".repeat(5 - review.getRating());
-
-        Label starsLabel = new Label(starsText);
-        starsLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: #fbbf24; -fx-padding: 5 0 5 0;");
+        HBox starsDisplay = createStarsDisplay(review.getRating());
 
         // === COMMENT ===
         Label comment = new Label(review.getComment());
@@ -228,8 +272,46 @@ public class ReviewController {
 
         footer.getChildren().addAll(likes, footerSpacer, btnModifier, btnSupprimer);
 
-        card.getChildren().addAll(header, starsLabel, comment, footer);
+        card.getChildren().addAll(header, starsDisplay, comment, footer);
         return card;
+    }
+
+    // 🔥 CRÉER L'AFFICHAGE DES ÉTOILES (retourne un HBox)
+    private HBox createStarsDisplay(int rating) {
+        HBox container = new HBox(8);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.setStyle("-fx-padding: 5 0 5 0;");
+
+        String starsText;
+        String color;
+        String badge;
+
+        if (rating < 0) {
+            // Étoiles rouges pour notes négatives
+            int absRating = Math.abs(rating);
+            starsText = "★".repeat(absRating) + "☆".repeat(5 - absRating);
+            color = "#ef4444"; // Rouge
+            badge = "(" + rating + ")";
+        } else if (rating > 0) {
+            // Étoiles jaunes pour notes positives
+            starsText = "★".repeat(rating) + "☆".repeat(5 - rating);
+            color = "#fbbf24"; // Jaune/doré
+            badge = "(+" + rating + ")";
+        } else {
+            // Aucune étoile pour note neutre (0)
+            starsText = "☆☆☆☆☆";
+            color = "#d1d5db"; // Gris
+            badge = "(Neutre)";
+        }
+
+        Label stars = new Label(starsText);
+        stars.setStyle("-fx-font-size: 22px; -fx-text-fill: " + color + ";");
+
+        Label badgeLabel = new Label(badge);
+        badgeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
+
+        container.getChildren().addAll(stars, badgeLabel);
+        return container;
     }
 
     // ===================== START EDITING =====================
@@ -262,9 +344,14 @@ public class ReviewController {
             return;
         }
 
-        // Vérifier qu'une note a été sélectionnée (optionnel car déjà initialisé à 5)
-        if (selectedRating < 1 || selectedRating > 5) {
-            showAlert("Note invalide", "Veuillez sélectionner une note entre 1 et 5 étoiles.");
+        // Vérifier qu'une note a été sélectionnée (ne peut pas être 0)
+        if (selectedRating == 0) {
+            showAlert("Note requise", "Veuillez sélectionner une note (positive ou négative).");
+            return;
+        }
+
+        if (selectedRating < -5 || selectedRating > 5) {
+            showAlert("Note invalide", "Veuillez sélectionner une note entre -5 et +5.");
             return;
         }
 

@@ -2,34 +2,24 @@ package org.example.campusLink.controllers;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.example.campusLink.Services.ReviewsService;
 import org.example.campusLink.entities.Reviews;
-import org.example.campusLink.units.MyDatabase;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class TutorReviewsController {
 
     @FXML
     private VBox reviewsContainer;
-
-    @FXML
-    private Label tutorName;
-
-    @FXML
-    private Label tutorEmail;
 
     @FXML
     private Label averageRatingLabel;
@@ -43,9 +33,14 @@ public class TutorReviewsController {
     @FXML
     private Label monthReviewsLabel;
 
+    @FXML
+    private Label tutorName;
+
+    @FXML
+    private Label tutorEmail;
+
     private ReviewsService reviewsService;
 
-    // ⚠️ Simulation tuteur connecté
     private final int tutorId = 2;
 
     private List<Reviews> allReviews;
@@ -55,36 +50,12 @@ public class TutorReviewsController {
     public void initialize() {
         reviewsService = new ReviewsService();
 
-        // 🔥 CHARGER LES INFOS DU TUTEUR
-        loadUserInfo();
+        tutorName.setText("Jean Martin");
+        tutorEmail.setText("jean.martin@service.fr");
 
         loadReviews();
         updateStatistics();
     }
-
-    // ===================== LOAD USER INFO =====================
-
-    private void loadUserInfo() {
-        String sql = "SELECT name, email FROM users WHERE id = ?";
-
-        try (Connection conn = MyDatabase.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tutorId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    tutorName.setText(rs.getString("name"));
-                    tutorEmail.setText(rs.getString("email"));
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // ===================== LOAD REVIEWS =====================
 
     private void loadReviews() {
         allReviews = reviewsService.getReviewsByTutor(tutorId);
@@ -112,7 +83,6 @@ public class TutorReviewsController {
         VBox card = new VBox(12);
         card.getStyleClass().add("review-card");
 
-        // === HEADER (Service + Date) ===
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -133,43 +103,170 @@ public class TutorReviewsController {
 
         header.getChildren().addAll(titleSection, spacer, date);
 
-        // === STARS ===
-        String starsText = "★".repeat(review.getRating()) + "☆".repeat(5 - review.getRating());
-        Label starsLabel = new Label(starsText);
-        starsLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: #fbbf24; -fx-padding: 5 0 5 0;");
+        HBox starsDisplay = createStarsDisplay(review.getRating());
 
-        // === COMMENT ===
         Label comment = new Label(review.getComment());
         comment.setWrapText(true);
         comment.getStyleClass().add("review-comment");
 
-        // === FOOTER ===
+        // 🔥 FOOTER avec bouton de signalement
         HBox footer = new HBox(15);
         footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setStyle("-fx-padding: 10 0 0 0; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;");
 
-        // Badge selon la note
-        Label badge = new Label();
-        if (review.getRating() == 5) {
-            badge.setText("⭐ Excellent");
-            badge.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #16a34a; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 12px; -fx-font-weight: bold;");
-        } else if (review.getRating() == 4) {
-            badge.setText("👍 Très bien");
-            badge.setStyle("-fx-background-color: #dbeafe; -fx-text-fill: #2563eb; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 12px; -fx-font-weight: bold;");
-        } else if (review.getRating() == 3) {
-            badge.setText("😊 Bien");
-            badge.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #d97706; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 12px; -fx-font-weight: bold;");
-        } else {
-            badge.setText("⚠️ À améliorer");
-            badge.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 12px; -fx-font-weight: bold;");
+        // Badge si déjà signalé
+        if (review.isReported()) {
+            Label reportedBadge = new Label("⚠️ Signalé à l'admin");
+            reportedBadge.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; " +
+                    "-fx-padding: 5 10; -fx-background-radius: 4; -fx-font-size: 11px; " +
+                    "-fx-font-weight: bold;");
+            footer.getChildren().add(reportedBadge);
         }
 
-        footer.getChildren().add(badge);
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        card.getChildren().addAll(header, starsLabel, comment, footer);
+        // Bouton signaler (désactivé si déjà signalé)
+        Button btnReport = new Button(review.isReported() ? "✓ Déjà signalé" : "🚩 Signaler");
+        btnReport.setDisable(review.isReported());
+
+        if (review.isReported()) {
+            btnReport.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #6b7280; " +
+                    "-fx-font-size: 12px; -fx-padding: 6 12; -fx-background-radius: 6;");
+        } else {
+            btnReport.getStyleClass().add("link-button-danger");
+            btnReport.setStyle("-fx-font-size: 12px; -fx-padding: 6 12;");
+        }
+
+        btnReport.setOnAction(e -> reportReview(review));
+
+        footer.getChildren().addAll(footerSpacer, btnReport);
+
+        card.getChildren().addAll(header, starsDisplay, comment, footer);
         return card;
     }
 
-    // ===================== STATISTICS =====================
+    private HBox createStarsDisplay(int rating) {
+        HBox container = new HBox(8);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.setStyle("-fx-padding: 5 0 5 0;");
+
+        String starsText;
+        String color;
+        String badge;
+
+        if (rating < 0) {
+            int absRating = Math.abs(rating);
+            starsText = "★".repeat(absRating) + "☆".repeat(5 - absRating);
+            color = "#ef4444";
+            badge = "(" + rating + ")";
+        } else if (rating > 0) {
+            starsText = "★".repeat(rating) + "☆".repeat(5 - rating);
+            color = "#fbbf24";
+            badge = "(+" + rating + ")";
+        } else {
+            starsText = "☆☆☆☆☆";
+            color = "#d1d5db";
+            badge = "(Neutre)";
+        }
+
+        Label stars = new Label(starsText);
+        stars.setStyle("-fx-font-size: 22px; -fx-text-fill: " + color + ";");
+
+        Label badgeLabel = new Label(badge);
+        badgeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
+
+        container.getChildren().addAll(stars, badgeLabel);
+        return container;
+    }
+
+    // 🔥 SIGNALER UN AVIS
+    private void reportReview(Reviews review) {
+        // Dialog pour choisir la raison du signalement
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Signaler cet avis");
+        dialog.setHeaderText("Pourquoi souhaitez-vous signaler cet avis ?");
+
+        ButtonType reportButtonType = new ButtonType("Signaler", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(reportButtonType, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+
+        Label instruction = new Label("Sélectionnez une raison :");
+        instruction.setStyle("-fx-font-weight: bold;");
+
+        ToggleGroup reasonGroup = new ToggleGroup();
+
+        RadioButton reason1 = new RadioButton("Contenu inapproprié ou offensant");
+        reason1.setToggleGroup(reasonGroup);
+        reason1.setSelected(true);
+
+        RadioButton reason2 = new RadioButton("Faux avis / spam");
+        reason2.setToggleGroup(reasonGroup);
+
+        RadioButton reason3 = new RadioButton("Harcèlement ou menaces");
+        reason3.setToggleGroup(reasonGroup);
+
+        RadioButton reason4 = new RadioButton("Informations fausses ou trompeuses");
+        reason4.setToggleGroup(reasonGroup);
+
+        RadioButton reason5 = new RadioButton("Autre");
+        reason5.setToggleGroup(reasonGroup);
+
+        TextArea otherReason = new TextArea();
+        otherReason.setPromptText("Précisez la raison...");
+        otherReason.setPrefRowCount(3);
+        otherReason.setDisable(true);
+
+        reason5.setOnAction(e -> otherReason.setDisable(!reason5.isSelected()));
+
+        content.getChildren().addAll(
+                instruction,
+                reason1, reason2, reason3, reason4, reason5,
+                otherReason
+        );
+
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == reportButtonType) {
+                RadioButton selected = (RadioButton) reasonGroup.getSelectedToggle();
+                if (selected == reason5) {
+                    return otherReason.getText().trim().isEmpty()
+                            ? "Autre (non précisé)"
+                            : otherReason.getText().trim();
+                }
+                return selected.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(reason -> {
+            try {
+                reviewsService.reportReview(review.getId(), reason);
+
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Signalement envoyé");
+                successAlert.setHeaderText("✓ Avis signalé avec succès");
+                successAlert.setContentText(
+                        "Votre signalement a été transmis à l'équipe d'administration.\n\n" +
+                                "Ils examineront cet avis dans les plus brefs délais."
+                );
+                successAlert.showAndWait();
+
+                loadReviews();
+
+            } catch (Exception e) {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Erreur");
+                errorAlert.setHeaderText("Erreur lors du signalement");
+                errorAlert.setContentText("Une erreur est survenue : " + e.getMessage());
+                errorAlert.showAndWait();
+            }
+        });
+    }
 
     private void updateStatistics() {
         if (allReviews.isEmpty()) {
@@ -177,26 +274,19 @@ public class TutorReviewsController {
             totalReviewsLabel.setText("0");
             monthReviewsLabel.setText("0");
         } else {
-            // Note moyenne
             double average = allReviews.stream()
                     .mapToInt(Reviews::getRating)
                     .average()
                     .orElse(0.0);
             averageRatingLabel.setText(String.format("%.1f", average));
 
-            // Total
             totalReviewsLabel.setText(String.valueOf(allReviews.size()));
-
-            // Ce mois (simulation)
             monthReviewsLabel.setText("5");
         }
 
-        // 🔥 RÉCUPÉRER LES POINTS DE CONFIANCE
         int trustPoints = reviewsService.getTrustPoints(tutorId);
         trustPointsLabel.setText(String.valueOf(trustPoints));
     }
-
-    // ===================== FILTERS =====================
 
     @FXML
     private void filterAll() {

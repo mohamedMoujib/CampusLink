@@ -36,14 +36,31 @@ public class ReviewsService {
         return reviewsDAO.findById(id);
     }
 
-
-
-    // 🔥 NOUVELLE MÉTHODE AVEC DÉTAILS (noms service et prestataire)
-
     public List<Reviews> getReviewsByStudentWithDetails(int studentId) {
         return reviewsDAO.findByStudentWithDetails(studentId);
     }
 
+    public List<Reviews> getReviewsByTutor(int tutorId) {
+        return reviewsDAO.findByTutorWithDetails(tutorId);
+    }
+
+    public List<Reviews> getAllReviewsWithDetails() {
+        return reviewsDAO.findAllWithDetails();
+    }
+
+    // ===================== 🔥 REPORT MANAGEMENT =====================
+
+    public void reportReview(int reviewId, String reason) {
+        reviewsDAO.reportReview(reviewId, reason);
+    }
+
+    public void unreportReview(int reviewId) {
+        reviewsDAO.unreportReview(reviewId);
+    }
+
+    public int getReportedReviewsCount() {
+        return reviewsDAO.getReportedReviewsCount();
+    }
 
     // ===================== UPDATE =====================
 
@@ -90,11 +107,7 @@ public class ReviewsService {
             System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
         }
     }
-    // ===================== READ TUTOR =====================
 
-    public List<Reviews> getReviewsByTutor(int tutorId) {
-        return reviewsDAO.findByTutorWithDetails(tutorId);
-    }
     // ===================== GET TRUST POINTS =====================
 
     public int getTrustPoints(int userId) {

@@ -4,6 +4,7 @@ import org.example.campusLink.entities.Reviews;
 import org.example.campusLink.units.MyDatabase;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class ReviewsDAO {
 
         String sql = """
             INSERT INTO reviews
-            (student_id, prestataire_id, reservation_id, rating, comment)
-            VALUES (?, ?, ?, ?, ?)
+            (student_id, prestataire_id, reservation_id, rating, comment, is_reported)
+            VALUES (?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = MyDatabase.getInstance().getConnection();
@@ -28,6 +29,7 @@ public class ReviewsDAO {
             ps.setInt(3, r.getReservationId());
             ps.setInt(4, r.getRating());
             ps.setString(5, r.getComment());
+            ps.setBoolean(6, false);
 
             ps.executeUpdate();
 
@@ -41,6 +43,7 @@ public class ReviewsDAO {
             e.printStackTrace();
         }
     }
+
     // ===================== CHECK EXISTENCE =====================
 
     public boolean existsByStudentAndService(int studentId, int reservationId) {
@@ -57,7 +60,7 @@ public class ReviewsDAO {
             ps.setInt(2, reservationId);
 
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next(); // true si déjà existe
+                return rs.next();
             }
 
         } catch (SQLException e) {
@@ -67,8 +70,7 @@ public class ReviewsDAO {
         return false;
     }
 
-
-    // ===================== READ WITH DETAILS (🔥 IMPORTANT) =====================
+    // ===================== READ WITH DETAILS =====================
 
     public List<Reviews> findByStudentWithDetails(int studentId) {
 
@@ -94,19 +96,9 @@ public class ReviewsDAO {
             try (ResultSet rs = ps.executeQuery()) {
 
                 while (rs.next()) {
-
-                    Reviews r = new Reviews();
-                    r.setId(rs.getInt("id"));
-                    r.setStudentId(rs.getInt("student_id"));
-                    r.setPrestataireId(rs.getInt("prestataire_id"));
-                    r.setReservationId(rs.getInt("reservation_id"));
-                    r.setRating(rs.getInt("rating"));
-                    r.setComment(rs.getString("comment"));
-
-                    // 🔥 LES DONNÉES IMPORTANTES
+                    Reviews r = mapResultSetToReview(rs);
                     r.setServiceTitle(rs.getString("service_title"));
                     r.setPrestataireName(rs.getString("prestataire_name"));
-
                     list.add(r);
                 }
             }
@@ -118,74 +110,6 @@ public class ReviewsDAO {
         return list;
     }
 
-    // ===================== SIMPLE READ =====================
-
-    public Reviews findById(int id) {
-
-        String sql = "SELECT * FROM reviews WHERE id = ?";
-
-        try (Connection conn = MyDatabase.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-
-                if (rs.next()) {
-                    Reviews r = new Reviews();
-                    r.setId(rs.getInt("id"));
-                    r.setStudentId(rs.getInt("student_id"));
-                    r.setPrestataireId(rs.getInt("prestataire_id"));
-                    r.setReservationId(rs.getInt("reservation_id"));
-                    r.setRating(rs.getInt("rating"));
-                    r.setComment(rs.getString("comment"));
-                    return r;
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public void update(Reviews r) {
-
-        String sql = """
-            UPDATE reviews
-            SET rating = ?, comment = ?
-            WHERE id = ?
-        """;
-
-        try (Connection conn = MyDatabase.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, r.getRating());
-            ps.setString(2, r.getComment());
-            ps.setInt(3, r.getId());
-
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void delete(int id) {
-
-        String sql = "DELETE FROM reviews WHERE id = ?";
-
-        try (Connection conn = MyDatabase.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
     // ===================== READ BY TUTOR WITH DETAILS =====================
 
     public List<Reviews> findByTutorWithDetails(int tutorId) {
@@ -212,19 +136,9 @@ public class ReviewsDAO {
             try (ResultSet rs = ps.executeQuery()) {
 
                 while (rs.next()) {
-
-                    Reviews r = new Reviews();
-                    r.setId(rs.getInt("id"));
-                    r.setStudentId(rs.getInt("student_id"));
-                    r.setPrestataireId(rs.getInt("prestataire_id")); // ✅ Utiliser prestataire_id
-                    r.setReservationId(rs.getInt("reservation_id"));
-                    r.setRating(rs.getInt("rating"));
-                    r.setComment(rs.getString("comment"));
-
-                    // 🔥 Données importantes
+                    Reviews r = mapResultSetToReview(rs);
                     r.setServiceTitle(rs.getString("service_title"));
                     r.setStudentName(rs.getString("student_name"));
-
                     list.add(r);
                 }
             }
@@ -235,6 +149,183 @@ public class ReviewsDAO {
 
         return list;
     }
+
+    // ===================== READ ALL WITH DETAILS (POUR ADMIN) =====================
+
+    public List<Reviews> findAllWithDetails() {
+
+        List<Reviews> list = new ArrayList<>();
+
+        String sql = """
+        SELECT r.*,
+               s.title AS service_title,
+               student.name AS student_name,
+               prestataire.name AS prestataire_name
+        FROM reviews r
+        JOIN reservations res ON r.reservation_id = res.id
+        JOIN services s ON res.service_id = s.id
+        JOIN users student ON r.student_id = student.id
+        JOIN users prestataire ON r.prestataire_id = prestataire.id
+        ORDER BY r.is_reported DESC, r.id DESC
+    """;
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    Reviews r = mapResultSetToReview(rs);
+                    r.setServiceTitle(rs.getString("service_title"));
+                    r.setStudentName(rs.getString("student_name"));
+                    r.setPrestataireName(rs.getString("prestataire_name"));
+                    list.add(r);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // ===================== 🔥 GET REPORTED REVIEWS COUNT =====================
+
+    public int getReportedReviewsCount() {
+        String sql = "SELECT COUNT(*) FROM reviews WHERE is_reported = TRUE";
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    // ===================== SIMPLE READ =====================
+
+    public Reviews findById(int id) {
+
+        String sql = "SELECT * FROM reviews WHERE id = ?";
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                if (rs.next()) {
+                    return mapResultSetToReview(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // ===================== UPDATE =====================
+
+    public void update(Reviews r) {
+
+        String sql = """
+            UPDATE reviews
+            SET rating = ?, comment = ?
+            WHERE id = ?
+        """;
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, r.getRating());
+            ps.setString(2, r.getComment());
+            ps.setInt(3, r.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===================== 🔥 REPORT REVIEW =====================
+
+    public void reportReview(int reviewId, String reason) {
+
+        String sql = """
+            UPDATE reviews
+            SET is_reported = TRUE,
+                report_reason = ?,
+                reported_at = ?
+            WHERE id = ?
+        """;
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, reason);
+            ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            ps.setInt(3, reviewId);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===================== 🔥 UNREPORT REVIEW (Admin peut annuler le signalement) =====================
+
+    public void unreportReview(int reviewId) {
+
+        String sql = """
+            UPDATE reviews
+            SET is_reported = FALSE,
+                report_reason = NULL,
+                reported_at = NULL
+            WHERE id = ?
+        """;
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, reviewId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===================== DELETE =====================
+
+    public void delete(int id) {
+
+        String sql = "DELETE FROM reviews WHERE id = ?";
+
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     // ===================== GET TRUST POINTS =====================
 
     public int getTrustPointsByUserId(int userId) {
@@ -258,5 +349,26 @@ public class ReviewsDAO {
         return 0;
     }
 
-}
+    // ===================== 🔥 HELPER METHOD =====================
 
+    private Reviews mapResultSetToReview(ResultSet rs) throws SQLException {
+        Reviews r = new Reviews();
+        r.setId(rs.getInt("id"));
+        r.setStudentId(rs.getInt("student_id"));
+        r.setPrestataireId(rs.getInt("prestataire_id"));
+        r.setReservationId(rs.getInt("reservation_id"));
+        r.setRating(rs.getInt("rating"));
+        r.setComment(rs.getString("comment"));
+
+        // 🔥 Champs de signalement
+        r.setReported(rs.getBoolean("is_reported"));
+        r.setReportReason(rs.getString("report_reason"));
+
+        Timestamp reportedAt = rs.getTimestamp("reported_at");
+        if (reportedAt != null) {
+            r.setReportedAt(reportedAt.toLocalDateTime());
+        }
+
+        return r;
+    }
+}

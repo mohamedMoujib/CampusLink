@@ -20,16 +20,13 @@ class ReviewServiceTest {
     int reservationId1 = 10;
     int reservationId2 = 11;
     int reservationId3 = 12;
+    int reservationId4 = 13;
 
     @BeforeEach
     void setup() {
-
-        // 🔥 Nettoyer la table reviews avant chaque test
         try (Connection conn = MyDatabase.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement("DELETE FROM reviews")) {
-
             ps.executeUpdate();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -38,12 +35,9 @@ class ReviewServiceTest {
         System.out.println("\n=== Nouveau test ===");
     }
 
-    // ==================== AJOUT ====================
-
     @Test
-    void testAddReview() {
-
-        System.out.println(">>> TEST ADD START");
+    void testAddPositiveReview() {
+        System.out.println(">>> TEST ADD POSITIVE REVIEW");
 
         Reviews review = new Reviews(
                 studentId,
@@ -62,14 +56,35 @@ class ReviewServiceTest {
         assertNotNull(saved);
         assertEquals(4, saved.getRating());
 
-        System.out.println("✅ Review ajoutée ID = " + review.getId());
+        System.out.println("✅ Review positive ajoutée ID = " + review.getId());
     }
 
-    // ==================== UPDATE ====================
+    @Test
+    void testAddNegativeReview() {
+        System.out.println(">>> TEST ADD NEGATIVE REVIEW");
+
+        Reviews review = new Reviews(
+                studentId,
+                prestataireId,
+                reservationId4,
+                -3,
+                "Mauvaise expérience"
+        );
+
+        reviewsService.addReview(review);
+
+        assertTrue(review.getId() > 0);
+
+        Reviews saved = reviewsService.getReview(review.getId());
+
+        assertNotNull(saved);
+        assertEquals(-3, saved.getRating());
+
+        System.out.println("✅ Review négative ajoutée ID = " + review.getId());
+    }
 
     @Test
     void testUpdateReview() {
-
         System.out.println(">>> TEST UPDATE START");
 
         Reviews review = new Reviews(
@@ -83,22 +98,19 @@ class ReviewServiceTest {
         reviewsService.addReview(review);
         int id = review.getId();
 
-        reviewsService.updateReview(id, 5, "Updated");
+        reviewsService.updateReview(id, -2, "Updated to negative");
 
         Reviews updated = reviewsService.getReview(id);
 
         assertNotNull(updated);
-        assertEquals(5, updated.getRating());
-        assertEquals("Updated", updated.getComment());
+        assertEquals(-2, updated.getRating());
+        assertEquals("Updated to negative", updated.getComment());
 
-        System.out.println("✅ Review modifiée");
+        System.out.println("✅ Review modifiée de positive à négative");
     }
-
-    // ==================== DELETE ====================
 
     @Test
     void testDeleteReview() {
-
         System.out.println(">>> TEST DELETE START");
 
         Reviews review = new Reviews(
