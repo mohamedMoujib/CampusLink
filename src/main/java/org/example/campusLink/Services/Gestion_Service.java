@@ -637,6 +637,7 @@ public class Gestion_Service {
         try {
             s.setPrestataireName(rs.getString("prestataire_name"));
         } catch (SQLException e) {
+
             // Column doesn't exist, skip
         }
 

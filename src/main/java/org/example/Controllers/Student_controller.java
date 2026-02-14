@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.scene.Node;
@@ -298,8 +299,11 @@ public class Student_controller {
         }
     }
 
+    /**
+     * ✅ CORRECTION: Méthode pour gérer le clic de souris (MouseEvent)
+     */
     @FXML
-    private void goToMesDemandes() {
+    private void goToMesDemandes(MouseEvent event) {
         try {
             System.out.println("Navigating to mes demandes...");
 
@@ -322,10 +326,10 @@ public class Student_controller {
     }
 
     /**
-     * ✅ NOUVEAU: Navigate to Publications page
+     * ✅ CORRECTION: Méthode pour naviguer vers Publications (MouseEvent)
      */
     @FXML
-    private void goToPublications() {
+    private void goToPublications(MouseEvent event) {
         try {
             System.out.println("Navigating to publications...");
 

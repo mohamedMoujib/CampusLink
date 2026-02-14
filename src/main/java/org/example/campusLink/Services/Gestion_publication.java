@@ -24,8 +24,8 @@ public class Gestion_publication {
         String sql = """
             INSERT INTO publications
             (student_id, type_publication, titre, message, image_url, localisation,
-             service_id, prestataire_id, requested_date, proposed_price, prix_vente, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             service_id, requested_date, proposed_price, prix_vente, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -39,19 +39,16 @@ public class Gestion_publication {
             if (pub.getServiceId() != null) ps.setInt(7, pub.getServiceId());
             else ps.setNull(7, Types.INTEGER);
 
-            if (pub.getPrestataireId() != null) ps.setInt(8, pub.getPrestataireId());
-            else ps.setNull(8, Types.INTEGER);
+            if (pub.getRequestedDate() != null) ps.setTimestamp(8, pub.getRequestedDate());
+            else ps.setNull(8, Types.TIMESTAMP);
 
-            if (pub.getRequestedDate() != null) ps.setTimestamp(9, pub.getRequestedDate());
-            else ps.setNull(9, Types.TIMESTAMP);
+            if (pub.getProposedPrice() != null) ps.setBigDecimal(9, pub.getProposedPrice());
+            else ps.setNull(9, Types.DECIMAL);
 
-            if (pub.getProposedPrice() != null) ps.setBigDecimal(10, pub.getProposedPrice());
+            if (pub.getPrixVente() != null) ps.setBigDecimal(10, pub.getPrixVente());
             else ps.setNull(10, Types.DECIMAL);
 
-            if (pub.getPrixVente() != null) ps.setBigDecimal(11, pub.getPrixVente());
-            else ps.setNull(11, Types.DECIMAL);
-
-            ps.setString(12, pub.getStatus().name());
+            ps.setString(11, pub.getStatus().name());
 
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
@@ -67,10 +64,12 @@ public class Gestion_publication {
         List<Publications> publications = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, c.name as category_name
+                   s.price as service_price, s.prestataire_id, c.name as category_name,
+                   u.name as prestataire_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
+            LEFT JOIN users u ON s.prestataire_id = u.id
             WHERE 1=1
         """);
 
@@ -90,10 +89,12 @@ public class Gestion_publication {
     public List<Publications> afficherPublicationsParEtudiant(int studentId) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, c.name as category_name
+                   s.price as service_price, s.prestataire_id, c.name as category_name,
+                   u.name as prestataire_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
+            LEFT JOIN users u ON s.prestataire_id = u.id
             WHERE p.student_id = ?
             ORDER BY p.created_at DESC
         """;
@@ -112,10 +113,12 @@ public class Gestion_publication {
     public Publications getPublicationById(int id) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, c.name as category_name
+                   s.price as service_price, s.prestataire_id, c.name as category_name,
+                   u.name as prestataire_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
+            LEFT JOIN users u ON s.prestataire_id = u.id
             WHERE p.id = ?
         """;
 
@@ -132,10 +135,12 @@ public class Gestion_publication {
     public List<Publications> rechercherPublications(String keyword) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, c.name as category_name
+                   s.price as service_price, s.prestataire_id, c.name as category_name,
+                   u.name as prestataire_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
+            LEFT JOIN users u ON s.prestataire_id = u.id
             WHERE p.titre LIKE ? OR p.message LIKE ?
             ORDER BY p.created_at DESC
         """;
@@ -211,8 +216,14 @@ public class Gestion_publication {
         Integer serviceId = (Integer) rs.getObject("service_id");
         p.setServiceId(serviceId);
 
-        Integer prestataireId = (Integer) rs.getObject("prestataire_id");
-        p.setPrestataireId(prestataireId);
+        // Récupérer le prestataire_id depuis la table services (via la jointure)
+        try {
+            Integer prestataireId = (Integer) rs.getObject("prestataire_id");
+            p.setPrestataireId(prestataireId);
+        } catch (SQLException e) {
+            // La colonne n'existe pas, ignorer
+            p.setPrestataireId(null);
+        }
 
         p.setRequestedDate(rs.getTimestamp("requested_date"));
         p.setProposedPrice(rs.getBigDecimal("proposed_price"));
@@ -226,6 +237,12 @@ public class Gestion_publication {
         p.setServiceDescription(rs.getString("service_description"));
         p.setServicePrice(rs.getBigDecimal("service_price"));
         p.setCategoryName(rs.getString("category_name"));
+
+        try {
+            p.setPrestataireName(rs.getString("prestataire_name"));
+        } catch (SQLException e) {
+            // La colonne n'existe pas, ignorer
+        }
 
         return p;
     }

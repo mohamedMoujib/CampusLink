@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.scene.Node;
@@ -420,10 +421,10 @@ public class Publication_controller {
     }
 
     /**
-     * Navigation vers mes publications
+     * ✅ CORRECTION: Navigation vers mes publications (MouseEvent)
      */
     @FXML
-    private void goToMesPublications() {
+    private void goToMesPublications(MouseEvent event) {
         try {
             List<Publications> mesPublications = gestionPublication.afficherPublicationsParEtudiant(currentStudentId);
             publicationsGrid.getChildren().clear();
@@ -455,15 +456,15 @@ public class Publication_controller {
     }
 
     /**
-     * Retour à la page étudiant
+     * ✅ CORRECTION: Retour à la page étudiant (MouseEvent)
      */
     @FXML
-    private void goToStudent(javafx.event.ActionEvent event) {
+    private void goToStudent(MouseEvent event) {
         try {
             System.out.println("Navigating to student page...");
 
             Parent root = FXMLLoader.load(getClass().getResource("/Student.fxml"));
-            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            Stage stage = (Stage) publicationsGrid.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Rechercher des Services");
 
