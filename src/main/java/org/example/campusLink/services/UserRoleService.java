@@ -17,6 +17,9 @@ public class UserRoleService  {
     public UserRoleService() {
         connection = MyDatabase.getInstance().getConnection();
     }
+    public UserRoleService(Connection connection) {
+        this.connection = connection;
+    }
 
     public void ajouter(int userId, int roleId) throws SQLException {
         if (userHasRole(userId, roleId)) return;

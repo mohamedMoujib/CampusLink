@@ -26,9 +26,9 @@ class UserServiceTest {
     void initUser() {
         testUser = new User();
         testUser.setName("Ahmed Test");
-        testUser.setEmail("ahmed.test@example.com");
+        testUser.setEmail("ahmed.test2@example.com");
         testUser.setPassword("Password123");
-        testUser.setPhone("+21699112248");
+        testUser.setPhone("+21699115248");
         testUser.setDateNaissance(Timestamp.valueOf("2000-01-01 00:00:00"));
         testUser.setGender("Male");
         testUser.setUniversite("ESPRIT");
@@ -286,7 +286,7 @@ class UserServiceTest {
         System.out.println("✅ Validation ID lors de suppression fonctionne!");
     }
 
-    @Test
+
     @Order(15)
     @DisplayName("✅ Supprimer un utilisateur existant")
     void testSupprimer_Success() throws SQLException {

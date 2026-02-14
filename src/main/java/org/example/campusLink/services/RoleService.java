@@ -16,7 +16,9 @@ public class RoleService implements Iservice<Role> {
     public RoleService() {
         connection = MyDatabase.getInstance().getConnection();
     }
-
+    public RoleService(Connection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public void ajouter(Role role) throws SQLException {

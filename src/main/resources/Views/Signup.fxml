@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.SignupController"
+           styleClass="root-pane"
+           stylesheets="@/Styles/Login.css">
+
+    <fx:define>
+        <ToggleGroup fx:id="roleGroup"/>
+    </fx:define>
+
+    <VBox alignment="CENTER" styleClass="background">
+
+        <VBox styleClass="login-card"
+              spacing="15"
+              maxWidth="500">
+
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="3">
+                <Text text="Créer un compte" styleClass="title"/>
+                <Text text="Rejoignez CampusLink" styleClass="subtitle"/>
+            </VBox>
+
+            <!-- Role -->
+            <HBox spacing="10" alignment="CENTER">
+                <ToggleButton fx:id="btnEtudiant"
+                              text="Étudiant"
+                              toggleGroup="$roleGroup"
+                              selected="true"
+                              styleClass="role-btn-wide"/>
+
+                <ToggleButton fx:id="btnTuteur"
+                              text="Prestataire"
+                              toggleGroup="$roleGroup"
+                              styleClass="role-btn-wide"/>
+            </HBox>
+
+            <!-- Name -->
+            <HBox spacing="10">
+                <TextField fx:id="txtPrenom"
+                           promptText="Prénom"
+                           styleClass="input-field-compact"
+                           HBox.hgrow="ALWAYS"/>
+
+                <TextField fx:id="txtNom"
+                           promptText="Nom"
+                           styleClass="input-field-compact"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <!-- Email & Phone -->
+            <HBox spacing="10">
+                <TextField fx:id="txtEmail"
+                           promptText="Email"
+                           styleClass="input-field-compact"
+                           HBox.hgrow="ALWAYS"/>
+
+                <TextField fx:id="txtPhone"
+                           promptText="Téléphone"
+                           styleClass="input-field-compact"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <HBox spacing="10">
+                <ComboBox fx:id="cmbGender"
+                          promptText="Genre"
+                          styleClass="input-field-compact"
+                          HBox.hgrow="ALWAYS"/>
+                <!-- Address -->
+                <TextField fx:id="txtAddress"
+                           promptText="Adresse"
+                           styleClass="input-field-compact"
+                           HBox.hgrow="ALWAYS"/>
+
+            </HBox>
+            <!-- University -->
+            <TextField fx:id="txtUniversite"
+                       promptText="Université"
+                       styleClass="input-field-compact"/>
+            <!-- Gender & Filiere -->
+            <HBox spacing="10">
+            <TextField fx:id="txtSpecialization"
+                       promptText="Spécialisation"
+                       styleClass="input-field-compact"/>
+            <TextField fx:id="txtFiliere"
+                       promptText="Filière"
+                       styleClass="input-field-compact"
+                       HBox.hgrow="ALWAYS"/>
+
+        </HBox>
+
+
+
+
+            <!-- Password -->
+            <HBox spacing="10">
+                <PasswordField fx:id="txtPassword"
+                               promptText="Mot de passe"
+                               styleClass="input-field-compact"
+                               HBox.hgrow="ALWAYS"/>
+
+                <PasswordField fx:id="txtConfirmPassword"
+                               promptText="Confirmer mot de passe"
+                               styleClass="input-field-compact"
+                               HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <!-- Terms -->
+            <CheckBox fx:id="chkTerms"
+                      text="J'accepte les conditions et la confidentialité"
+                      styleClass="checkbox"/>
+
+            <!-- Button -->
+            <Button fx:id="btnSignup"
+                    text="Créer mon compte"
+                    styleClass="btn-primary"
+                    maxWidth="Infinity"
+                    onAction="#handleSignup"/>
+
+            <!-- Login -->
+            <HBox alignment="CENTER" spacing="5">
+                <Text text="Déjà un compte ?" styleClass="footer-text"/>
+                <Hyperlink fx:id="linkLogin"
+                           text="Se connecter"
+                           styleClass="link-primary"
+                           onAction="#handleLogin"/>
+            </HBox>
+
+            <padding>
+                <Insets top="25" right="35" bottom="25" left="35"/>
+            </padding>
+
+        </VBox>
+
+    </VBox>
+</StackPane>

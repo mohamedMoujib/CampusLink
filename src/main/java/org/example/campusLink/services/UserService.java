@@ -4,6 +4,8 @@ import org.example.campusLink.entities.Role;
 import org.example.campusLink.entities.User;
 import org.example.campusLink.utils.MyDatabase;
 import org.example.campusLink.utils.UserValidator;
+import org.example.campusLink.utils.PasswordUtil;
+
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,7 +17,9 @@ public class UserService implements Iservice<User>{
     public UserService () {
         connection = MyDatabase.getInstance().getConnection();
     }
-
+    public UserService(Connection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public void ajouter(User user) throws SQLException {
@@ -38,7 +42,7 @@ public class UserService implements Iservice<User>{
 
             pst.setString(1, user.getName());
             pst.setString(2, user.getEmail());
-            pst.setString(3, user.getPassword());
+            pst.setString(3, PasswordUtil.hashPassword(user.getPassword()));
             pst.setString(4, user.getPhone());
             pst.setTimestamp(5, user.getDateNaissance());
             pst.setString(6, user.getGender());
@@ -268,4 +272,31 @@ private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         return false;
     }
 
+    public User getByEmail(String email) throws SQLException {
+
+        String query = "SELECT * FROM users WHERE email = ?";
+
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setString(1, email);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setPhone(rs.getString("phone"));
+                user.setGender(rs.getString("gender"));
+                user.setUniversite(rs.getString("universite"));
+                user.setFiliere(rs.getString("filiere"));
+                user.setSpecialization(rs.getString("specialization"));
+                user.setTrustPoints(rs.getInt("trust_points"));
+                user.setProfilePicture(rs.getString("profile_picture"));
+                user.setAddress(rs.getString("address"));
+                user.setStatus(rs.getString("status"));
+                return user;
+            }
+        }
+        return null ;
+    }
 }
