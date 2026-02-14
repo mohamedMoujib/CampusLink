@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane xmlns="http://javafx.com/javafx/23"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.campusLink.controllers.PaymentController"
+            styleClass="root"
+            stylesheets="@PaymentForm.css">
+
+    <top>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📚" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2">
+                        <Label text="CampusLink" styleClass="logo"/>
+                        <Label text="Espace Étudiant" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="20" alignment="CENTER_RIGHT">
+                    <Label text="🔔" style="-fx-font-size: 20px;"/>
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label text="Marie Dubois" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                        <Label text="marie.dubois@univ.fr" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                    <Label text="👤" style="-fx-font-size: 24px;"/>
+                </HBox>
+            </HBox>
+
+            <HBox spacing="0" styleClass="nav-tabs">
+                <Button text="🔍 Rechercher des services" styleClass="nav-tab"/>
+                <Button text="📅 Mes réservations" styleClass="nav-tab"/>
+                <Button text="💳 Paiements" styleClass="nav-tab-active"/>
+                <Button text="⭐ Mes avis" styleClass="nav-tab"/>
+                <Button text="👤 Mon profil" styleClass="nav-tab"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox styleClass="form-card" spacing="20" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="40" right="60" bottom="40" left="60"/>
+            </padding>
+
+            <Label text="Ajouter un Paiement" styleClass="form-title"/>
+
+            <VBox spacing="5">
+                <Label text="ID Réservation"/>
+                <TextField fx:id="reservationIdField" promptText="Entrez l'ID de réservation"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Montant"/>
+                <TextField fx:id="amountField" promptText="Entrez le montant"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Méthode de paiement"/>
+                <ComboBox fx:id="methodComboBox"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <Label text="Statut du paiement"/>
+                <ComboBox fx:id="statusComboBox"/>
+            </VBox>
+
+            <Button fx:id="submitButton" text="Valider le paiement" styleClass="primary-button"/>
+            <Label fx:id="messageLabel" text="" style="-fx-text-fill: #ef4444;"/>
+        </VBox>
+    </center>
+
+</BorderPane>

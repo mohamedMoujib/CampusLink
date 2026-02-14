@@ -72,7 +72,7 @@ class ServicesPaymentsTest {
     @Test
     void testModifier() throws SQLException {
         testPayment.setAmount(200.0f);
-        testPayment.setStatus(Status.FAILED);
+        testPayment.setStatus(Status.CANCELLED);
 
         paymentService.modifier(testPayment);
 
@@ -80,7 +80,7 @@ class ServicesPaymentsTest {
         boolean updated = payments.stream().anyMatch(p ->
                 p.getId() == testPayment.getId()
                         && p.getAmount() == 200.0f
-                        && p.getStatus() == Status.FAILED
+                        && p.getStatus() == Status.CANCELLED
         );
 
         assertTrue(updated, "Payment should be updated");
