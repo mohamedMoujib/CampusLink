@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controllers.CreateDemande_controller"
+            stylesheets="@/Styles/Create_Demande.css"
+            styleClass="root">
+
+    <!-- TOP HEADER -->
+    <top>
+        <VBox styleClass="header-container">
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <!-- Back Button -->
+                <Button styleClass="back-btn" text="←" onAction="#goBack"/>
+
+                <!-- Title Section -->
+                <VBox spacing="5">
+                    <Label text="Nouvelle Demande de Service" styleClass="page-title"/>
+                    <Label text="Remplissez le formulaire pour créer votre demande" styleClass="page-subtitle"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CENTER - FORM -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox alignment="TOP_CENTER" spacing="20">
+                <padding>
+                    <Insets top="30" right="30" bottom="30" left="30"/>
+                </padding>
+
+                <!-- MAIN FORM CONTAINER -->
+                <VBox styleClass="form-container" maxWidth="800" spacing="25">
+
+                    <!-- INFO BOX -->
+                    <HBox styleClass="info-box" spacing="12" alignment="CENTER_LEFT">
+                        <Label text="ℹ️" styleClass="info-box-icon"/>
+                        <Label text="Veuillez remplir tous les champs obligatoires (*) pour soumettre votre demande."
+                               styleClass="info-box-text" wrapText="true"/>
+                    </HBox>
+
+                    <!-- SECTION 1: SERVICE SELECTION -->
+                    <VBox styleClass="form-section">
+                        <Label text="1. Sélection du Service" styleClass="section-title"/>
+                        <Separator styleClass="section-divider"/>
+
+                        <!-- Service ComboBox -->
+                        <VBox styleClass="field-group">
+                            <HBox spacing="5" alignment="CENTER_LEFT">
+                                <Label text="Service" styleClass="field-label"/>
+                                <Label text="*" styleClass="required-indicator"/>
+                            </HBox>
+                            <ComboBox fx:id="serviceCombo"
+                                      promptText="Sélectionnez un service..."
+                                      styleClass="form-select"
+                                      maxWidth="Infinity"
+                                      onAction="#onServiceSelected"/>
+                            <Label text="Choisissez le service que vous souhaitez réserver" styleClass="field-hint"/>
+                        </VBox>
+
+                        <!-- Service Preview (shown after selection) -->
+                        <VBox fx:id="servicePreviewBox" styleClass="service-preview" visible="false" managed="false" spacing="12">
+                            <Label text="📋 Détails du Service" styleClass="service-preview-title"/>
+
+                            <HBox alignment="CENTER_LEFT" spacing="15">
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="previewServiceName" text="Nom du service" styleClass="service-preview-title"/>
+                                    <Label fx:id="previewServiceDescription" text="Description..."
+                                           styleClass="service-preview-description" wrapText="true"/>
+                                </VBox>
+
+                                <VBox alignment="CENTER_RIGHT" spacing="5">
+                                    <Label fx:id="previewServicePrice" text="0.00€" styleClass="service-preview-price"/>
+                                    <Label fx:id="previewServiceCategory" text="Catégorie" styleClass="service-preview-category"/>
+                                </VBox>
+                            </HBox>
+
+                            <Label fx:id="previewServiceProvider" text="👨‍💼 Prestataire: ..." styleClass="service-preview-provider"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- SECTION 2: DEMANDE DETAILS -->
+                    <VBox styleClass="form-section">
+                        <Label text="2. Détails de votre Demande" styleClass="section-title"/>
+                        <Separator styleClass="section-divider"/>
+
+                        <!-- Message -->
+                        <VBox styleClass="field-group">
+                            <Label text="Message" styleClass="field-label"/>
+                            <TextArea fx:id="messageArea"
+                                      promptText="Décrivez vos besoins, vos attentes, ou toute information utile pour le prestataire..."
+                                      styleClass="form-textarea"
+                                      wrapText="true"
+                                      prefRowCount="5"/>
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="Expliquez en quelques mots ce que vous attendez de ce service" styleClass="field-hint"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="messageCounter" text="0/500" styleClass="character-counter"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Date souhaitée -->
+                        <VBox styleClass="field-group">
+                            <Label text="Date souhaitée (optionnel)" styleClass="field-label"/>
+                            <DatePicker fx:id="requestedDatePicker"
+                                        promptText="Sélectionnez une date..."
+                                        styleClass="form-date-picker"
+                                        maxWidth="Infinity"/>
+                            <Label text="Indiquez la date à laquelle vous souhaitez bénéficier du service" styleClass="field-hint"/>
+                        </VBox>
+
+                        <!-- Prix proposé -->
+                        <VBox styleClass="field-group">
+                            <Label text="Prix proposé (optionnel)" styleClass="field-label"/>
+                            <HBox styleClass="price-input-container">
+                                <TextField fx:id="proposedPriceField"
+                                           promptText="0.00"
+                                           styleClass="price-input"/>
+                                <Label text="€" styleClass="price-currency"/>
+                            </HBox>
+                            <Label text="Proposez un prix si vous souhaitez négocier (laisser vide pour accepter le prix du service)"
+                                   styleClass="field-hint"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- SECTION 3: CONFIRMATION -->
+                    <VBox styleClass="form-section" spacing="15">
+                        <Label text="3. Confirmation" styleClass="section-title"/>
+                        <Separator styleClass="section-divider"/>
+
+                        <!-- Terms checkbox -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="termsCheckBox" styleClass="form-checkbox"/>
+                            <Label text="J'accepte les conditions générales d'utilisation" styleClass="field-label"/>
+                        </HBox>
+
+                        <!-- Warning Box -->
+                        <HBox styleClass="warning-box" spacing="12" alignment="CENTER_LEFT">
+                            <Label text="⚠️" styleClass="warning-box-icon"/>
+                            <Label text="Votre demande sera envoyée au prestataire qui pourra l'accepter ou la refuser. Vous recevrez une notification de sa décision."
+                                   styleClass="warning-box-text" wrapText="true"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- BUTTON CONTAINER -->
+                    <HBox styleClass="button-container" spacing="15">
+                        <Button text="Annuler"
+                                styleClass="btn-secondary"
+                                onAction="#goBack"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="Soumettre la Demande"
+                                styleClass="btn-primary"
+                                onAction="#submitDemande"
+                                disable="true"
+                                fx:id="submitButton"/>
+                    </HBox>
+
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

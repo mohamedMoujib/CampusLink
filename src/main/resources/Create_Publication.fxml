@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controllers.CreatePublication_controller"
+            prefWidth="1000" prefHeight="800"
+            stylesheets="/Styles/Create_Publication.css"
+            styleClass="root">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" styleClass="header">
+            <Button text="← Retour" onAction="#goBack" styleClass="back-btn"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Label text="📢 Nouvelle Publication" styleClass="header-title"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
+
+    <!-- CONTENT -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="30" styleClass="form-container">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <!-- ÉTAPE 1: TYPE DE PUBLICATION -->
+                <VBox spacing="15" styleClass="section">
+                    <Label text="1. Type de Publication" styleClass="section-title"/>
+                    <Label text="Que souhaitez-vous faire ?" styleClass="section-subtitle"/>
+
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <RadioButton fx:id="typeVenteRadio"
+                                     text="🏷️ Vendre un objet"
+                                     styleClass="type-radio"/>
+
+                        <RadioButton fx:id="typeDemandeRadio"
+                                     text="🔍 Demander un service"
+                                     styleClass="type-radio"/>
+                    </HBox>
+                </VBox>
+
+                <!-- ÉTAPE 2: INFORMATIONS PRINCIPALES -->
+                <VBox spacing="15" styleClass="section">
+                    <Label text="2. Informations Principales" styleClass="section-title"/>
+
+                    <!-- Titre -->
+                    <VBox spacing="8">
+                        <Label text="Titre *" styleClass="field-label"/>
+                        <TextField fx:id="titreField"
+                                   promptText="Ex: Vends Laptop Dell XPS 13 ou Cherche Colocataire"
+                                   styleClass="text-field"
+                                   maxWidth="Infinity"/>
+                        <Label text="Maximum 200 caractères" styleClass="help-text"/>
+                    </VBox>
+
+                    <!-- Description -->
+                    <VBox spacing="8">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Description *" styleClass="field-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="messageCounter" text="0/1000" styleClass="char-counter"/>
+                        </HBox>
+                        <TextArea fx:id="messageArea"
+                                  promptText="Décrivez votre publication en détail..."
+                                  styleClass="text-area"
+                                  prefRowCount="6"
+                                  wrapText="true"/>
+                        <Label text="Soyez précis et détaillé pour attirer l'attention" styleClass="help-text"/>
+                    </VBox>
+
+                    <!-- Prix -->
+                    <VBox spacing="8">
+                        <Label text="Prix (€) *" styleClass="field-label"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <TextField fx:id="prixField"
+                                       promptText="Ex: 650.00"
+                                       styleClass="text-field"
+                                       prefWidth="200"/>
+                            <Label text="€" styleClass="currency-symbol"/>
+                        </HBox>
+                        <Label text="Prix de vente ou budget pour une demande" styleClass="help-text"/>
+                    </VBox>
+
+                    <!-- Localisation -->
+                    <VBox spacing="8">
+                        <Label text="Localisation (optionnel)" styleClass="field-label"/>
+                        <TextField fx:id="localisationField"
+                                   promptText="Ex: Campus Nord, Résidence A"
+                                   styleClass="text-field"
+                                   maxWidth="Infinity"/>
+                        <Label text="Où se trouve l'objet ou où cherchez-vous le service ?" styleClass="help-text"/>
+                    </VBox>
+                </VBox>
+
+                <!-- ÉTAPE 3: IMAGE -->
+                <VBox spacing="15" styleClass="section">
+                    <Label text="3. Image (optionnel)" styleClass="section-title"/>
+                    <Label text="Ajoutez une photo pour rendre votre annonce plus attractive" styleClass="section-subtitle"/>
+
+                    <!-- Zone d'upload -->
+                    <VBox spacing="15" styleClass="upload-zone" alignment="CENTER">
+
+                        <!-- Preview de l'image -->
+                        <ImageView fx:id="imagePreview"
+                                   fitWidth="400"
+                                   fitHeight="300"
+                                   preserveRatio="true"
+                                   styleClass="image-preview"/>
+
+                        <!-- Nom du fichier -->
+                        <Label fx:id="imageFileLabel"
+                               styleClass="file-name"/>
+
+                        <!-- Boutons -->
+                        <HBox spacing="15" alignment="CENTER">
+                            <Button fx:id="uploadImageButton"
+                                    text="📷 Ajouter une image (optionnel)"
+                                    onAction="#onUploadImage"
+                                    styleClass="upload-btn"/>
+
+                            <Button fx:id="removeImageButton"
+                                    text="🗑️ Supprimer"
+                                    onAction="#onRemoveImage"
+                                    styleClass="remove-btn"/>
+                        </HBox>
+
+                        <Label text="Formats acceptés: JPG, PNG, GIF • Taille max: 5 MB" styleClass="help-text"/>
+                    </VBox>
+                </VBox>
+
+                <!-- ÉTAPE 4: CONDITIONS -->
+                <VBox spacing="15" styleClass="section">
+                    <Label text="4. Conditions Générales" styleClass="section-title"/>
+
+                    <!-- CGU Checkbox -->
+                    <CheckBox fx:id="termsCheckBox"
+                              styleClass="terms-checkbox"
+                              wrapText="true">
+                        <graphic>
+                            <Label text="J'accepte les conditions générales d'utilisation et je certifie que les informations fournies sont exactes"
+                                   styleClass="terms-text"
+                                   wrapText="true"
+                                   maxWidth="650"/>
+                        </graphic>
+                    </CheckBox>
+
+                    <!-- Avertissement -->
+                    <HBox spacing="12" styleClass="warning-box">
+                        <Label text="⚠️" styleClass="warning-icon"/>
+                        <VBox spacing="5">
+                            <Label text="Attention" styleClass="warning-title"/>
+                            <Label text="Votre publication sera visible par tous les étudiants. Assurez-vous de ne pas partager d'informations personnelles sensibles."
+                                   styleClass="warning-text"
+                                   wrapText="true"
+                                   maxWidth="650"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- BOUTONS D'ACTION -->
+                <HBox spacing="20" alignment="CENTER" styleClass="action-buttons">
+                    <Button text="Annuler"
+                            onAction="#goBack"
+                            styleClass="btn-cancel"
+                            prefWidth="200"/>
+
+                    <Button fx:id="submitButton"
+                            text="✓ Publier"
+                            onAction="#submitPublication"
+                            styleClass="btn-submit"
+                            prefWidth="200"
+                            disable="true"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

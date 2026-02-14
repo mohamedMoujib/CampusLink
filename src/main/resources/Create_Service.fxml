@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controllers.CreateService_controller"
+            prefWidth="1400" prefHeight="900"
+            stylesheets="/Styles/Create_Service.css"
+            styleClass="root">
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox>
+            <!-- Header principal -->
+            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
+
+                <!-- Logo -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🎓" styleClass="logo-box"/>
+                    <VBox>
+                        <Label text="EduMarket" styleClass="logo-title"/>
+                        <Label text="Espace Tuteur" styleClass="logo-subtitle"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- User info -->
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🔔" styleClass="notification-btn"/>
+                    <VBox alignment="CENTER_RIGHT">
+                        <Label text="Thomas Martin" styleClass="user-name"/>
+                        <Label text="thomas.martin@univ.fr" styleClass="user-email"/>
+                    </VBox>
+                    <Label text="👤" styleClass="user-avatar"/>
+                    <Button text="⎋" styleClass="logout-btn"/>
+                </HBox>
+            </HBox>
+
+            <!-- Menu Navigation -->
+            <HBox spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item-active">
+                    <Label text="📋" styleClass="menu-icon"/>
+                    <Label text="Mes services"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="📅" styleClass="menu-icon"/>
+                    <Label text="Réservations"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="💰" styleClass="menu-icon"/>
+                    <Label text="Revenus"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="⭐" styleClass="menu-icon"/>
+                    <Label text="Avis"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="👤" styleClass="menu-icon"/>
+                    <Label text="Profil"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CONTENT -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="30" styleClass="content-container">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <!-- Header de la page -->
+                <VBox spacing="10" styleClass="page-header">
+                    <Label text="Créer un nouveau service" styleClass="page-title"/>
+                    <Label text="Remplissez les informations ci-dessous pour créer votre service" styleClass="page-subtitle"/>
+                </VBox>
+
+                <!-- Formulaire dans une carte -->
+                <VBox spacing="25" styleClass="form-card">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+
+                    <!-- Titre du service -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Titre du service *" styleClass="form-label"/>
+                        <TextField fx:id="titleField"
+                                   promptText="Ex: Cours de mathématiques niveau lycée"
+                                   styleClass="form-input"/>
+                        <Label text="Donnez un titre clair et descriptif" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Catégorie -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Catégorie *" styleClass="form-label"/>
+                        <ComboBox fx:id="categoryCombo"
+                                  promptText="Sélectionnez une catégorie"
+                                  styleClass="form-combo"
+                                  prefWidth="400"/>
+                    </VBox>
+
+                    <!-- Description -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Description *" styleClass="form-label"/>
+                        <TextArea fx:id="descriptionField"
+                                  promptText="Décrivez votre service en détail: contenu, méthode, objectifs..."
+                                  wrapText="true"
+                                  prefRowCount="6"
+                                  styleClass="form-textarea"/>
+                        <Label fx:id="charCountLabel" text="0/500 caractères" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Grille pour Prix et Durée -->
+                    <HBox spacing="20">
+                        <!-- Prix -->
+                        <VBox spacing="8" styleClass="form-group" HBox.hgrow="ALWAYS">
+                            <Label text="Prix (€) *" styleClass="form-label"/>
+                            <TextField fx:id="priceField"
+                                       promptText="25.00"
+                                       styleClass="form-input"/>
+                            <Label text="Prix par session" styleClass="form-hint"/>
+                        </VBox>
+
+                        <!-- Durée -->
+                        <VBox spacing="8" styleClass="form-group" HBox.hgrow="ALWAYS">
+                            <Label text="Durée *" styleClass="form-label"/>
+                            <ComboBox fx:id="durationCombo"
+                                      promptText="Sélectionnez"
+                                      styleClass="form-combo"
+                                      prefWidth="200"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Lieu -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Lieu *" styleClass="form-label"/>
+                        <TextField fx:id="locationField"
+                                   promptText="Ex: École Polytechnique, En ligne (Zoom), À domicile"
+                                   styleClass="form-input"/>
+                    </VBox>
+
+                    <!-- Niveau -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Niveau" styleClass="form-label"/>
+                        <HBox spacing="10">
+                            <CheckBox fx:id="debutantCheck" text="Débutant" styleClass="form-checkbox"/>
+                            <CheckBox fx:id="intermediateCheck" text="Intermédiaire" styleClass="form-checkbox"/>
+                            <CheckBox fx:id="avanceCheck" text="Avancé" styleClass="form-checkbox"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Note d'information -->
+                    <HBox spacing="12" styleClass="info-box">
+                        <Label text="ℹ️" styleClass="info-icon"/>
+                        <VBox spacing="5">
+                            <Label text="Informations importantes" styleClass="info-title"/>
+                            <Label text="Votre service sera visible après validation par notre équipe." styleClass="info-text"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Champs obligatoires -->
+                    <Label text="* Champs obligatoires" styleClass="required-note"/>
+
+                    <!-- Boutons d'action -->
+                    <HBox spacing="15" alignment="CENTER" styleClass="action-buttons">
+                        <Button text="Annuler"
+                                onAction="#goBack"
+                                styleClass="btn-cancel"/>
+
+                        <Button text="Créer le service"
+                                onAction="#saveService"
+                                styleClass="btn-submit"/>
+                    </HBox>
+
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

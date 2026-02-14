@@ -1,0 +1,474 @@
+/* ================================================
+   PUBLICATIONS STYLESHEET
+   Style pour la page des publications étudiantes
+   ================================================ */
+
+/* ===== ROOT ===== */
+.root {
+    -fx-background-color: #f8f9fa;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+/* ================================================
+   HEADER & NAVIGATION
+   ================================================ */
+
+.header-container {
+    -fx-background-color: white;
+    -fx-padding: 20 40;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Logo */
+.logo-box {
+    -fx-font-size: 32px;
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+    -fx-background-radius: 12;
+}
+
+.logo-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3748;
+}
+
+.logo-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #718096;
+}
+
+/* User Section */
+.notification-btn {
+    -fx-background-color: #f7fafc;
+    -fx-text-fill: #2d3748;
+    -fx-font-size: 18px;
+    -fx-padding: 10;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.notification-btn:hover {
+    -fx-background-color: #edf2f7;
+}
+
+.user-name {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #2d3748;
+}
+
+.user-email {
+    -fx-font-size: 12px;
+    -fx-text-fill: #718096;
+}
+
+.user-avatar {
+    -fx-font-size: 28px;
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+    -fx-background-radius: 50%;
+}
+
+.logout-btn {
+    -fx-background-color: #fed7d7;
+    -fx-text-fill: #c53030;
+    -fx-font-size: 16px;
+    -fx-padding: 10;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.logout-btn:hover {
+    -fx-background-color: #fc8181;
+    -fx-text-fill: white;
+}
+
+/* ===== MENU ===== */
+.menu-container {
+    -fx-background-color: white;
+    -fx-padding: 15 40;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+}
+
+.menu-item {
+    -fx-padding: 10 15;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.menu-item:hover {
+    -fx-background-color: #f7fafc;
+}
+
+.menu-item-active {
+    -fx-padding: 10 15;
+    -fx-background-color: #5B5FED;
+    -fx-background-radius: 8;
+}
+
+.menu-item-active Label {
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+}
+
+.menu-item Label {
+    -fx-text-fill: #4a5568;
+    -fx-font-size: 14px;
+}
+
+.menu-icon {
+    -fx-font-size: 18px;
+}
+
+/* Boutons d'action */
+.create-btn {
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(91, 95, 237, 0.3), 8, 0, 0, 2);
+}
+
+.create-btn:hover {
+    -fx-background-color: #4a4fd5;
+}
+
+.refresh-btn {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #2d3748;
+    -fx-font-size: 16px;
+    -fx-padding: 12;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.refresh-btn:hover {
+    -fx-background-color: #cbd5e0;
+}
+
+/* ===== STATISTIQUES ===== */
+.stats-container {
+    -fx-background-color: white;
+    -fx-padding: 20 40;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+}
+
+.stat-box {
+    -fx-background-color: #f7fafc;
+    -fx-padding: 15 30;
+    -fx-background-radius: 10;
+    -fx-min-width: 150;
+    -fx-alignment: center;
+}
+
+.stat-ventes {
+    -fx-background-color: #e0e7ff;
+}
+
+.stat-demandes {
+    -fx-background-color: #fef3c7;
+}
+
+.stat-actives {
+    -fx-background-color: #d1fae5;
+}
+
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #4a5568;
+    -fx-font-weight: 600;
+}
+
+.stat-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3748;
+}
+
+/* ================================================
+   SEARCH & FILTERS
+   ================================================ */
+
+.search-container {
+    -fx-background-color: white;
+    -fx-padding: 15 20;
+    -fx-background-radius: 12;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-alignment: center-left;
+    -fx-spacing: 12;
+}
+
+.search-icon {
+    -fx-font-size: 20px;
+    -fx-text-fill: #718096;
+}
+
+.search-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 14px;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #a0aec0;
+    -fx-pref-width: 800px;
+}
+
+.search-input:focused {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+/* Filtres */
+.filter-group {
+    -fx-spacing: 8;
+}
+
+.filter-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #4a5568;
+}
+
+.filter-combo {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+    -fx-padding: 10;
+}
+
+.filter-combo:hover {
+    -fx-border-color: #cbd5e0;
+}
+
+/* ================================================
+   PUBLICATIONS GRID
+   ================================================ */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.publications-grid {
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+/* ================================================
+   PUBLICATION CARD
+   ================================================ */
+
+.publication-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 3);
+    -fx-cursor: hand;
+    -fx-min-width: 380;
+    -fx-max-width: 380;
+    -fx-spacing: 12;
+}
+
+.publication-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(91, 95, 237, 0.2), 16, 0, 0, 4);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-background-color: #fafafa;
+}
+
+/* Card Header */
+.card-header {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+/* Badges */
+.type-badge {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12;
+    -fx-background-radius: 6;
+}
+
+.type-vente {
+    -fx-background-color: #e0e7ff;
+    -fx-text-fill: #3730a3;
+}
+
+.type-demande {
+    -fx-background-color: #fef3c7;
+    -fx-text-fill: #92400e;
+}
+
+.status-badge {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12;
+    -fx-background-radius: 6;
+}
+
+.status-active {
+    -fx-background-color: #d1fae5;
+    -fx-text-fill: #065f46;
+}
+
+.status-en_cours {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e40af;
+}
+
+.status-terminee {
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #374151;
+}
+
+.status-annulee {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
+}
+
+/* Card Title */
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a202c;
+    -fx-wrap-text: true;
+}
+
+/* Card Image */
+.card-image {
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+/* Card Info Rows */
+.card-info-row {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+}
+
+.card-info-icon {
+    -fx-font-size: 16px;
+    -fx-min-width: 20px;
+}
+
+.card-info-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #4a5568;
+}
+
+/* Card Description */
+.card-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #4a5568;
+    -fx-line-spacing: 1.5;
+    -fx-wrap-text: true;
+}
+
+/* Card Footer */
+.card-footer {
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+    -fx-padding: 10 0 0 0;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+.card-price-container {
+    -fx-spacing: 2;
+}
+
+.card-price {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5B5FED;
+}
+
+.card-views {
+    -fx-font-size: 12px;
+    -fx-text-fill: #718096;
+}
+
+/* Bouton Contact */
+.btn-contact {
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.btn-contact:hover {
+    -fx-background-color: #4a4fd5;
+    -fx-effect: dropshadow(gaussian, rgba(91, 95, 237, 0.4), 10, 0, 0, 3);
+}
+
+/* ================================================
+   EMPTY STATE
+   ================================================ */
+
+.empty-state {
+    -fx-font-size: 16px;
+    -fx-text-fill: #718096;
+    -fx-padding: 60;
+    -fx-font-style: italic;
+}
+
+/* ================================================
+   RESPONSIVE & UTILITIES
+   ================================================ */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #cbd5e0;
+    -fx-background-radius: 4px;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #a0aec0;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height: 8px;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: #cbd5e0;
+    -fx-background-radius: 4px;
+}

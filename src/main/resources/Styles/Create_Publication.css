@@ -1,0 +1,355 @@
+/* ================================================
+   CREATE PUBLICATION CSS
+   Style pour le formulaire de création
+   ================================================ */
+
+/* ===== ROOT ===== */
+.root {
+    -fx-background-color: #f8f9fa;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+/* ===== HEADER ===== */
+.header {
+    -fx-background-color: white;
+    -fx-padding: 20 40;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 2 0;
+    -fx-spacing: 20;
+}
+
+.back-btn {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #2d3748;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.back-btn:hover {
+    -fx-background-color: #cbd5e0;
+}
+
+.header-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a202c;
+}
+
+/* ===== SCROLL PANE ===== */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ===== FORM CONTAINER ===== */
+.form-container {
+    -fx-background-color: transparent;
+    -fx-max-width: 800;
+    -fx-alignment: TOP_CENTER;
+}
+
+/* ===== SECTIONS ===== */
+.section {
+    -fx-background-color: white;
+    -fx-padding: 30;
+    -fx-background-radius: 12;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+}
+
+.section-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a202c;
+}
+
+.section-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #718096;
+}
+
+/* ===== TYPE RADIO BUTTONS ===== */
+.type-radio {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #2d3748;
+    -fx-padding: 15 25;
+    -fx-background-color: #f7fafc;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-cursor: hand;
+}
+
+.type-radio:selected {
+    -fx-background-color: #edf2f7;
+    -fx-border-color: #5B5FED;
+    -fx-text-fill: #5B5FED;
+}
+
+.type-radio:hover {
+    -fx-background-color: #edf2f7;
+}
+
+.type-radio .radio-button .radio {
+    -fx-background-color: white;
+    -fx-border-color: #cbd5e0;
+    -fx-border-width: 2;
+    -fx-background-radius: 50%;
+}
+
+.type-radio:selected .radio-button .radio {
+    -fx-background-color: #5B5FED;
+    -fx-border-color: #5B5FED;
+}
+
+.type-radio .radio-button .dot {
+    -fx-background-color: white;
+    -fx-background-radius: 50%;
+}
+
+/* ===== FORM FIELDS ===== */
+.field-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #2d3748;
+}
+
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #a0aec0;
+}
+
+.text-field:focused {
+    -fx-border-color: #5B5FED;
+    -fx-background-color: #fefefe;
+}
+
+.text-area {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #a0aec0;
+}
+
+.text-area:focused {
+    -fx-border-color: #5B5FED;
+    -fx-background-color: #fefefe;
+}
+
+.text-area .content {
+    -fx-background-color: white;
+}
+
+.help-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #718096;
+    -fx-font-style: italic;
+}
+
+.char-counter {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #6b7280;
+}
+
+.currency-symbol {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3748;
+}
+
+/* ===== IMAGE UPLOAD ===== */
+.upload-zone {
+    -fx-background-color: #f7fafc;
+    -fx-border-color: #cbd5e0;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 30;
+    -fx-min-height: 250;
+}
+
+.image-preview {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.file-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #2d3748;
+}
+
+.upload-btn {
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.upload-btn:hover {
+    -fx-background-color: #4a4fd5;
+    -fx-effect: dropshadow(gaussian, rgba(91, 95, 237, 0.4), 10, 0, 0, 3);
+}
+
+.remove-btn {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.remove-btn:hover {
+    -fx-background-color: #fecaca;
+}
+
+/* ===== TERMS CHECKBOX ===== */
+.terms-checkbox {
+    -fx-font-size: 14px;
+    -fx-text-fill: #2d3748;
+}
+
+.terms-checkbox .box {
+    -fx-background-color: white;
+    -fx-border-color: #cbd5e0;
+    -fx-border-width: 2;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.terms-checkbox:selected .box {
+    -fx-background-color: #5B5FED;
+    -fx-border-color: #5B5FED;
+}
+
+.terms-checkbox .mark {
+    -fx-background-color: white;
+}
+
+.terms-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #4a5568;
+    -fx-wrap-text: true;
+}
+
+/* ===== WARNING BOX ===== */
+.warning-box {
+    -fx-background-color: #fef3c7;
+    -fx-border-color: #f59e0b;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+}
+
+.warning-icon {
+    -fx-font-size: 24px;
+}
+
+.warning-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #92400e;
+}
+
+.warning-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #78350f;
+    -fx-wrap-text: true;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+    -fx-padding: 20 0;
+}
+
+.btn-cancel {
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #374151;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-padding: 14 0;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.btn-cancel:hover {
+    -fx-background-color: #d1d5db;
+}
+
+.btn-submit {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 0;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.3), 10, 0, 0, 3);
+}
+
+.btn-submit:hover {
+    -fx-background-color: #059669;
+}
+
+.btn-submit:disabled {
+    -fx-background-color: #d1d5db;
+    -fx-text-fill: #9ca3af;
+    -fx-opacity: 0.6;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+/* ===== SCROLLBAR ===== */
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 10px;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #cbd5e0;
+    -fx-background-radius: 5px;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #a0aec0;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controllers.Publication_controller"
+            prefWidth="1400" prefHeight="900"
+            stylesheets="/Styles/Publication.css"
+            styleClass="root">
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox>
+            <!-- Header principal -->
+            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
+
+                <!-- Logo -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📢" styleClass="logo-box"/>
+                    <VBox>
+                        <Label text="Publications" styleClass="logo-title"/>
+                        <Label text="Annonces Étudiantes" styleClass="logo-subtitle"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- User info -->
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🔔" styleClass="notification-btn"/>
+                    <VBox alignment="CENTER_RIGHT">
+                        <Label text="Marie Dubois" styleClass="user-name"/>
+                        <Label text="marie.dubois@univ.fr" styleClass="user-email"/>
+                    </VBox>
+                    <Label text="👤" styleClass="user-avatar"/>
+                    <Button text="⎋" styleClass="logout-btn"/>
+                </HBox>
+            </HBox>
+
+            <!-- Menu Navigation -->
+            <HBox spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToStudent" style="-fx-cursor: hand;">
+                    <Label text="🔍" styleClass="menu-icon"/>
+                    <Label text="Rechercher des services"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item-active">
+                    <Label text="📢" styleClass="menu-icon"/>
+                    <Label text="Publications"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToMesPublications" style="-fx-cursor: hand;">
+                    <Label text="📋" styleClass="menu-icon"/>
+                    <Label text="Mes publications"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="📅" styleClass="menu-icon"/>
+                    <Label text="Mes réservations"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="💳" styleClass="menu-icon"/>
+                    <Label text="Paiements"/>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button text="+ Nouvelle Publication"
+                        onAction="#goToCreatePublication"
+                        styleClass="create-btn"/>
+
+                <Button text="🔄"
+                        onAction="#refreshPublications"
+                        styleClass="refresh-btn"/>
+            </HBox>
+
+            <!-- Statistiques -->
+            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="stats-container">
+
+                <VBox spacing="5" styleClass="stat-box">
+                    <Label text="Total" styleClass="stat-label"/>
+                    <Label fx:id="statsTotal" text="0" styleClass="stat-value"/>
+                </VBox>
+
+                <VBox spacing="5" styleClass="stat-box stat-ventes">
+                    <Label text="🏷️ Ventes" styleClass="stat-label"/>
+                    <Label fx:id="statsVentes" text="0" styleClass="stat-value"/>
+                </VBox>
+
+                <VBox spacing="5" styleClass="stat-box stat-demandes">
+                    <Label text="🔍 Demandes" styleClass="stat-label"/>
+                    <Label fx:id="statsDemandes" text="0" styleClass="stat-value"/>
+                </VBox>
+
+                <VBox spacing="5" styleClass="stat-box stat-actives">
+                    <Label text="✓ Actives" styleClass="stat-label"/>
+                    <Label fx:id="statsActives" text="0" styleClass="stat-value"/>
+                </VBox>
+
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CONTENT -->
+    <center>
+        <VBox spacing="25">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <!-- Barre de recherche -->
+            <HBox styleClass="search-container">
+                <Label text="🔍" styleClass="search-icon"/>
+                <TextField fx:id="searchField"
+                           promptText="Rechercher une publication..."
+                           styleClass="search-input"/>
+            </HBox>
+
+            <!-- Filtres -->
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <VBox spacing="8" styleClass="filter-group">
+                    <Label text="Type" styleClass="filter-label"/>
+                    <ComboBox fx:id="typeCombo"
+                              promptText="Tous"
+                              styleClass="filter-combo"
+                              prefWidth="280"/>
+                </VBox>
+
+                <VBox spacing="8" styleClass="filter-group">
+                    <Label text="Prix" styleClass="filter-label"/>
+                    <ComboBox fx:id="tarifCombo"
+                              promptText="Tous les prix"
+                              styleClass="filter-combo"
+                              prefWidth="280"/>
+                </VBox>
+
+                <VBox spacing="8" styleClass="filter-group">
+                    <Label text="Trier par" styleClass="filter-label"/>
+                    <ComboBox fx:id="trierCombo"
+                              promptText="Plus récent"
+                              styleClass="filter-combo"
+                              prefWidth="280"/>
+                </VBox>
+            </HBox>
+
+            <!-- Container des publications -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <GridPane fx:id="publicationsGrid"
+                          hgap="20"
+                          vgap="20"
+                          styleClass="publications-grid"/>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

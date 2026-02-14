@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controllers.Service_controller"
+            prefWidth="1400" prefHeight="800"
+            style="-fx-background-color: #f5f7fa;">
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox>
+            <!-- Header principal -->
+            <HBox spacing="20" alignment="CENTER_LEFT"
+                  style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #e5e5e5; -fx-border-width: 0 0 1 0;">
+
+                <!-- Logo -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🎓" style="-fx-font-size: 28px; -fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 8; -fx-background-radius: 8;"/>
+                    <VBox>
+                        <Label text="EduMarket" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                        <Label text="Espace Tuteur" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- User info -->
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🔔" style="-fx-background-color: transparent; -fx-font-size: 20px; -fx-cursor: hand;"/>
+                    <VBox alignment="CENTER_RIGHT">
+                        <Label text="Thomas Martin" style="-fx-font-weight: bold;"/>
+                        <Label text="thomas.martin@univ.fr" style="-fx-font-size: 11px; -fx-text-fill: #6b7280;"/>
+                    </VBox>
+                    <Label text="👤" style="-fx-font-size: 24px; -fx-background-color: #e5e7eb; -fx-padding: 8; -fx-background-radius: 20;"/>
+                    <Button text="⎋" style="-fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand;"/>
+                </HBox>
+            </HBox>
+
+            <!-- Menu Navigation -->
+            <HBox spacing="30" alignment="CENTER_LEFT"
+                  style="-fx-background-color: white; -fx-padding: 15 30; -fx-border-color: #e5e5e5; -fx-border-width: 0 0 1 0;">
+
+                <HBox spacing="8" alignment="CENTER" style="-fx-text-fill: #10b981;">
+                    <Label text="📋" style="-fx-font-size: 16px;"/>
+                    <Label text="Mes services" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER">
+                    <Label text="📅" style="-fx-font-size: 16px;"/>
+                    <Label text="Réservations" style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-cursor: hand;"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER">
+                    <Label text="💰" style="-fx-font-size: 16px;"/>
+                    <Label text="Revenus" style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-cursor: hand;"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER">
+                    <Label text="⭐" style="-fx-font-size: 16px;"/>
+                    <Label text="Avis" style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-cursor: hand;"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER">
+                    <Label text="👤" style="-fx-font-size: 16px;"/>
+                    <Label text="Profil" style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-cursor: hand;"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CONTENT -->
+    <center>
+        <VBox spacing="25" style="-fx-background-color: #f5f7fa;">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <!-- Header Section avec bouton créer -->
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Mes services" style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="+ Créer un nouveau service"
+                        onAction="#goToCreateService"
+                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 8; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- Container des services -->
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox>
+                    <FlowPane fx:id="servicesContainer"
+                              hgap="20"
+                              vgap="20"
+                              style="-fx-background-color: transparent;"/>
+                </VBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
