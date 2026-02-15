@@ -5,19 +5,20 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane xmlns="http://javafx.com/javafx"
+<StackPane fx:id="rootPane"
+           xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="org.example.campusLink.controllers.LoginController"
            styleClass="root-pane"
            stylesheets="@/Styles/Login.css">
+
 
     <!-- Declare ToggleGroup -->
     <fx:define>
         <ToggleGroup fx:id="roleGroup"/>
     </fx:define>
 
-    <VBox alignment="CENTER" styleClass="background" prefWidth="Infinity"
-          prefHeight="Infinity" >
+    <VBox alignment="CENTER" styleClass="background">
 
         <VBox styleClass="login-card"
               alignment="CENTER"
@@ -44,7 +45,7 @@
                                   text="Étudiant"
                                   toggleGroup="$roleGroup"
                                   selected="true"
-                                  styleClass="role-btn"/>
+                                  styleClass="role-btn, role-btn-selected"/>
 
                     <ToggleButton fx:id="btnPrestataire"
                                   text="Prestataire"
@@ -59,27 +60,27 @@
             </VBox>
 
             <!-- Email -->
-            <VBox spacing="8">
+            <VBox spacing="5">
                 <Text text="Email" styleClass="label-text"/>
-
-                <HBox styleClass="input-container">
-                    <Text text="✉" styleClass="input-icon"/>
-                    <TextField fx:id="txtEmail"
-                               promptText="votre@email.com"
-                               styleClass="input-field"/>
-                </HBox>
+                <TextField fx:id="txtEmail"
+                           promptText="votre@email.com"
+                           styleClass="input-field-full"/>
+                <Label fx:id="lblEmailError"
+                       styleClass="error-label"
+                       managed="false"
+                       visible="false"/>
             </VBox>
 
             <!-- Password -->
-            <VBox spacing="8">
+            <VBox spacing="5">
                 <Text text="Mot de passe" styleClass="label-text"/>
-
-                <HBox styleClass="input-container">
-                    <Text text="🔒" styleClass="input-icon"/>
-                    <PasswordField fx:id="txtPassword"
-                                   promptText="••••••••"
-                                   styleClass="input-field"/>
-                </HBox>
+                <PasswordField fx:id="txtPassword"
+                               promptText="••••••••"
+                               styleClass="input-field-full"/>
+                <Label fx:id="lblPasswordError"
+                       styleClass="error-label"
+                       managed="false"
+                       visible="false"/>
             </VBox>
 
             <!-- Remember + Forgot -->

@@ -5,11 +5,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.campusLink.entities.User;
 import org.example.campusLink.services.AuthService;
 import org.example.campusLink.services.UserService;
-import org.example.campusLink.utils.PasswordUtil;
+import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -17,6 +18,7 @@ import java.sql.Timestamp;
 
 public class SignupController {
 
+    @FXML private StackPane rootPane; // IMPORTANT: Ajouter fx:id="rootPane" dans le FXML
     @FXML private ToggleButton btnEtudiant;
     @FXML private ToggleButton btnTuteur;
 
@@ -37,18 +39,41 @@ public class SignupController {
     @FXML private Button btnSignup;
     @FXML private Hyperlink linkLogin;
 
+    // Error Labels
+    @FXML private Label lblPrenomError;
+    @FXML private Label lblNomError;
+    @FXML private Label lblEmailError;
+    @FXML private Label lblPhoneError;
+    @FXML private Label lblUniversiteError;
+    @FXML private Label lblGenderError;
+    @FXML private Label lblFiliereError;
+    @FXML private Label lblSpecializationError;
+    @FXML private Label lblAddressError;
+    @FXML private Label lblPasswordError;
+    @FXML private Label lblConfirmPasswordError;
+
     private AuthService authService;
     private UserService userService;
     private String selectedRole = "ETUDIANT";
 
     public SignupController() {
-        authService = new AuthService();
-        userService = new UserService();
+        System.out.println("✅ SignupController créé");
     }
 
     @FXML
     public void initialize() {
+        System.out.println("🔧 Initialisation du SignupController...");
+
+        try {
+            authService = new AuthService();
+            userService = new UserService();
+            System.out.println("✅ Services initialisés");
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur Services: " + e.getMessage());
+        }
+
         cmbGender.getItems().addAll("Male", "Female");
+
         btnEtudiant.setOnAction(e -> {
             selectedRole = "ETUDIANT";
             updateRoleButtons();
@@ -59,11 +84,18 @@ public class SignupController {
             updateRoleButtons();
         });
 
-        // Add validation listeners
-        txtEmail.textProperty().addListener((obs, old, newVal) -> validateEmail());
-        txtPassword.textProperty().addListener((obs, old, newVal) -> validatePassword());
-        txtConfirmPassword.textProperty().addListener((obs, old, newVal) -> validateConfirmPassword());
-        txtPhone.textProperty().addListener((obs, old, newVal) -> validatePhone());
+        txtEmail.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validateEmail();
+        });
+        txtPassword.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validatePassword();
+        });
+        txtConfirmPassword.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validateConfirmPassword();
+        });
+        txtPhone.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validatePhone();
+        });
     }
 
     private void updateRoleButtons() {
@@ -83,28 +115,26 @@ public class SignupController {
 
     @FXML
     private void handleSignup() {
-        // Clear previous errors
-        clearErrors();
+        clearAllErrors();
 
-        // Validate all inputs
         if (!validateAllInputs()) {
+            showError("Veuillez corriger les erreurs dans le formulaire");
             return;
         }
 
-        // Disable button during signup
+        if (authService == null) {
+            showError("Service non disponible. Vérifiez la connexion à la base de données.");
+            return;
+        }
+
         btnSignup.setDisable(true);
         btnSignup.setText("Création en cours...");
 
         try {
-            // Create new user
             User user = new User();
             user.setName(txtPrenom.getText().trim() + " " + txtNom.getText().trim());
             user.setEmail(txtEmail.getText().trim());
-
-            // Hash password using PasswordUtil
-            String hashedPassword = (txtPassword.getText());
-            user.setPassword(hashedPassword);
-
+            user.setPassword(txtPassword.getText());
             user.setPhone(txtPhone.getText().trim());
             user.setUniversite(txtUniversite.getText().trim());
             user.setDateNaissance(new Timestamp(System.currentTimeMillis()));
@@ -112,36 +142,31 @@ public class SignupController {
             user.setFiliere(txtFiliere.getText().trim());
             user.setSpecialization(txtSpecialization.getText().trim());
             user.setAddress(txtAddress.getText().trim());
-
             user.setProfilePicture("");
 
-
-            // Use AuthService to signup (creates user and assigns role in transaction)
             authService.signUp(user, selectedRole);
 
-            // Show success message
-            showSuccess("Compte créé avec succès!\n\nVous pouvez maintenant vous connecter avec:\n" +
-                    "Email: " + user.getEmail() + "\n" +
-                    "Rôle: " + selectedRole);
+            showSuccess("Compte créé avec succès!");
 
-            // Navigate to login
-            handleLogin();
+            // Attendre un peu avant de rediriger
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    Thread.sleep(1500);
+                    handleLogin();
+                } catch (InterruptedException e) {
+                    handleLogin();
+                }
+            });
 
         } catch (SQLException e) {
-            String errorMessage = e.getMessage();
-
-            // User-friendly error messages
-            if (errorMessage.contains("Duplicate entry") || errorMessage.contains("email existe")) {
-                showError("Cet email est déjà utilisé!");
-            } else if (errorMessage.contains("validation")) {
-                showError(errorMessage);
+            if (e.getMessage().contains("Duplicate entry") || e.getMessage().contains("email existe")) {
+                showFieldError(txtEmail, lblEmailError, "Cet email est déjà utilisé");
+                showError("Cet email est déjà utilisé");
             } else {
-                showError("Erreur lors de la création du compte.\n\n" + errorMessage);
+                showError("Erreur lors de la création du compte");
             }
-
             e.printStackTrace();
         } finally {
-            // Re-enable button
             btnSignup.setDisable(false);
             btnSignup.setText("Créer mon compte");
         }
@@ -150,16 +175,11 @@ public class SignupController {
     @FXML
     private void handleLogin() {
         try {
-            // Load login view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Login.fxml"));
             Parent root = loader.load();
-
             Stage stage = (Stage) btnSignup.getScene().getWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-
+            stage.setScene(new Scene(root));
         } catch (IOException e) {
-            showError("Erreur lors du chargement de la page de connexion");
             e.printStackTrace();
         }
     }
@@ -167,36 +187,32 @@ public class SignupController {
     private boolean validateAllInputs() {
         boolean valid = true;
 
-        // Validate prénom
         if (txtPrenom.getText().trim().isEmpty()) {
-            showFieldError(txtPrenom, "Prénom requis");
+            showFieldError(txtPrenom, lblPrenomError, "Prénom requis");
             valid = false;
         } else if (txtPrenom.getText().trim().length() < 2) {
-            showFieldError(txtPrenom, "Prénom trop court");
+            showFieldError(txtPrenom, lblPrenomError, "Prénom trop court");
             valid = false;
         }
 
-        // Validate nom
         if (txtNom.getText().trim().isEmpty()) {
-            showFieldError(txtNom, "Nom requis");
+            showFieldError(txtNom, lblNomError, "Nom requis");
             valid = false;
         } else if (txtNom.getText().trim().length() < 2) {
-            showFieldError(txtNom, "Nom trop court");
+            showFieldError(txtNom, lblNomError, "Nom trop court");
             valid = false;
         }
 
-        // Validate email
         if (txtEmail.getText().trim().isEmpty()) {
-            showFieldError(txtEmail, "Email requis");
+            showFieldError(txtEmail, lblEmailError, "Email requis");
             valid = false;
         } else if (!isValidEmail(txtEmail.getText())) {
-            showFieldError(txtEmail, "Email invalide");
+            showFieldError(txtEmail, lblEmailError, "Email invalide");
             valid = false;
         } else {
             try {
-                if (userService.emailExists(txtEmail.getText().trim())) {
-                    showFieldError(txtEmail, "Cet email existe déjà");
-                    showError("Cet email est déjà utilisé!");
+                if (userService != null && userService.emailExists(txtEmail.getText().trim())) {
+                    showFieldError(txtEmail, lblEmailError, "Cet email existe déjà");
                     valid = false;
                 }
             } catch (SQLException e) {
@@ -204,66 +220,57 @@ public class SignupController {
             }
         }
 
-        // Validate phone
         if (txtPhone.getText().trim().isEmpty()) {
-            showFieldError(txtPhone, "Téléphone requis");
+            showFieldError(txtPhone, lblPhoneError, "Téléphone requis");
             valid = false;
         } else if (!isValidPhone(txtPhone.getText())) {
-            showFieldError(txtPhone, "Numéro invalide (ex: +216 XX XXX XXX)");
+            showFieldError(txtPhone, lblPhoneError, "Format invalide");
             valid = false;
         }
 
-        // Validate université
-        if (txtUniversite.getText().trim().isEmpty()) {
-            showFieldError(txtUniversite, "Université requise");
-            valid = false;
-        }
-// Validate gender
         if (cmbGender.getValue() == null) {
-            showError("Veuillez sélectionner un genre");
+            showFieldError(cmbGender, lblGenderError, "Genre requis");
             valid = false;
         }
 
-// Validate filiere
-        if (txtFiliere.getText().trim().isEmpty()) {
-            showFieldError(txtFiliere, "Filière requise");
-            valid = false;
-        }
-
-// Validate specialization
-        if (txtSpecialization.getText().trim().isEmpty()) {
-            showFieldError(txtSpecialization, "Spécialisation requise");
-            valid = false;
-        }
-
-// Validate address
         if (txtAddress.getText().trim().isEmpty()) {
-            showFieldError(txtAddress, "Adresse requise");
+            showFieldError(txtAddress, lblAddressError, "Adresse requise");
             valid = false;
         }
 
-        // Validate password
+        if (txtUniversite.getText().trim().isEmpty()) {
+            showFieldError(txtUniversite, lblUniversiteError, "Université requise");
+            valid = false;
+        }
+
+        if (txtFiliere.getText().trim().isEmpty()) {
+            showFieldError(txtFiliere, lblFiliereError, "Filière requise");
+            valid = false;
+        }
+
+        if (txtSpecialization.getText().trim().isEmpty()) {
+            showFieldError(txtSpecialization, lblSpecializationError, "Spécialisation requise");
+            valid = false;
+        }
+
         if (txtPassword.getText().isEmpty()) {
-            showFieldError(txtPassword, "Mot de passe requis");
+            showFieldError(txtPassword, lblPasswordError, "Mot de passe requis");
             valid = false;
         } else if (txtPassword.getText().length() < 6) {
-            showFieldError(txtPassword, "Minimum 6 caractères");
+            showFieldError(txtPassword, lblPasswordError, "Minimum 6 caractères");
             valid = false;
         }
 
-        // Validate confirm password
         if (txtConfirmPassword.getText().isEmpty()) {
-            showFieldError(txtConfirmPassword, "Confirmation requise");
+            showFieldError(txtConfirmPassword, lblConfirmPasswordError, "Confirmation requise");
             valid = false;
         } else if (!txtPassword.getText().equals(txtConfirmPassword.getText())) {
-            showFieldError(txtConfirmPassword, "Les mots de passe ne correspondent pas");
-            showError("Les mots de passe ne correspondent pas!");
+            showFieldError(txtConfirmPassword, lblConfirmPasswordError, "Ne correspond pas");
             valid = false;
         }
 
-        // Validate terms acceptance
         if (!chkTerms.isSelected()) {
-            showError("Vous devez accepter les conditions d'utilisation");
+            showWarning("Vous devez accepter les conditions");
             valid = false;
         }
 
@@ -271,39 +278,38 @@ public class SignupController {
     }
 
     private boolean validateEmail() {
-        if (!txtEmail.getText().isEmpty() && !isValidEmail(txtEmail.getText())) {
-            txtEmail.getParent().getStyleClass().add("error");
+        if (!isValidEmail(txtEmail.getText())) {
+            showFieldError(txtEmail, lblEmailError, "Email invalide");
             return false;
         }
-        txtEmail.getParent().getStyleClass().remove("error");
+        hideFieldError(txtEmail, lblEmailError);
         return true;
     }
 
     private boolean validatePassword() {
-        if (!txtPassword.getText().isEmpty() && txtPassword.getText().length() < 6) {
-            txtPassword.getParent().getStyleClass().add("error");
+        if (txtPassword.getText().length() < 6) {
+            showFieldError(txtPassword, lblPasswordError, "Minimum 6 caractères");
             return false;
         }
-        txtPassword.getParent().getStyleClass().remove("error");
+        hideFieldError(txtPassword, lblPasswordError);
         return true;
     }
 
     private boolean validateConfirmPassword() {
-        if (!txtConfirmPassword.getText().isEmpty() &&
-                !txtPassword.getText().equals(txtConfirmPassword.getText())) {
-            txtConfirmPassword.getParent().getStyleClass().add("error");
+        if (!txtPassword.getText().equals(txtConfirmPassword.getText())) {
+            showFieldError(txtConfirmPassword, lblConfirmPasswordError, "Ne correspond pas");
             return false;
         }
-        txtConfirmPassword.getParent().getStyleClass().remove("error");
+        hideFieldError(txtConfirmPassword, lblConfirmPasswordError);
         return true;
     }
 
     private boolean validatePhone() {
-        if (!txtPhone.getText().isEmpty() && !isValidPhone(txtPhone.getText())) {
-            txtPhone.getParent().getStyleClass().add("error");
+        if (!isValidPhone(txtPhone.getText())) {
+            showFieldError(txtPhone, lblPhoneError, "Format invalide");
             return false;
         }
-        txtPhone.getParent().getStyleClass().remove("error");
+        hideFieldError(txtPhone, lblPhoneError);
         return true;
     }
 
@@ -316,34 +322,52 @@ public class SignupController {
         return cleanPhone.matches("^\\+?[0-9]{8,15}$");
     }
 
-    private void showFieldError(Control field, String message) {
-        field.getParent().getStyleClass().add("error");
-        // TODO: Show tooltip or label with error message
+    private void showFieldError(Control field, Label errorLabel, String message) {
+        if (!field.getStyleClass().contains("error")) {
+            field.getStyleClass().add("error");
+        }
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
     }
 
-    private void clearErrors() {
-        txtPrenom.getParent().getStyleClass().remove("error");
-        txtNom.getParent().getStyleClass().remove("error");
-        txtEmail.getParent().getStyleClass().remove("error");
-        txtPhone.getParent().getStyleClass().remove("error");
-        txtUniversite.getStyleClass().remove("error");
-        txtPassword.getParent().getStyleClass().remove("error");
-        txtConfirmPassword.getParent().getStyleClass().remove("error");
+    private void hideFieldError(Control field, Label errorLabel) {
+        field.getStyleClass().remove("error");
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+    }
+
+    private void clearAllErrors() {
+        hideFieldError(txtPrenom, lblPrenomError);
+        hideFieldError(txtNom, lblNomError);
+        hideFieldError(txtEmail, lblEmailError);
+        hideFieldError(txtPhone, lblPhoneError);
+        hideFieldError(cmbGender, lblGenderError);
+        hideFieldError(txtAddress, lblAddressError);
+        hideFieldError(txtUniversite, lblUniversiteError);
+        hideFieldError(txtFiliere, lblFiliereError);
+        hideFieldError(txtSpecialization, lblSpecializationError);
+        hideFieldError(txtPassword, lblPasswordError);
+        hideFieldError(txtConfirmPassword, lblConfirmPasswordError);
+    }
+
+    // ==================== CUSTOM ALERTS ====================
+
+    private void showSuccess(String message) {
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.SUCCESS);
+        }
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erreur");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.ERROR);
+        }
     }
 
-    private void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Succès");
-        alert.setHeaderText("✅ Compte créé!");
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void showWarning(String message) {
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.WARNING);
+        }
     }
 }

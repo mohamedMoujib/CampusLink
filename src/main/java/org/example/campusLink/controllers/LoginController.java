@@ -5,15 +5,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.campusLink.entities.User;
 import org.example.campusLink.services.AuthService;
+import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
 public class LoginController {
 
+    @FXML private StackPane rootPane; // IMPORTANT: Ajouter fx:id="rootPane" dans le FXML
     @FXML private ToggleButton btnEtudiant;
     @FXML private ToggleButton btnPrestataire;
     @FXML private ToggleButton btnAdmin;
@@ -26,10 +29,13 @@ public class LoginController {
     @FXML private Hyperlink linkSignup;
     @FXML private Button btnLogin;
 
+    // Error Labels
+    @FXML private Label lblEmailError;
+    @FXML private Label lblPasswordError;
+
     private AuthService authService;
     private String selectedRole = "ETUDIANT";
 
-    // ✅ CORRECTION: Constructeur vide, pas d'initialisation ici!
     public LoginController() {
         System.out.println("✅ LoginController créé");
     }
@@ -38,17 +44,13 @@ public class LoginController {
     public void initialize() {
         System.out.println("🔧 Initialisation du LoginController...");
 
-        // ✅ CORRECTION: Initialiser AuthService ICI, avec gestion d'erreur
         try {
             authService = new AuthService();
             System.out.println("✅ AuthService initialisé");
         } catch (Exception e) {
-            System.err.println("⚠️ Erreur AuthService (l'interface fonctionnera quand même):");
-            System.err.println("   " + e.getMessage());
-            // L'interface se chargera quand même, le login échouera si utilisé
+            System.err.println("⚠️ Erreur AuthService: " + e.getMessage());
         }
 
-        // Configure role selection
         btnEtudiant.setOnAction(e -> {
             selectedRole = "ETUDIANT";
             updateRoleButtons();
@@ -64,11 +66,15 @@ public class LoginController {
             updateRoleButtons();
         });
 
-        // Add input validation listeners
-        txtEmail.textProperty().addListener((obs, old, newVal) -> validateEmail());
-        txtPassword.textProperty().addListener((obs, old, newVal) -> validatePassword());
+        txtEmail.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validateEmail();
+        });
 
-        System.out.println("✅ LoginController initialisé complètement");
+        txtPassword.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty()) validatePassword();
+        });
+
+        System.out.println("✅ LoginController initialisé");
     }
 
     private void updateRoleButtons() {
@@ -97,21 +103,17 @@ public class LoginController {
 
     @FXML
     private void handleLogin() {
-        // Clear previous errors
-        clearErrors();
+        clearAllErrors();
 
-        // Vérifier que AuthService est disponible
+        if (!validateAllInputs()) {
+            return;
+        }
+
         if (authService == null) {
-            showError("Service d'authentification non disponible.\nVérifiez la connexion à la base de données.");
+            showError("Service non disponible. Vérifiez la connexion à la base de données.");
             return;
         }
 
-        // Validate inputs
-        if (!validateInputs()) {
-            return;
-        }
-
-        // Disable button during login
         btnLogin.setDisable(true);
         btnLogin.setText("Connexion...");
 
@@ -119,38 +121,34 @@ public class LoginController {
             String email = txtEmail.getText().trim();
             String password = txtPassword.getText();
 
-            // Use AuthService to login
             User user = authService.login(email, password, selectedRole);
 
-            // Check if account is active
-           /* if (!user.getStatus().equals("ACTIVE")) {
-                showError("Votre compte est " + user.getStatus().toLowerCase() + "!");
+            /*if (!user.getStatus().equals("ACTIVE")) {
+                showError("Votre compte est " + user.getStatus().toLowerCase());
                 return;
             }*/
 
-            // Login successful
             System.out.println("✅ Connexion réussie: " + user.getName());
+            showSuccess("Bienvenue " + user.getName() + "!");
 
-            // Navigate to dashboard based on role
-            navigateToDashboard(user, selectedRole);
+            // TODO: Navigate to dashboard
+            // navigateToDashboard(user, selectedRole);
 
         } catch (SQLException e) {
             String errorMessage = e.getMessage();
 
-            // User-friendly error messages
-            if (errorMessage.contains("User not found")) {
-                showError("Email ou mot de passe incorrect!");
-            } else if (errorMessage.contains("Invalid password")) {
-                showError("Email ou mot de passe incorrect!");
+            if (errorMessage.contains("User not found") || errorMessage.contains("Invalid password")) {
+                showFieldError(txtEmail, lblEmailError, "Email ou mot de passe incorrect");
+                showFieldError(txtPassword, lblPasswordError, "Email ou mot de passe incorrect");
+                showError("Email ou mot de passe incorrect");
             } else if (errorMessage.contains("does not have role")) {
-                showError("Vous n'avez pas accès avec le rôle " + selectedRole + "!");
+                showError("Vous n'avez pas accès avec le rôle " + selectedRole);
             } else {
-                showError("Erreur de connexion: " + errorMessage);
+                showError("Erreur de connexion");
             }
 
             e.printStackTrace();
         } finally {
-            // Re-enable button
             btnLogin.setDisable(false);
             btnLogin.setText("Se connecter");
         }
@@ -159,33 +157,28 @@ public class LoginController {
     @FXML
     private void handleSignup() {
         try {
-            // Load signup view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Signup.fxml"));
             Parent root = loader.load();
-
             Stage stage = (Stage) btnLogin.getScene().getWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-
+            stage.setScene(new Scene(root));
         } catch (IOException e) {
-            showError("Erreur lors du chargement de la page d'inscription");
             e.printStackTrace();
         }
     }
 
-    private boolean validateInputs() {
+    private boolean validateAllInputs() {
         boolean valid = true;
 
         if (txtEmail.getText().trim().isEmpty()) {
-            showFieldError(txtEmail, "Email requis");
+            showFieldError(txtEmail, lblEmailError, "Email requis");
             valid = false;
         } else if (!isValidEmail(txtEmail.getText())) {
-            showFieldError(txtEmail, "Email invalide");
+            showFieldError(txtEmail, lblEmailError, "Email invalide");
             valid = false;
         }
 
         if (txtPassword.getText().isEmpty()) {
-            showFieldError(txtPassword, "Mot de passe requis");
+            showFieldError(txtPassword, lblPasswordError, "Mot de passe requis");
             valid = false;
         }
 
@@ -193,20 +186,20 @@ public class LoginController {
     }
 
     private boolean validateEmail() {
-        if (!txtEmail.getText().isEmpty() && !isValidEmail(txtEmail.getText())) {
-            txtEmail.getParent().getStyleClass().add("error");
+        if (!isValidEmail(txtEmail.getText())) {
+            showFieldError(txtEmail, lblEmailError, "Email invalide");
             return false;
         }
-        txtEmail.getParent().getStyleClass().remove("error");
+        hideFieldError(txtEmail, lblEmailError);
         return true;
     }
 
     private boolean validatePassword() {
-        if (!txtPassword.getText().isEmpty() && txtPassword.getText().length() < 8) {
-            txtPassword.getParent().getStyleClass().add("error");
+        if (txtPassword.getText().length() < 6) {
+            showFieldError(txtPassword, lblPasswordError, "Minimum 6 caractères");
             return false;
         }
-        txtPassword.getParent().getStyleClass().remove("error");
+        hideFieldError(txtPassword, lblPasswordError);
         return true;
     }
 
@@ -214,28 +207,49 @@ public class LoginController {
         return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
-    private void showFieldError(Control field, String message) {
-        field.getParent().getStyleClass().add("error");
+    private void showFieldError(Control field, Label errorLabel, String message) {
+        if (!field.getStyleClass().contains("error")) {
+            field.getStyleClass().add("error");
+        }
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
     }
 
-    private void clearErrors() {
-        txtEmail.getParent().getStyleClass().remove("error");
-        txtPassword.getParent().getStyleClass().remove("error");
+    private void hideFieldError(Control field, Label errorLabel) {
+        field.getStyleClass().remove("error");
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+    }
+
+    private void clearAllErrors() {
+        hideFieldError(txtEmail, lblEmailError);
+        hideFieldError(txtPassword, lblPasswordError);
+    }
+
+    // ==================== CUSTOM ALERTS ====================
+
+    private void showSuccess(String message) {
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.SUCCESS);
+        }
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erreur de connexion");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.ERROR);
+        }
     }
 
-    private void navigateToDashboard(User user, String role) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Connexion réussie");
-        alert.setHeaderText("Bienvenue " + user.getName() + "!");
-        alert.setContentText("Rôle: " + role + "\n\nRedirection vers le tableau de bord...");
-        alert.showAndWait();
+    private void showWarning(String message) {
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.WARNING);
+        }
+    }
+
+    private void showInfo(String message) {
+        if (rootPane != null) {
+            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.INFO);
+        }
     }
 }

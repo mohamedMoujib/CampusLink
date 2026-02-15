@@ -5,11 +5,12 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="org.example.campusLink.controllers.SignupController"
-           styleClass="root-pane"
-           stylesheets="@/Styles/Login.css">
+<StackPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.campusLink.controllers.SignupController"
+            styleClass="root-pane"
+            stylesheets="@/Styles/Login.css">
 
     <fx:define>
         <ToggleGroup fx:id="roleGroup"/>
@@ -43,71 +44,139 @@
 
             <!-- Name -->
             <HBox spacing="10">
-                <TextField fx:id="txtPrenom"
-                           promptText="Prénom"
-                           styleClass="input-field-compact"
-                           HBox.hgrow="ALWAYS"/>
+                <!-- Prénom -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtPrenom"
+                               promptText="Prénom"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblPrenomError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
 
-                <TextField fx:id="txtNom"
-                           promptText="Nom"
-                           styleClass="input-field-compact"
-                           HBox.hgrow="ALWAYS"/>
+                <!-- Nom -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtNom"
+                               promptText="Nom"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblNomError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
             </HBox>
 
             <!-- Email & Phone -->
             <HBox spacing="10">
-                <TextField fx:id="txtEmail"
-                           promptText="Email"
-                           styleClass="input-field-compact"
-                           HBox.hgrow="ALWAYS"/>
+                <!-- Email -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtEmail"
+                               promptText="Email"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblEmailError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
 
-                <TextField fx:id="txtPhone"
-                           promptText="Téléphone"
-                           styleClass="input-field-compact"
-                           HBox.hgrow="ALWAYS"/>
+                <!-- Phone -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtPhone"
+                               promptText="Téléphone"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblPhoneError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
             </HBox>
+
+            <!-- Gender & Address -->
             <HBox spacing="10">
-                <ComboBox fx:id="cmbGender"
-                          promptText="Genre"
-                          styleClass="input-field-compact"
-                          HBox.hgrow="ALWAYS"/>
+                <!-- Gender -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <ComboBox fx:id="cmbGender"
+                              promptText="Genre"
+                              styleClass="input-field-compact"
+                              maxWidth="Infinity"/>
+                    <Label fx:id="lblGenderError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
+
                 <!-- Address -->
-                <TextField fx:id="txtAddress"
-                           promptText="Adresse"
-                           styleClass="input-field-compact"
-                           HBox.hgrow="ALWAYS"/>
-
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtAddress"
+                               promptText="Adresse"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblAddressError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
             </HBox>
+
             <!-- University -->
-            <TextField fx:id="txtUniversite"
-                       promptText="Université"
-                       styleClass="input-field-compact"/>
-            <!-- Gender & Filiere -->
+            <VBox spacing="5">
+                <TextField fx:id="txtUniversite"
+                           promptText="Université"
+                           styleClass="input-field-compact"/>
+                <Label fx:id="lblUniversiteError"
+                       styleClass="error-label"
+                       managed="false"
+                       visible="false"/>
+            </VBox>
+
+            <!-- Specialization & Filiere -->
             <HBox spacing="10">
-            <TextField fx:id="txtSpecialization"
-                       promptText="Spécialisation"
-                       styleClass="input-field-compact"/>
-            <TextField fx:id="txtFiliere"
-                       promptText="Filière"
-                       styleClass="input-field-compact"
-                       HBox.hgrow="ALWAYS"/>
+                <!-- Specialization -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtSpecialization"
+                               promptText="Spécialisation"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblSpecializationError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
 
-        </HBox>
-
-
-
+                <!-- Filiere -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <TextField fx:id="txtFiliere"
+                               promptText="Filière"
+                               styleClass="input-field-compact"/>
+                    <Label fx:id="lblFiliereError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
+            </HBox>
 
             <!-- Password -->
             <HBox spacing="10">
-                <PasswordField fx:id="txtPassword"
-                               promptText="Mot de passe"
-                               styleClass="input-field-compact"
-                               HBox.hgrow="ALWAYS"/>
+                <!-- Password -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="txtPassword"
+                                   promptText="Mot de passe"
+                                   styleClass="input-field-compact"/>
+                    <Label fx:id="lblPasswordError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
 
-                <PasswordField fx:id="txtConfirmPassword"
-                               promptText="Confirmer mot de passe"
-                               styleClass="input-field-compact"
-                               HBox.hgrow="ALWAYS"/>
+                <!-- Confirm Password -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="txtConfirmPassword"
+                                   promptText="Confirmer mot de passe"
+                                   styleClass="input-field-compact"/>
+                    <Label fx:id="lblConfirmPasswordError"
+                           styleClass="error-label"
+                           managed="false"
+                           visible="false"/>
+                </VBox>
             </HBox>
 
             <!-- Terms -->
