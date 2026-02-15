@@ -29,12 +29,16 @@ import java.util.List;
 public class Publication_controller {
 
     @FXML private TextField searchField;
-    @FXML private ComboBox<String> typeCombo;
-    @FXML private ComboBox<String> tarifCombo;
-    @FXML private ComboBox<String> trierCombo;
-    @FXML private GridPane publicationsGrid;
+    @FXML private ComboBox<String> typeFilter;
+    @FXML private ComboBox<String> statusFilter;
+    @FXML private FlowPane publicationsContainer;
 
-    // Statistiques
+    // Tab buttons
+    @FXML private Button allPublicationsTab;
+    @FXML private Button myPublicationsTab;
+    @FXML private Label publicationsCountLabel;
+
+    // Statistiques (optional - may not be in FXML)
     @FXML private Label statsTotal;
     @FXML private Label statsVentes;
     @FXML private Label statsDemandes;
@@ -42,6 +46,7 @@ public class Publication_controller {
 
     private Gestion_publication gestionPublication;
     private int currentStudentId = 1; // TODO: Replace with session
+    private boolean showingMyPublications = false; // Track which view is active
 
     @FXML
     public void initialize() {
@@ -68,43 +73,39 @@ public class Publication_controller {
      */
     private void setupFilters() {
         // Type de publication
-        typeCombo.setItems(FXCollections.observableArrayList(
-                "Tous",
-                "🏷️ Ventes",
-                "🔍 Demandes de services"
-        ));
-        typeCombo.setValue("Tous");
-        typeCombo.setOnAction(e -> loadPublications());
+        if (typeFilter != null) {
+            typeFilter.setItems(FXCollections.observableArrayList(
+                    "Tous",
+                    "🏷️ Ventes",
+                    "🔍 Demandes de services"
+            ));
+            typeFilter.setValue("Tous");
+            typeFilter.setOnAction(e -> loadPublications());
+        }
 
-        // Tarifs
-        tarifCombo.setItems(FXCollections.observableArrayList(
-                "Tous les prix",
-                "Moins de 50€",
-                "50€ - 150€",
-                "150€ - 300€",
-                "Plus de 300€"
-        ));
-        tarifCombo.setValue("Tous les prix");
-        tarifCombo.setOnAction(e -> loadPublications());
-
-        // Tri
-        trierCombo.setItems(FXCollections.observableArrayList(
-                "Plus récent",
-                "Prix croissant",
-                "Prix décroissant",
-                "Plus populaire"
-        ));
-        trierCombo.setValue("Plus récent");
-        trierCombo.setOnAction(e -> loadPublications());
+        // Statut
+        if (statusFilter != null) {
+            statusFilter.setItems(FXCollections.observableArrayList(
+                    "Tous",
+                    "Actif",
+                    "En cours",
+                    "Terminé",
+                    "Annulé"
+            ));
+            statusFilter.setValue("Tous");
+            statusFilter.setOnAction(e -> loadPublications());
+        }
 
         // Recherche
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && newVal.length() >= 2) {
-                searchPublications(newVal);
-            } else if (newVal == null || newVal.isEmpty()) {
-                loadPublications();
-            }
-        });
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && newVal.length() >= 2) {
+                    searchPublications(newVal);
+                } else if (newVal == null || newVal.isEmpty()) {
+                    loadPublications();
+                }
+            });
+        }
     }
 
     /**
@@ -142,45 +143,32 @@ public class Publication_controller {
         try {
             System.out.println("Loading publications...");
 
+            if (publicationsContainer == null) {
+                System.err.println("publicationsContainer is null!");
+                return;
+            }
+
             List<Publications> publications = gestionPublication.afficherPublications();
-            publicationsGrid.getChildren().clear();
+            publicationsContainer.getChildren().clear();
 
             if (publications == null || publications.isEmpty()) {
                 Label emptyLabel = new Label("Aucune publication disponible pour le moment.");
                 emptyLabel.getStyleClass().add("empty-state");
-                publicationsGrid.add(emptyLabel, 0, 0, 3, 1);
+                publicationsContainer.getChildren().add(emptyLabel);
+                updatePublicationsCount(0);
                 return;
             }
 
-            // Appliquer les filtres
-            String typeFilter = typeCombo.getValue();
-            if (typeFilter != null && !typeFilter.equals("Tous")) {
-                if (typeFilter.contains("Ventes")) {
-                    publications = publications.stream()
-                            .filter(p -> p.getTypePublication() == TypePublication.VENTE_OBJET)
-                            .toList();
-                } else if (typeFilter.contains("Demandes")) {
-                    publications = publications.stream()
-                            .filter(p -> p.getTypePublication() == TypePublication.DEMANDE_SERVICE)
-                            .toList();
-                }
-            }
+            // Apply filters
+            publications = applyFilters(publications);
 
-            // Créer une grille 3 colonnes
-            int row = 0;
-            int col = 0;
-
+            // Ajouter les cartes
             for (Publications publication : publications) {
                 VBox publicationCard = createPublicationCard(publication);
-                publicationsGrid.add(publicationCard, col, row);
-
-                col++;
-                if (col == 3) {
-                    col = 0;
-                    row++;
-                }
+                publicationsContainer.getChildren().add(publicationCard);
             }
 
+            updatePublicationsCount(publications.size());
             System.out.println("Loaded " + publications.size() + " publications");
 
         } catch (Exception e) {
@@ -195,28 +183,21 @@ public class Publication_controller {
      */
     private void searchPublications(String keyword) {
         try {
+            if (publicationsContainer == null) return;
+
             List<Publications> publications = gestionPublication.rechercherPublications(keyword);
-            publicationsGrid.getChildren().clear();
+            publicationsContainer.getChildren().clear();
 
             if (publications == null || publications.isEmpty()) {
                 Label emptyLabel = new Label("Aucun résultat pour \"" + keyword + "\"");
                 emptyLabel.getStyleClass().add("empty-state");
-                publicationsGrid.add(emptyLabel, 0, 0, 3, 1);
+                publicationsContainer.getChildren().add(emptyLabel);
                 return;
             }
 
-            int row = 0;
-            int col = 0;
-
             for (Publications publication : publications) {
                 VBox publicationCard = createPublicationCard(publication);
-                publicationsGrid.add(publicationCard, col, row);
-
-                col++;
-                if (col == 3) {
-                    col = 0;
-                    row++;
-                }
+                publicationsContainer.getChildren().add(publicationCard);
             }
 
         } catch (Exception e) {
@@ -409,9 +390,20 @@ public class Publication_controller {
             CreatePublication_controller controller = loader.getController();
             controller.setCurrentStudentId(currentStudentId);
 
-            Stage stage = (Stage) publicationsGrid.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Nouvelle Publication");
+            // Get stage from any available component
+            Stage stage = null;
+            if (publicationsContainer != null && publicationsContainer.getScene() != null) {
+                stage = (Stage) publicationsContainer.getScene().getWindow();
+            } else if (searchField != null && searchField.getScene() != null) {
+                stage = (Stage) searchField.getScene().getWindow();
+            }
+
+            if (stage != null) {
+                stage.setScene(scene);
+                stage.setTitle("Nouvelle Publication");
+            } else {
+                System.err.println("Could not find stage!");
+            }
 
         } catch (Exception e) {
             System.err.println("Error navigating to create publication: " + e.getMessage());
@@ -426,28 +418,21 @@ public class Publication_controller {
     @FXML
     private void goToMesPublications(MouseEvent event) {
         try {
+            if (publicationsContainer == null) return;
+
             List<Publications> mesPublications = gestionPublication.afficherPublicationsParEtudiant(currentStudentId);
-            publicationsGrid.getChildren().clear();
+            publicationsContainer.getChildren().clear();
 
             if (mesPublications.isEmpty()) {
                 Label emptyLabel = new Label("Vous n'avez pas encore de publications.");
                 emptyLabel.getStyleClass().add("empty-state");
-                publicationsGrid.add(emptyLabel, 0, 0, 3, 1);
+                publicationsContainer.getChildren().add(emptyLabel);
                 return;
             }
 
-            int row = 0;
-            int col = 0;
-
             for (Publications pub : mesPublications) {
                 VBox card = createPublicationCard(pub);
-                publicationsGrid.add(card, col, row);
-
-                col++;
-                if (col == 3) {
-                    col = 0;
-                    row++;
-                }
+                publicationsContainer.getChildren().add(card);
             }
 
         } catch (Exception e) {
@@ -464,14 +449,194 @@ public class Publication_controller {
             System.out.println("Navigating to student page...");
 
             Parent root = FXMLLoader.load(getClass().getResource("/Student.fxml"));
-            Stage stage = (Stage) publicationsGrid.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Rechercher des Services");
+
+            Stage stage = null;
+            if (publicationsContainer != null && publicationsContainer.getScene() != null) {
+                stage = (Stage) publicationsContainer.getScene().getWindow();
+            } else if (searchField != null && searchField.getScene() != null) {
+                stage = (Stage) searchField.getScene().getWindow();
+            }
+
+            if (stage != null) {
+                stage.setScene(new Scene(root));
+                stage.setTitle("Rechercher des Services");
+            }
 
         } catch (Exception e) {
             System.err.println("Error navigating to student: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Impossible de naviguer: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Navigation vers la page de recherche des services (MouseEvent)
+     */
+    @FXML
+    private void goToServices(MouseEvent event) {
+        try {
+            System.out.println("Navigating to services page...");
+
+            Parent root = FXMLLoader.load(getClass().getResource("/Student.fxml"));
+
+            Stage stage = null;
+            if (publicationsContainer != null && publicationsContainer.getScene() != null) {
+                stage = (Stage) publicationsContainer.getScene().getWindow();
+            } else if (searchField != null && searchField.getScene() != null) {
+                stage = (Stage) searchField.getScene().getWindow();
+            }
+
+            if (stage != null) {
+                stage.setScene(new Scene(root));
+                stage.setTitle("Rechercher des Services");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error navigating to services: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de naviguer: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Show all publications (tab switch)
+     */
+    @FXML
+    private void showAllPublications() {
+        System.out.println("Showing all publications...");
+        showingMyPublications = false;
+
+        // Update tab styles
+        updateTabStyles();
+
+        // Load all publications
+        loadPublications();
+    }
+
+    /**
+     * Show only current user's publications (tab switch)
+     */
+    @FXML
+    private void showMyPublications() {
+        System.out.println("Showing my publications...");
+        showingMyPublications = true;
+
+        // Update tab styles
+        updateTabStyles();
+
+        // Load user's publications
+        loadMyPublications();
+    }
+
+    /**
+     * Update tab button styles based on active tab
+     */
+    private void updateTabStyles() {
+        String activeStyle = "-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-width: 0; -fx-font-weight: bold;";
+        String inactiveStyle = "-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-color: #e5e7eb; -fx-border-width: 1;";
+
+        if (showingMyPublications) {
+            if (myPublicationsTab != null) myPublicationsTab.setStyle(activeStyle);
+            if (allPublicationsTab != null) allPublicationsTab.setStyle(inactiveStyle);
+        } else {
+            if (allPublicationsTab != null) allPublicationsTab.setStyle(activeStyle);
+            if (myPublicationsTab != null) myPublicationsTab.setStyle(inactiveStyle);
+        }
+    }
+
+    /**
+     * Load only current user's publications
+     */
+    private void loadMyPublications() {
+        try {
+            System.out.println("Loading my publications for student ID: " + currentStudentId);
+
+            if (publicationsContainer == null) {
+                System.err.println("publicationsContainer is null!");
+                return;
+            }
+
+            List<Publications> publications = gestionPublication.afficherPublicationsParEtudiant(currentStudentId);
+            publicationsContainer.getChildren().clear();
+
+            if (publications == null || publications.isEmpty()) {
+                Label emptyLabel = new Label("Vous n'avez pas encore de publications.\nCliquez sur '+ Créer une publication' pour commencer.");
+                emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6b7280; -fx-padding: 60px; -fx-text-alignment: center;");
+                emptyLabel.setWrapText(true);
+                publicationsContainer.getChildren().add(emptyLabel);
+                updatePublicationsCount(0);
+                return;
+            }
+
+            // Apply filters if any
+            publications = applyFilters(publications);
+
+            // Add publication cards
+            for (Publications publication : publications) {
+                VBox publicationCard = createPublicationCard(publication);
+                publicationsContainer.getChildren().add(publicationCard);
+            }
+
+            updatePublicationsCount(publications.size());
+            System.out.println("Loaded " + publications.size() + " publications for current user");
+
+        } catch (Exception e) {
+            System.err.println("Error loading my publications: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de charger vos publications: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Apply filters to publications list
+     */
+    private List<Publications> applyFilters(List<Publications> publications) {
+        // Apply type filter
+        if (typeFilter != null) {
+            String typeFilterValue = typeFilter.getValue();
+            if (typeFilterValue != null && !typeFilterValue.equals("Tous")) {
+                if (typeFilterValue.contains("Ventes")) {
+                    publications = publications.stream()
+                            .filter(p -> p.getTypePublication() == TypePublication.VENTE_OBJET)
+                            .toList();
+                } else if (typeFilterValue.contains("Demandes")) {
+                    publications = publications.stream()
+                            .filter(p -> p.getTypePublication() == TypePublication.DEMANDE_SERVICE)
+                            .toList();
+                }
+            }
+        }
+
+        // Apply status filter
+        if (statusFilter != null) {
+            String statusValue = statusFilter.getValue();
+            if (statusValue != null && !statusValue.equals("Tous")) {
+                StatusPublication targetStatus = switch (statusValue) {
+                    case "Actif" -> StatusPublication.ACTIVE;
+                    case "En cours" -> StatusPublication.EN_COURS;
+                    case "Terminé" -> StatusPublication.TERMINEE;
+                    case "Annulé" -> StatusPublication.ANNULEE;
+                    default -> null;
+                };
+                if (targetStatus != null) {
+                    StatusPublication finalTargetStatus = targetStatus;
+                    publications = publications.stream()
+                            .filter(p -> p.getStatus() == finalTargetStatus)
+                            .toList();
+                }
+            }
+        }
+
+        return publications;
+    }
+
+    /**
+     * Update publications count label
+     */
+    private void updatePublicationsCount(int count) {
+        if (publicationsCountLabel != null) {
+            String text = count + " publication" + (count > 1 ? "s" : "");
+            publicationsCountLabel.setText(text);
         }
     }
 

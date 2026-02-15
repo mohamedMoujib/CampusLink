@@ -53,11 +53,6 @@
                     <Label text="Publications"/>
                 </HBox>
 
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToMesDemandes" style="-fx-cursor: hand;">
-                    <Label text="📋" styleClass="menu-icon"/>
-                    <Label text="Mes demandes"/>
-                </HBox>
-
                 <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
                     <Label text="📅" styleClass="menu-icon"/>
                     <Label text="Mes réservations"/>
@@ -77,12 +72,6 @@
                     <Label text="👤" styleClass="menu-icon"/>
                     <Label text="Mon profil"/>
                 </HBox>
-
-                <Region HBox.hgrow="ALWAYS"/>
-
-                <Button text="Voir mes services"
-                        onAction="#goToServices"
-                        styleClass="services-btn"/>
             </HBox>
         </VBox>
     </top>
@@ -127,6 +116,15 @@
                               styleClass="filter-combo"
                               prefWidth="280"/>
                 </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Button Mes Services -->
+                <Button text="📦 Mes Services"
+                        onAction="#goToServices"
+                        style="-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-border-width: 0;">
+                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                </Button>
             </HBox>
 
             <!-- Container des services -->

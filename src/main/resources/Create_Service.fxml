@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -97,66 +98,78 @@
                         <TextField fx:id="titleField"
                                    promptText="Ex: Cours de mathématiques niveau lycée"
                                    styleClass="form-input"/>
-                        <Label text="Donnez un titre clair et descriptif" styleClass="form-hint"/>
-                    </VBox>
-
-                    <!-- Catégorie -->
-                    <VBox spacing="8" styleClass="form-group">
-                        <Label text="Catégorie *" styleClass="form-label"/>
-                        <ComboBox fx:id="categoryCombo"
-                                  promptText="Sélectionnez une catégorie"
-                                  styleClass="form-combo"
-                                  prefWidth="400"/>
+                        <Label text="Donnez un titre clair et descriptif (max 100 caractères)" styleClass="form-hint"/>
                     </VBox>
 
                     <!-- Description -->
                     <VBox spacing="8" styleClass="form-group">
-                        <Label text="Description *" styleClass="form-label"/>
+                        <Label text="Description" styleClass="form-label"/>
                         <TextArea fx:id="descriptionField"
                                   promptText="Décrivez votre service en détail: contenu, méthode, objectifs..."
                                   wrapText="true"
                                   prefRowCount="6"
                                   styleClass="form-textarea"/>
-                        <Label fx:id="charCountLabel" text="0/500 caractères" styleClass="form-hint"/>
+                        <Label fx:id="charCountLabel" text="0/1000 caractères" styleClass="form-hint"/>
                     </VBox>
 
-                    <!-- Grille pour Prix et Durée -->
-                    <HBox spacing="20">
-                        <!-- Prix -->
-                        <VBox spacing="8" styleClass="form-group" HBox.hgrow="ALWAYS">
-                            <Label text="Prix (€) *" styleClass="form-label"/>
+                    <!-- Prix -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Prix (€) *" styleClass="form-label"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
                             <TextField fx:id="priceField"
                                        promptText="25.00"
-                                       styleClass="form-input"/>
-                            <Label text="Prix par session" styleClass="form-hint"/>
-                        </VBox>
-
-                        <!-- Durée -->
-                        <VBox spacing="8" styleClass="form-group" HBox.hgrow="ALWAYS">
-                            <Label text="Durée *" styleClass="form-label"/>
-                            <ComboBox fx:id="durationCombo"
-                                      promptText="Sélectionnez"
-                                      styleClass="form-combo"
-                                      prefWidth="200"/>
-                        </VBox>
-                    </HBox>
-
-                    <!-- Lieu -->
-                    <VBox spacing="8" styleClass="form-group">
-                        <Label text="Lieu *" styleClass="form-label"/>
-                        <TextField fx:id="locationField"
-                                   promptText="Ex: École Polytechnique, En ligne (Zoom), À domicile"
-                                   styleClass="form-input"/>
+                                       styleClass="form-input"
+                                       prefWidth="200"/>
+                            <Label text="€" styleClass="form-label"/>
+                        </HBox>
+                        <Label text="Prix par session" styleClass="form-hint"/>
                     </VBox>
 
-                    <!-- Niveau -->
-                    <VBox spacing="8" styleClass="form-group">
-                        <Label text="Niveau" styleClass="form-label"/>
-                        <HBox spacing="10">
-                            <CheckBox fx:id="debutantCheck" text="Débutant" styleClass="form-checkbox"/>
-                            <CheckBox fx:id="intermediateCheck" text="Intermédiaire" styleClass="form-checkbox"/>
-                            <CheckBox fx:id="avanceCheck" text="Avancé" styleClass="form-checkbox"/>
-                        </HBox>
+                    <!-- Image avec upload (style Publication) -->
+                    <VBox spacing="15" styleClass="form-group">
+                        <Label text="Image (optionnel)" styleClass="form-label"/>
+                        <Label text="Ajoutez une photo pour rendre votre service plus attractif" style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+
+                        <!-- Zone d'upload centrée -->
+                        <VBox spacing="15"
+                              alignment="CENTER"
+                              style="-fx-background-color: #f9fafb; -fx-padding: 30; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-border-width: 2; -fx-border-radius: 12; -fx-border-style: dashed;">
+
+                            <!-- Preview de l'image -->
+                            <ImageView fx:id="imagePreview"
+                                       fitWidth="400"
+                                       fitHeight="300"
+                                       preserveRatio="true"
+                                       visible="false"
+                                       style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0, 0, 5);"/>
+
+                            <!-- Nom du fichier -->
+                            <Label fx:id="imageFileLabel"
+                                   text=""
+                                   visible="false"
+                                   style="-fx-text-fill: #374151; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                            <!-- Boutons -->
+                            <HBox spacing="15" alignment="CENTER">
+                                <Button fx:id="uploadImageButton"
+                                        text="📷 Ajouter une image (optionnel)"
+                                        onAction="#onUploadImage"
+                                        style="-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold; -fx-border-width: 0;">
+                                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                                </Button>
+
+                                <Button fx:id="removeImageButton"
+                                        text="🗑️ Supprimer"
+                                        onAction="#onRemoveImage"
+                                        visible="false"
+                                        style="-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold; -fx-border-width: 0;">
+                                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                                </Button>
+                            </HBox>
+
+                            <Label text="Formats acceptés: JPG, PNG, GIF • Taille max: 5 MB"
+                                   style="-fx-text-fill: #9ca3af; -fx-font-size: 12px;"/>
+                        </VBox>
                     </VBox>
 
                     <!-- Note d'information -->
@@ -164,7 +177,7 @@
                         <Label text="ℹ️" styleClass="info-icon"/>
                         <VBox spacing="5">
                             <Label text="Informations importantes" styleClass="info-title"/>
-                            <Label text="Votre service sera visible après validation par notre équipe." styleClass="info-text"/>
+                            <Label text="Votre service sera créé avec le statut 'EN_ATTENTE' et sera visible après validation." styleClass="info-text"/>
                         </VBox>
                     </HBox>
 

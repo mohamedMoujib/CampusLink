@@ -9,11 +9,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.scene.Node;
 
 import org.example.campusLink.Services.Gestion_publication;
 import org.example.campusLink.entities.Publications;
 import org.example.campusLink.entities.Publications.TypePublication;
+import org.example.campusLink.entities.Publications.StatusPublication;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,13 +26,13 @@ import java.util.Optional;
 
 /**
  * Controller pour créer une nouvelle publication
- * Support upload d'image et deux types: Vente et Demande
+ * Support upload d'image - Type: VENTE uniquement
+ * FIXED VERSION - Sets TypePublication and Status
  */
 public class CreatePublication_controller {
 
     @FXML private RadioButton typeVenteRadio;
     @FXML private RadioButton typeDemandeRadio;
-    @FXML private ToggleGroup typeGroup;
 
     @FXML private TextField titreField;
     @FXML private TextArea messageArea;
@@ -63,11 +63,12 @@ public class CreatePublication_controller {
         try {
             gestionPublication = new Gestion_publication();
 
-            setupTypeToggle();
             setupMessageCounter();
             setupFormValidation();
             setupPriceField();
             setupImageUpload();
+
+            validateForm();
 
             System.out.println("CreatePublication_controller initialized successfully");
 
@@ -76,22 +77,6 @@ public class CreatePublication_controller {
             e.printStackTrace();
             showAlert("Erreur", "Erreur d'initialisation: " + e.getMessage(), Alert.AlertType.ERROR);
         }
-    }
-
-    /**
-     * Configuration du choix du type
-     */
-    private void setupTypeToggle() {
-        typeGroup = new ToggleGroup();
-        typeVenteRadio.setToggleGroup(typeGroup);
-        typeDemandeRadio.setToggleGroup(typeGroup);
-
-        // Par défaut: Vente
-        typeVenteRadio.setSelected(true);
-
-        typeGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            validateForm();
-        });
     }
 
     /**
@@ -149,13 +134,15 @@ public class CreatePublication_controller {
      * Valider le formulaire
      */
     private void validateForm() {
-        boolean isValid = !titreField.getText().trim().isEmpty()
-                && !messageArea.getText().trim().isEmpty()
+        boolean isValid = titreField != null && !titreField.getText().trim().isEmpty()
+                && messageArea != null && !messageArea.getText().trim().isEmpty()
                 && messageArea.getText().length() <= 1000
-                && !prixField.getText().trim().isEmpty()
-                && termsCheckBox.isSelected();
+                && prixField != null && !prixField.getText().trim().isEmpty()
+                && termsCheckBox != null && termsCheckBox.isSelected();
 
-        submitButton.setDisable(!isValid);
+        if (submitButton != null) {
+            submitButton.setDisable(!isValid);
+        }
     }
 
     /**
@@ -175,7 +162,6 @@ public class CreatePublication_controller {
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
-            // Vérifier la taille
             if (file.length() > MAX_FILE_SIZE) {
                 showAlert("Erreur", "L'image est trop volumineuse (max 5 MB)", Alert.AlertType.WARNING);
                 return;
@@ -228,19 +214,17 @@ public class CreatePublication_controller {
         System.out.println("Submitting publication...");
 
         try {
+            // Step 1: Validate form data
             if (!validateFormData()) {
                 return;
             }
 
-            // Confirmation
+            // Step 2: User confirmation
             Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
             confirmDialog.setTitle("Confirmer la publication");
             confirmDialog.setHeaderText("Publier votre annonce ?");
-
-            String typeLabel = typeVenteRadio.isSelected() ? "Vente d'objet" : "Demande de service";
             confirmDialog.setContentText(
-                    "Type: " + typeLabel + "\n" +
-                            "Titre: " + titreField.getText() + "\n" +
+                    "Titre: " + titreField.getText() + "\n" +
                             "Prix: " + prixField.getText() + "€\n\n" +
                             "Votre publication sera visible par tous les étudiants.\n" +
                             "Voulez-vous continuer ?"
@@ -252,41 +236,46 @@ public class CreatePublication_controller {
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
 
-            if (result.isPresent() && result.get() == btnConfirm) {
-                // Upload de l'image si présente
-                if (selectedImageFile != null) {
-                    uploadedImagePath = uploadImage(selectedImageFile);
-                }
-
-                // Créer la publication
-                Publications newPublication = createPublicationFromForm();
-
-                // Sauvegarder
-                gestionPublication.ajouterPublication(newPublication);
-
-                // Message de succès
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Succès");
-                successAlert.setHeaderText("Publication créée !");
-                successAlert.setContentText(
-                        "Votre publication a été créée avec succès.\n" +
-                                "Elle est maintenant visible par tous les étudiants.\n\n" +
-                                "ID de la publication: #" + newPublication.getId()
-                );
-                successAlert.showAndWait();
-
-                // Retour à la liste
-                goBackToPublications();
+            if (result.isEmpty() || result.get() != btnConfirm) {
+                return;
             }
 
-        } catch (IllegalArgumentException e) {
-            System.err.println("Validation error: " + e.getMessage());
-            showAlert("Attention", e.getMessage(), Alert.AlertType.WARNING);
+            // Step 3: Upload image if present
+            if (selectedImageFile != null) {
+                uploadedImagePath = uploadImage(selectedImageFile);
+            }
+
+            // Step 4: Create publication object
+            Publications newPublication = createPublicationFromForm();
+
+            System.out.println("=== PUBLICATION OBJECT CREATED ===");
+            System.out.println("Type: " + newPublication.getTypePublication());
+            System.out.println("Status: " + newPublication.getStatus());
+            System.out.println("Student ID: " + newPublication.getStudentId());
+            System.out.println("Title: " + newPublication.getTitre());
+            System.out.println("Price: " + newPublication.getPrixVente());
+
+            // Step 5: Save to database
+            gestionPublication.ajouterPublication(newPublication);
+
+            // Step 6: Success message
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Succès");
+            successAlert.setHeaderText("Publication créée !");
+            successAlert.setContentText(
+                    "Votre publication a été créée avec succès.\n" +
+                            "Elle est maintenant visible par tous les étudiants.\n\n" +
+                            "ID de la publication: #" + newPublication.getId()
+            );
+            successAlert.showAndWait();
+
+            // Step 7: Navigate back
+            goBackToPublications();
 
         } catch (Exception e) {
-            System.err.println("Error submitting publication: " + e.getMessage());
+            System.err.println("Error creating publication: " + e.getMessage());
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de créer la publication: " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Erreur lors de la création: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -294,7 +283,6 @@ public class CreatePublication_controller {
      * Valider les données du formulaire
      */
     private boolean validateFormData() {
-        // Titre
         if (titreField.getText().trim().isEmpty()) {
             showAlert("Erreur", "Veuillez saisir un titre", Alert.AlertType.WARNING);
             titreField.requestFocus();
@@ -306,7 +294,6 @@ public class CreatePublication_controller {
             return false;
         }
 
-        // Message
         String message = messageArea.getText().trim();
         if (message.isEmpty()) {
             showAlert("Erreur", "Veuillez saisir une description", Alert.AlertType.WARNING);
@@ -319,7 +306,6 @@ public class CreatePublication_controller {
             return false;
         }
 
-        // Prix
         String priceText = prixField.getText().trim();
         if (priceText.isEmpty()) {
             showAlert("Erreur", "Veuillez saisir un prix", Alert.AlertType.WARNING);
@@ -338,7 +324,6 @@ public class CreatePublication_controller {
             return false;
         }
 
-        // CGU
         if (!termsCheckBox.isSelected()) {
             showAlert("Erreur", "Veuillez accepter les conditions générales", Alert.AlertType.WARNING);
             return false;
@@ -349,24 +334,30 @@ public class CreatePublication_controller {
 
     /**
      * Créer l'objet Publication depuis le formulaire
+     * ✅ FIXED: Now properly sets TypePublication and Status
      */
     private Publications createPublicationFromForm() {
         Publications pub = new Publications();
 
+        // Basic fields
         pub.setStudentId(currentStudentId);
         pub.setTitre(titreField.getText().trim());
         pub.setMessage(messageArea.getText().trim());
         pub.setImageUrl(uploadedImagePath);
-        pub.setLocalisation(localisationField.getText().trim());
 
-        // Type
-        if (typeVenteRadio.isSelected()) {
-            pub.setTypePublication(TypePublication.VENTE_OBJET);
-            pub.setPrixVente(new BigDecimal(prixField.getText().trim()));
-        } else {
-            pub.setTypePublication(TypePublication.DEMANDE_SERVICE);
-            pub.setPrixVente(new BigDecimal(prixField.getText().trim()));
-        }
+        // Localisation - can be empty/null
+        String localisation = localisationField.getText().trim();
+        pub.setLocalisation(localisation.isEmpty() ? null : localisation);
+
+        // Price
+        BigDecimal prix = new BigDecimal(prixField.getText().trim());
+        pub.setPrixVente(prix);
+
+        // ✅ FIX: Set TypePublication (default to VENTE_OBJET)
+        pub.setTypePublication(TypePublication.VENTE_OBJET);
+
+        // ✅ FIX: Set Status to ACTIVE
+        pub.setStatus(StatusPublication.ACTIVE);
 
         return pub;
     }
@@ -375,17 +366,14 @@ public class CreatePublication_controller {
      * Upload l'image sur le serveur
      */
     private String uploadImage(File imageFile) throws IOException {
-        // Créer le dossier s'il n'existe pas
         Path uploadDir = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        // Nom de fichier unique
         String filename = System.currentTimeMillis() + "_" + imageFile.getName();
         Path targetPath = uploadDir.resolve(filename);
 
-        // Copier le fichier
         Files.copy(imageFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
         return UPLOAD_DIR + filename;
@@ -426,9 +414,20 @@ public class CreatePublication_controller {
     private void goBackToPublications() {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/Publication.fxml"));
-            Stage stage = (Stage) titreField.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Publications");
+
+            Stage stage = null;
+            if (titreField != null && titreField.getScene() != null) {
+                stage = (Stage) titreField.getScene().getWindow();
+            } else if (messageArea != null && messageArea.getScene() != null) {
+                stage = (Stage) messageArea.getScene().getWindow();
+            } else if (uploadImageButton != null && uploadImageButton.getScene() != null) {
+                stage = (Stage) uploadImageButton.getScene().getWindow();
+            }
+
+            if (stage != null) {
+                stage.setScene(new Scene(root));
+                stage.setTitle("Publications");
+            }
 
         } catch (Exception e) {
             System.err.println("Error navigating back: " + e.getMessage());

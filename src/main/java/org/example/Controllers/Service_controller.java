@@ -9,6 +9,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -17,6 +19,7 @@ import javafx.stage.Stage;
 import org.example.campusLink.Services.Gestion_Service;
 import org.example.campusLink.entities.Services;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -98,20 +101,41 @@ public class Service_controller {
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
         // Badge "Actif" (green) ou "Inactif" (gray)
-        Label statusBadge = new Label("Actif");
-        statusBadge.setStyle(
-                "-fx-background-color: #d1fae5;" +
-                        "-fx-text-fill: #065f46;" +
-                        "-fx-font-size: 11px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-padding: 4 10;" +
-                        "-fx-background-radius: 12;"
-        );
+        Label statusBadge = new Label(getStatusLabel(s.getStatus()));
+        statusBadge.setStyle(getStatusBadgeStyle(s.getStatus()));
 
         header.getChildren().addAll(title, spacer, statusBadge);
 
+        // ✅ ADD: Image Display (AFTER header)
+        if (s.getImage() != null && !s.getImage().isEmpty()) {
+            try {
+                String imagePath = "uploads/services/" + s.getImage();
+                File imageFile = new File(imagePath);
+
+                if (imageFile.exists()) {
+                    Image image = new Image(imageFile.toURI().toString());
+                    ImageView imageView = new ImageView(image);
+                    imageView.setFitWidth(340);
+                    imageView.setFitHeight(200);
+                    imageView.setPreserveRatio(true);
+                    imageView.setStyle(
+                            "-fx-background-radius: 8;" +
+                                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);"
+                    );
+
+                    card.getChildren().add(imageView);
+                    System.out.println("✅ Image loaded: " + imagePath);
+                } else {
+                    System.err.println("❌ Image file not found: " + imagePath);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading service image: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         // ===== CATEGORY =====
-        Label category = new Label("Mathématiques");
+        Label category = new Label(s.getCategoryName() != null ? s.getCategoryName() : "Sans catégorie");
         category.setStyle("-fx-font-size: 13px; -fx-text-fill: #6b7280;");
 
         // ===== DESCRIPTION =====
@@ -217,6 +241,48 @@ public class Service_controller {
         ));
 
         return card;
+    }
+
+    /**
+     * Get status label text
+     */
+    private String getStatusLabel(String status) {
+        if (status == null) return "Actif";
+        return switch (status.toUpperCase()) {
+            case "EN_ATTENTE" -> "En attente";
+            case "ACTIF" -> "Actif";
+            case "INACTIF" -> "Inactif";
+            case "REJETE" -> "Rejeté";
+            default -> "Actif";
+        };
+    }
+
+    /**
+     * Get status badge style
+     */
+    private String getStatusBadgeStyle(String status) {
+        if (status == null || status.equalsIgnoreCase("ACTIF")) {
+            return "-fx-background-color: #d1fae5;" +
+                    "-fx-text-fill: #065f46;" +
+                    "-fx-font-size: 11px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-padding: 4 10;" +
+                    "-fx-background-radius: 12;";
+        } else if (status.equalsIgnoreCase("EN_ATTENTE")) {
+            return "-fx-background-color: #fef3c7;" +
+                    "-fx-text-fill: #92400e;" +
+                    "-fx-font-size: 11px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-padding: 4 10;" +
+                    "-fx-background-radius: 12;";
+        } else {
+            return "-fx-background-color: #f3f4f6;" +
+                    "-fx-text-fill: #6b7280;" +
+                    "-fx-font-size: 11px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-padding: 4 10;" +
+                    "-fx-background-radius: 12;";
+        }
     }
 
     /* ================= ACTIONS ================= */

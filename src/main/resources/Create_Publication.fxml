@@ -33,21 +33,7 @@
                     <Insets top="40" right="40" bottom="40" left="40"/>
                 </padding>
 
-                <!-- ÉTAPE 1: TYPE DE PUBLICATION -->
-                <VBox spacing="15" styleClass="section">
-                    <Label text="1. Type de Publication" styleClass="section-title"/>
-                    <Label text="Que souhaitez-vous faire ?" styleClass="section-subtitle"/>
 
-                    <HBox spacing="20" alignment="CENTER_LEFT">
-                        <RadioButton fx:id="typeVenteRadio"
-                                     text="🏷️ Vendre un objet"
-                                     styleClass="type-radio"/>
-
-                        <RadioButton fx:id="typeDemandeRadio"
-                                     text="🔍 Demander un service"
-                                     styleClass="type-radio"/>
-                    </HBox>
-                </VBox>
 
                 <!-- ÉTAPE 2: INFORMATIONS PRINCIPALES -->
                 <VBox spacing="15" styleClass="section">
@@ -115,10 +101,13 @@
                                    fitWidth="400"
                                    fitHeight="300"
                                    preserveRatio="true"
+                                   visible="false"
                                    styleClass="image-preview"/>
 
                         <!-- Nom du fichier -->
                         <Label fx:id="imageFileLabel"
+                               text=""
+                               visible="false"
                                styleClass="file-name"/>
 
                         <!-- Boutons -->
@@ -131,6 +120,7 @@
                             <Button fx:id="removeImageButton"
                                     text="🗑️ Supprimer"
                                     onAction="#onRemoveImage"
+                                    visible="false"
                                     styleClass="remove-btn"/>
                         </HBox>
 

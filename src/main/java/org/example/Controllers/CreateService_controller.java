@@ -4,41 +4,49 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import org.example.campusLink.Services.Gestion_Categorie;
 import org.example.campusLink.Services.Gestion_Service;
-import org.example.campusLink.entities.Categorie;
 import org.example.campusLink.entities.Services;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
- * Controller for creating new Services
- * Matches database structure: services table with title, description, price, image, prestataire_id, category_id, status
+ * Simplified Controller for creating new Services with image upload
+ * 4 fields: title, description, price, image
+ * Matches database: id, title, description, price, image, prestataire_id, category_id, status
  */
 public class CreateService_controller {
 
+    // FXML fields
     @FXML private TextField titleField;
-    @FXML private ComboBox<String> categoryCombo;
     @FXML private TextArea descriptionField;
     @FXML private TextField priceField;
-    @FXML private TextField imageField;
     @FXML private Label charCountLabel;
-    @FXML private Button saveButton;
-    @FXML private Button cancelButton;
+
+    // Image upload fields
+    @FXML private Button uploadImageButton;
+    @FXML private ImageView imagePreview;
+    @FXML private Label imageFileLabel;
+    @FXML private Button removeImageButton;
 
     private Gestion_Service gestionService;
-    private Gestion_Categorie gestionCategories;
+    private int currentPrestataireId = 1; // TODO: Replace with session
 
-    // Map to store category name -> ID mapping
-    private Map<String, Integer> categoryMap = new HashMap<>();
-
-    // TODO: Replace with actual logged-in prestataire ID from session
-    private int currentPrestataireId = 1; // Hardcoded for now
+    // Image upload
+    private File selectedImageFile;
+    private String uploadedImagePath;
+    private static final String UPLOAD_DIR = "uploads/services/";
+    private static final long MAX_FILE_SIZE = 5_000_000; // 5 MB
 
     @FXML
     public void initialize() {
@@ -46,75 +54,44 @@ public class CreateService_controller {
 
         try {
             gestionService = new Gestion_Service();
-            gestionCategories = new Gestion_Categorie();
-
-            loadCategories();
             setupCharacterCounter();
             setupPriceField();
-
+            setupImageUpload();
             System.out.println("CreateService_controller initialized successfully");
 
         } catch (Exception e) {
-            System.err.println("Error initializing CreateService_controller: " + e.getMessage());
+            System.err.println("Error initializing: " + e.getMessage());
             e.printStackTrace();
-            showAlert("Erreur", "Impossible d'initialiser le formulaire: " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible d'initialiser: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     /**
-     * ✅ Load categories from database
+     * Setup image upload components
      */
-    private void loadCategories() {
-        try {
-            List<Categorie> categories = gestionCategories.afficherCategories();
-
-            // Clear existing items
-            categoryCombo.getItems().clear();
-            categoryMap.clear();
-
-            // Add categories to ComboBox
-            for (Categorie cat : categories) {
-                categoryCombo.getItems().add(cat.getName());
-                categoryMap.put(cat.getName(), cat.getId());
-            }
-
-            System.out.println("Loaded " + categories.size() + " categories");
-
-        } catch (Exception e) {
-            System.err.println("Error loading categories: " + e.getMessage());
-            e.printStackTrace();
-
-            // Fallback to hardcoded categories if database fails
-            categoryCombo.getItems().addAll(
-                    "Programmation",
-                    "Mathématiques",
-                    "Informatique",
-                    "Physique",
-                    "Chimie",
-                    "Biologie",
-                    "Langues",
-                    "Histoire-Géographie",
-                    "Économie",
-                    "Rédaction",
-                    "Autre"
-            );
+    private void setupImageUpload() {
+        if (imagePreview != null) {
+            imagePreview.setVisible(false);
+        }
+        if (imageFileLabel != null) {
+            imageFileLabel.setVisible(false);
+        }
+        if (removeImageButton != null) {
+            removeImageButton.setVisible(false);
         }
     }
 
-    /**
-     * ✅ Setup character counter for description
-     */
     private void setupCharacterCounter() {
         if (descriptionField != null && charCountLabel != null) {
-            descriptionField.textProperty().addListener((observable, oldValue, newValue) -> {
-                int length = newValue != null ? newValue.length() : 0;
+            descriptionField.textProperty().addListener((obs, oldVal, newVal) -> {
+                int length = newVal != null ? newVal.length() : 0;
                 charCountLabel.setText(length + "/1000 caractères");
 
                 if (length > 1000) {
                     charCountLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-weight: bold;");
-                    descriptionField.setText(oldValue); // Prevent exceeding 1000 chars
+                    descriptionField.setText(oldVal);
                 } else if (length > 900) {
-                    charCountLabel.setStyle("-fx-text-fill: #f59e0b;"); // Orange warning
+                    charCountLabel.setStyle("-fx-text-fill: #f59e0b;");
                 } else {
                     charCountLabel.setStyle("-fx-text-fill: #9ca3af;");
                 }
@@ -122,217 +99,165 @@ public class CreateService_controller {
         }
     }
 
-    /**
-     * ✅ Setup price field to accept only numbers and decimal point
-     */
     private void setupPriceField() {
         if (priceField != null) {
-            priceField.textProperty().addListener((observable, oldValue, newValue) -> {
-                // Allow only numbers and one decimal point
-                if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
-                    priceField.setText(oldValue);
+            priceField.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (!newVal.matches("\\d*(\\.\\d{0,2})?")) {
+                    priceField.setText(oldVal);
                 }
             });
         }
     }
 
-    /**
-     * ✅ Comprehensive form validation
-     */
     private boolean validateForm() {
         StringBuilder errors = new StringBuilder();
 
-        // Validate title (VARCHAR(100) in DB)
+        // title: VARCHAR(100) NOT NULL
         if (titleField.getText() == null || titleField.getText().trim().isEmpty()) {
             errors.append("• Le titre est obligatoire\n");
         } else if (titleField.getText().trim().length() < 3) {
             errors.append("• Le titre doit contenir au moins 3 caractères\n");
         } else if (titleField.getText().trim().length() > 100) {
-            errors.append("• Le titre ne peut pas dépasser 100 caractères (limite de la base de données)\n");
+            errors.append("• Le titre: max 100 caractères\n");
         }
 
-        // Validate category
-        if (categoryCombo.getValue() == null || categoryCombo.getValue().isEmpty()) {
-            errors.append("• La catégorie est obligatoire\n");
-        }
-
-        // Validate description (TEXT in DB - can be NULL but good to have)
+        // description: TEXT DEFAULT NULL (optional, max 1000 for UI)
         if (descriptionField.getText() != null && descriptionField.getText().trim().length() > 1000) {
-            errors.append("• La description ne peut pas dépasser 1000 caractères\n");
+            errors.append("• Description: max 1000 caractères\n");
         }
 
-        // Validate price (DECIMAL(10,2) in DB - NOT NULL)
+        // price: DECIMAL(10,2) NOT NULL
         if (priceField.getText() == null || priceField.getText().trim().isEmpty()) {
             errors.append("• Le prix est obligatoire\n");
         } else {
             try {
                 double price = Double.parseDouble(priceField.getText().trim());
                 if (price <= 0) {
-                    errors.append("• Le prix doit être supérieur à 0\n");
-                } else if (price > 10000) {
-                    errors.append("• Le prix ne peut pas dépasser 10 000€\n");
+                    errors.append("• Le prix doit être > 0\n");
+                } else if (price > 99999999.99) {
+                    errors.append("• Prix: max 99,999,999.99€\n");
                 }
             } catch (NumberFormatException e) {
-                errors.append("• Le prix doit être un nombre valide (ex: 25.00)\n");
+                errors.append("• Prix invalide (ex: 25.00)\n");
             }
         }
 
-        // Validate image (VARCHAR(100) - optional)
-        if (imageField != null && imageField.getText() != null &&
-                imageField.getText().trim().length() > 100) {
-            errors.append("• Le nom de l'image ne peut pas dépasser 100 caractères\n");
+        // image: uploaded file validation (optional)
+        if (selectedImageFile != null && selectedImageFile.length() > MAX_FILE_SIZE) {
+            errors.append("• L'image est trop volumineuse (max 5 MB)\n");
         }
 
-        // Show errors if any
         if (errors.length() > 0) {
-            showAlert("Erreurs de validation",
-                    "Veuillez corriger les erreurs suivantes:\n\n" + errors.toString(),
-                    Alert.AlertType.WARNING);
+            showAlert("Erreurs", "Corrigez:\n\n" + errors.toString(), Alert.AlertType.WARNING);
             return false;
         }
 
         return true;
     }
 
-    /**
-     * ✅ SAVE BUTTON - Create the service
-     * Database fields: id, title, description, price, image, prestataire_id, category_id, status
-     */
     @FXML
     private void saveService() {
-        System.out.println("Attempting to save service...");
+        System.out.println("Saving service...");
 
-        // Validate the form
         if (!validateForm()) {
             return;
         }
 
-        // Show confirmation dialog
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmDialog.setTitle("Confirmer la création");
+        confirmDialog.setTitle("Confirmer");
         confirmDialog.setHeaderText("Créer ce service ?");
         confirmDialog.setContentText(
                 "Titre: " + titleField.getText().trim() + "\n" +
                         "Prix: " + priceField.getText().trim() + "€\n" +
-                        "Catégorie: " + categoryCombo.getValue() + "\n\n" +
-                        "Votre service sera créé avec le statut 'EN_ATTENTE'."
+                        (selectedImageFile != null ? "Image: " + selectedImageFile.getName() + "\n" : "") +
+                        "\nStatut: EN_ATTENTE"
         );
 
-        ButtonType btnConfirm = new ButtonType("✓ Confirmer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnOk = new ButtonType("✓ Créer", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("✗ Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirmDialog.getButtonTypes().setAll(btnConfirm, btnCancel);
+        confirmDialog.getButtonTypes().setAll(btnOk, btnCancel);
 
         Optional<ButtonType> result = confirmDialog.showAndWait();
 
-        if (result.isPresent() && result.get() == btnConfirm) {
+        if (result.isPresent() && result.get() == btnOk) {
             try {
-                // Create the Services object
+                // Upload image if selected
+                if (selectedImageFile != null) {
+                    uploadedImagePath = uploadImage(selectedImageFile);
+                }
+
                 Services service = new Services();
 
-                // Set required fields
+                // Required fields
                 service.setTitle(titleField.getText().trim());
                 service.setPrice(Double.parseDouble(priceField.getText().trim()));
                 service.setPrestataireId(currentPrestataireId);
 
-                // Set optional fields
-                String description = descriptionField.getText();
-                service.setDescription(description != null && !description.trim().isEmpty()
-                        ? description.trim()
-                        : null);
+                // Optional fields
+                String desc = descriptionField.getText();
+                service.setDescription(desc != null && !desc.trim().isEmpty() ? desc.trim() : null);
 
-                String imagePath = imageField != null ? imageField.getText() : null;
-                service.setImage(imagePath != null && !imagePath.trim().isEmpty()
-                        ? imagePath.trim()
-                        : null);
+                // Set uploaded image filename
+                service.setImage(uploadedImagePath);
 
-                // Get category ID from map
-                String selectedCategory = categoryCombo.getValue();
-                Integer categoryId = categoryMap.get(selectedCategory);
+                // ✅ FIX: Set category_id to NULL (it's DEFAULT NULL in database)
+                service.setCategoryId(0);
 
-                if (categoryId != null) {
-                    service.setCategoryId(categoryId);
-                } else {
-                    // Fallback: try to find category by name or use default
-                    service.setCategoryId(1); // Default category
-                    System.err.println("Warning: Category ID not found for: " + selectedCategory);
-                }
+                // status defaults to EN_ATTENTE in database
 
-                // Status will be set to 'EN_ATTENTE' by default in the database
-
-                // Save to database
                 gestionService.ajouterService(service);
 
-                System.out.println("✅ Service created successfully with ID: " + service.getId());
+                System.out.println("✅ Service created: ID=" + service.getId());
 
-                // Show success message
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setTitle("Succès");
-                successAlert.setHeaderText("Service créé avec succès !");
+                successAlert.setHeaderText("Service créé !");
                 successAlert.setContentText(
-                        "Votre service \"" + service.getTitle() + "\" a été créé.\n" +
+                        "Service: " + service.getTitle() + "\n" +
                                 "ID: #" + service.getId() + "\n" +
-                                "Statut: EN_ATTENTE\n\n" +
-                                "Il sera visible après validation par notre équipe."
+                                "Prix: " + service.getPrice() + "€\n" +
+                                (uploadedImagePath != null ? "Image: " + uploadedImagePath + "\n" : "") +
+                                "Statut: EN_ATTENTE"
                 );
                 successAlert.showAndWait();
 
-                // Return to services page
                 goBack();
 
             } catch (NumberFormatException e) {
-                showAlert("Erreur", "Le prix doit être un nombre valide", Alert.AlertType.ERROR);
-            } catch (IllegalArgumentException e) {
-                // Business logic error from Gestion_Service validation
-                showAlert("Erreur de validation", e.getMessage(), Alert.AlertType.WARNING);
-            } catch (Exception e) {
-                System.err.println("Error saving service: " + e.getMessage());
+                showAlert("Erreur", "Prix invalide", Alert.AlertType.ERROR);
+            } catch (IOException e) {
+                System.err.println("Error uploading image: " + e.getMessage());
                 e.printStackTrace();
-                showAlert("Erreur",
-                        "Impossible de créer le service: " + e.getMessage(),
-                        Alert.AlertType.ERROR);
+                showAlert("Erreur", "Impossible d'uploader l'image: " + e.getMessage(), Alert.AlertType.ERROR);
+            } catch (Exception e) {
+                System.err.println("Error: " + e.getMessage());
+                e.printStackTrace();
+                showAlert("Erreur", "Impossible de créer: " + e.getMessage(), Alert.AlertType.ERROR);
             }
         }
     }
 
-    /**
-     * ✅ CANCEL BUTTON - Go back to previous page
-     */
-    @FXML
-    private void cancelService() {
-        goBack();
-    }
-
-    /**
-     * ✅ Navigate back with unsaved changes warning
-     */
     @FXML
     private void goBack() {
-        System.out.println("Going back to services page...");
+        System.out.println("Going back...");
 
         try {
-            // Check for unsaved changes
             if (hasUnsavedChanges()) {
                 Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                confirmAlert.setTitle("Annuler la création");
+                confirmAlert.setTitle("Annuler");
                 confirmAlert.setHeaderText("Quitter sans enregistrer ?");
-                confirmAlert.setContentText(
-                        "Vous avez des modifications non enregistrées.\n" +
-                                "Êtes-vous sûr de vouloir annuler ?\n\n" +
-                                "Toutes les informations saisies seront perdues."
-                );
+                confirmAlert.setContentText("Les modifications seront perdues.");
 
-                ButtonType btnYes = new ButtonType("Oui, annuler", ButtonBar.ButtonData.OK_DONE);
-                ButtonType btnNo = new ButtonType("Non, continuer", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType btnYes = new ButtonType("Oui", ButtonBar.ButtonData.OK_DONE);
+                ButtonType btnNo = new ButtonType("Non", ButtonBar.ButtonData.CANCEL_CLOSE);
                 confirmAlert.getButtonTypes().setAll(btnYes, btnNo);
 
                 Optional<ButtonType> result = confirmAlert.showAndWait();
-
                 if (result.isEmpty() || result.get() != btnYes) {
-                    return; // User chose to continue editing
+                    return;
                 }
             }
 
-            // Navigate back
             Stage stage = (Stage) titleField.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/service.fxml"));
             stage.setScene(new Scene(loader.load()));
@@ -341,26 +266,124 @@ public class CreateService_controller {
         } catch (Exception e) {
             System.err.println("Error going back: " + e.getMessage());
             e.printStackTrace();
-            showAlert("Erreur",
-                    "Impossible de retourner à la page précédente: " + e.getMessage(),
-                    Alert.AlertType.ERROR);
+            showAlert("Erreur", "Navigation impossible: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    /**
-     * ✅ Check if there are unsaved changes
-     */
     private boolean hasUnsavedChanges() {
         return (titleField.getText() != null && !titleField.getText().trim().isEmpty()) ||
                 (descriptionField.getText() != null && !descriptionField.getText().trim().isEmpty()) ||
                 (priceField.getText() != null && !priceField.getText().trim().isEmpty()) ||
-                (categoryCombo.getValue() != null && !categoryCombo.getValue().isEmpty()) ||
-                (imageField != null && imageField.getText() != null && !imageField.getText().trim().isEmpty());
+                (selectedImageFile != null);
     }
 
     /**
-     * ✅ Show alert dialog
+     * Upload image button click handler
      */
+    @FXML
+    private void onUploadImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Sélectionner une image");
+
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"),
+                new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
+        );
+
+        Stage stage = (Stage) uploadImageButton.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null) {
+            // Verify file size
+            if (file.length() > MAX_FILE_SIZE) {
+                showAlert("Erreur", "L'image est trop volumineuse (max 5 MB)", Alert.AlertType.WARNING);
+                return;
+            }
+
+            selectedImageFile = file;
+            displayImagePreview(file);
+        }
+    }
+
+    /**
+     * Display image preview
+     */
+    private void displayImagePreview(File imageFile) {
+        try {
+            Image image = new Image(imageFile.toURI().toString());
+
+            if (imagePreview != null) {
+                imagePreview.setImage(image);
+                imagePreview.setVisible(true);
+            }
+
+            if (imageFileLabel != null) {
+                imageFileLabel.setText(imageFile.getName());
+                imageFileLabel.setVisible(true);
+            }
+
+            if (removeImageButton != null) {
+                removeImageButton.setVisible(true);
+            }
+
+            if (uploadImageButton != null) {
+                uploadImageButton.setText("📷 Changer l'image");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error displaying image: " + e.getMessage());
+            showAlert("Erreur", "Impossible d'afficher l'image", Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Remove selected image
+     */
+    @FXML
+    private void onRemoveImage() {
+        selectedImageFile = null;
+        uploadedImagePath = null;
+
+        if (imagePreview != null) {
+            imagePreview.setImage(null);
+            imagePreview.setVisible(false);
+        }
+
+        if (imageFileLabel != null) {
+            imageFileLabel.setVisible(false);
+        }
+
+        if (removeImageButton != null) {
+            removeImageButton.setVisible(false);
+        }
+
+        if (uploadImageButton != null) {
+            uploadImageButton.setText("📷 Ajouter une image (optionnel)");
+        }
+    }
+
+    /**
+     * Upload image to server directory
+     */
+    private String uploadImage(File imageFile) throws IOException {
+        // Create upload directory if it doesn't exist
+        Path uploadDir = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+
+        // Generate unique filename
+        String filename = System.currentTimeMillis() + "_" + imageFile.getName();
+        Path targetPath = uploadDir.resolve(filename);
+
+        // Copy file to upload directory
+        Files.copy(imageFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        System.out.println("✅ Image uploaded: " + UPLOAD_DIR + filename);
+
+        return filename; // Store only filename in database
+    }
+
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -369,11 +392,8 @@ public class CreateService_controller {
         alert.showAndWait();
     }
 
-    /**
-     * ✅ Set current prestataire ID (called from previous controller)
-     */
     public void setCurrentPrestataireId(int prestataireId) {
         this.currentPrestataireId = prestataireId;
-        System.out.println("Current prestataire ID set to: " + prestataireId);
+        System.out.println("Prestataire ID: " + prestataireId);
     }
 }

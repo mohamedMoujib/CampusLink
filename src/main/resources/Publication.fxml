@@ -7,8 +7,8 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.example.Controllers.Publication_controller"
-            prefWidth="1400" prefHeight="900"
-            stylesheets="/Styles/Publication.css"
+            prefWidth="1400" prefHeight="800"
+            stylesheets="/Styles/student.css"
             styleClass="root">
 
     <!-- TOP BAR -->
@@ -19,10 +19,10 @@
 
                 <!-- Logo -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="📢" styleClass="logo-box"/>
+                    <Label text="📚" styleClass="logo-box"/>
                     <VBox>
-                        <Label text="Publications" styleClass="logo-title"/>
-                        <Label text="Annonces Étudiantes" styleClass="logo-subtitle"/>
+                        <Label text="EduMarket" styleClass="logo-title"/>
+                        <Label text="Espace Étudiant" styleClass="logo-subtitle"/>
                     </VBox>
                 </HBox>
 
@@ -43,7 +43,7 @@
             <!-- Menu Navigation -->
             <HBox spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
 
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToStudent" style="-fx-cursor: hand;">
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToServices" style="-fx-cursor: hand;">
                     <Label text="🔍" styleClass="menu-icon"/>
                     <Label text="Rechercher des services"/>
                 </HBox>
@@ -51,11 +51,6 @@
                 <HBox spacing="8" alignment="CENTER" styleClass="menu-item-active">
                     <Label text="📢" styleClass="menu-icon"/>
                     <Label text="Publications"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToMesPublications" style="-fx-cursor: hand;">
-                    <Label text="📋" styleClass="menu-icon"/>
-                    <Label text="Mes publications"/>
                 </HBox>
 
                 <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
@@ -68,40 +63,15 @@
                     <Label text="Paiements"/>
                 </HBox>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="⭐" styleClass="menu-icon"/>
+                    <Label text="Mes avis"/>
+                </HBox>
 
-                <Button text="+ Nouvelle Publication"
-                        onAction="#goToCreatePublication"
-                        styleClass="create-btn"/>
-
-                <Button text="🔄"
-                        onAction="#refreshPublications"
-                        styleClass="refresh-btn"/>
-            </HBox>
-
-            <!-- Statistiques -->
-            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="stats-container">
-
-                <VBox spacing="5" styleClass="stat-box">
-                    <Label text="Total" styleClass="stat-label"/>
-                    <Label fx:id="statsTotal" text="0" styleClass="stat-value"/>
-                </VBox>
-
-                <VBox spacing="5" styleClass="stat-box stat-ventes">
-                    <Label text="🏷️ Ventes" styleClass="stat-label"/>
-                    <Label fx:id="statsVentes" text="0" styleClass="stat-value"/>
-                </VBox>
-
-                <VBox spacing="5" styleClass="stat-box stat-demandes">
-                    <Label text="🔍 Demandes" styleClass="stat-label"/>
-                    <Label fx:id="statsDemandes" text="0" styleClass="stat-value"/>
-                </VBox>
-
-                <VBox spacing="5" styleClass="stat-box stat-actives">
-                    <Label text="✓ Actives" styleClass="stat-label"/>
-                    <Label fx:id="statsActives" text="0" styleClass="stat-value"/>
-                </VBox>
-
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
+                    <Label text="👤" styleClass="menu-icon"/>
+                    <Label text="Mon profil"/>
+                </HBox>
             </HBox>
         </VBox>
     </top>
@@ -113,47 +83,63 @@
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
 
-            <!-- Barre de recherche -->
-            <HBox styleClass="search-container">
-                <Label text="🔍" styleClass="search-icon"/>
+            <!-- Tabs and Create Button Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="allPublicationsTab"
+                        text="📋 Toutes les publications"
+                        onAction="#showAllPublications"
+                        style="-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-width: 0; -fx-font-weight: bold;">
+                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <Button fx:id="myPublicationsTab"
+                        text="👤 Mes publications"
+                        onAction="#showMyPublications"
+                        style="-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-color: #e5e7eb; -fx-border-width: 1;">
+                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <Button text="+ Ajouter une publication"
+                        onAction="#goToCreatePublication"
+                        style="-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-color: #e5e7eb; -fx-border-width: 1;">
+                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Statistics Label -->
+                <Label fx:id="publicationsCountLabel"
+                       text="0 publication(s)"
+                       style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- Centered Filters Section -->
+            <HBox spacing="15" alignment="CENTER">
                 <TextField fx:id="searchField"
                            promptText="Rechercher une publication..."
-                           styleClass="search-input"/>
+                           prefWidth="300"
+                           style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 15; -fx-font-size: 14px;"/>
+
+                <ComboBox fx:id="typeFilter"
+                          promptText="Type"
+                          prefWidth="200"
+                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+
+                <ComboBox fx:id="statusFilter"
+                          promptText="Statut"
+                          prefWidth="180"
+                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
             </HBox>
 
-            <!-- Filtres -->
-            <HBox spacing="20" alignment="CENTER_LEFT">
-                <VBox spacing="8" styleClass="filter-group">
-                    <Label text="Type" styleClass="filter-label"/>
-                    <ComboBox fx:id="typeCombo"
-                              promptText="Tous"
-                              styleClass="filter-combo"
-                              prefWidth="280"/>
+            <!-- Publications Container -->
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-width: 0;">
+                <VBox>
+                    <FlowPane fx:id="publicationsContainer"
+                              hgap="20"
+                              vgap="20"
+                              style="-fx-background-color: transparent;"/>
                 </VBox>
-
-                <VBox spacing="8" styleClass="filter-group">
-                    <Label text="Prix" styleClass="filter-label"/>
-                    <ComboBox fx:id="tarifCombo"
-                              promptText="Tous les prix"
-                              styleClass="filter-combo"
-                              prefWidth="280"/>
-                </VBox>
-
-                <VBox spacing="8" styleClass="filter-group">
-                    <Label text="Trier par" styleClass="filter-label"/>
-                    <ComboBox fx:id="trierCombo"
-                              promptText="Plus récent"
-                              styleClass="filter-combo"
-                              prefWidth="280"/>
-                </VBox>
-            </HBox>
-
-            <!-- Container des publications -->
-            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-                <GridPane fx:id="publicationsGrid"
-                          hgap="20"
-                          vgap="20"
-                          styleClass="publications-grid"/>
             </ScrollPane>
 
         </VBox>

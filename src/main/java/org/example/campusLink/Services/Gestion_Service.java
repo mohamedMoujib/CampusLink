@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Service class for managing Services (Offerings by providers)
- * Enhanced with methods needed for CreateDemande_controller
+ * ✅ FIXED: All Integer comparison issues resolved
  */
 public class Gestion_Service {
 
@@ -21,6 +21,9 @@ public class Gestion_Service {
 
     // ==================== CREATE ====================
 
+    /**
+     * ✅ FIXED: Now properly sets all 6 parameters including category_id
+     */
     public void ajouterService(Services s) throws SQLException {
 
         if (s.getTitle() == null || s.getTitle().isBlank())
@@ -30,18 +33,38 @@ public class Gestion_Service {
             throw new IllegalArgumentException("Le prix doit être positif");
 
         String sql = """
-            INSERT INTO services
-            (title, description, image, price, prestataire_id, category_id, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'EN_ATTENTE')
-        """;
+        INSERT INTO services
+        (title, description, image, price, prestataire_id, category_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, s.getTitle());
-            ps.setString(2, s.getDescription());
-            ps.setString(3, s.getImage());
+
+            // Handle NULL description
+            if (s.getDescription() != null && !s.getDescription().isEmpty()) {
+                ps.setString(2, s.getDescription());
+            } else {
+                ps.setNull(2, Types.VARCHAR);
+            }
+
+            // Handle NULL image
+            if (s.getImage() != null && !s.getImage().isEmpty()) {
+                ps.setString(3, s.getImage());
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+            }
+
             ps.setDouble(4, s.getPrice());
             ps.setInt(5, s.getPrestataireId());
-            ps.setInt(6, s.getCategoryId());
+
+            // ✅ FIX: Set parameter 6 (category_id) - Handle Integer properly
+            Integer categoryId = s.getCategoryId();
+            if (categoryId != null && categoryId > 0) {
+                ps.setInt(6, categoryId);
+            } else {
+                ps.setNull(6, Types.INTEGER);
+            }
 
             int rowsAffected = ps.executeUpdate();
 
@@ -49,6 +72,7 @@ public class Gestion_Service {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     s.setId(generatedKeys.getInt(1));
+                    System.out.println("✅ Service created with ID: " + s.getId());
                 }
             }
         }
@@ -58,7 +82,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Afficher tous les services avec informations enrichies
-     * ENHANCED: Inclut le nom de la catégorie et du prestataire
      */
     public List<Services> afficherServices() throws SQLException {
         List<Services> list = new ArrayList<>();
@@ -93,7 +116,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Récupérer un service par son ID avec informations enrichies
-     * ENHANCED: Inclut le nom de la catégorie et du prestataire
      */
     public Services getServiceById(int serviceId) throws SQLException {
         String sql = """
@@ -127,8 +149,7 @@ public class Gestion_Service {
     }
 
     /**
-     * ✅ Afficher les services d'un prestataire spécifique avec informations enrichies
-     * ENHANCED: Inclut le nom de la catégorie
+     * ✅ Afficher les services d'un prestataire spécifique
      */
     public List<Services> afficherServicesParPrestataire(int prestataireId) throws SQLException {
         List<Services> list = new ArrayList<>();
@@ -165,7 +186,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Afficher les services par catégorie
-     * NEW METHOD: Utile pour filtrer les services dans l'interface
      */
     public List<Services> afficherServicesParCategorie(int categoryId) throws SQLException {
         List<Services> list = new ArrayList<>();
@@ -202,7 +222,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Rechercher des services par titre ou description
-     * ENHANCED: Inclut le nom de la catégorie et du prestataire
      */
     public List<Services> rechercherServices(String keyword) throws SQLException {
         List<Services> list = new ArrayList<>();
@@ -241,7 +260,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Recherche avancée avec filtres multiples
-     * NEW METHOD: Pour la page de recherche avec filtres
      */
     public List<Services> rechercherServicesAvance(String keyword, Integer categoryId,
                                                    Double prixMin, Double prixMax) throws SQLException {
@@ -266,7 +284,6 @@ public class Gestion_Service {
 
         List<Object> params = new ArrayList<>();
 
-        // Filtre par mot-clé
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND (s.title LIKE ? OR s.description LIKE ?)");
             String searchPattern = "%" + keyword + "%";
@@ -274,19 +291,16 @@ public class Gestion_Service {
             params.add(searchPattern);
         }
 
-        // Filtre par catégorie
         if (categoryId != null && categoryId > 0) {
             sql.append(" AND s.category_id = ?");
             params.add(categoryId);
         }
 
-        // Filtre par prix minimum
         if (prixMin != null && prixMin > 0) {
             sql.append(" AND s.price >= ?");
             params.add(prixMin);
         }
 
-        // Filtre par prix maximum
         if (prixMax != null && prixMax > 0) {
             sql.append(" AND s.price <= ?");
             params.add(prixMax);
@@ -295,7 +309,6 @@ public class Gestion_Service {
         sql.append(" ORDER BY s.id DESC");
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            // Assigner les paramètres
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
@@ -317,19 +330,14 @@ public class Gestion_Service {
      */
     public void modifierService(Services s) throws SQLException {
 
-        // ===== VALIDATION DES DONNÉES =====
-
-        // 1. Vérifier que le service existe
         if (s.getId() <= 0) {
             throw new IllegalArgumentException("ID du service invalide");
         }
 
-        // 2. Vérifier que le service existe dans la base
         if (!serviceExists(s.getId())) {
             throw new IllegalArgumentException("Service introuvable (ID: " + s.getId() + ")");
         }
 
-        // 3. Valider le titre
         if (s.getTitle() == null || s.getTitle().isBlank()) {
             throw new IllegalArgumentException("Le titre est obligatoire");
         }
@@ -342,12 +350,10 @@ public class Gestion_Service {
             throw new IllegalArgumentException("Le titre ne peut pas dépasser 200 caractères");
         }
 
-        // 4. Valider la description
         if (s.getDescription() != null && s.getDescription().length() > 1000) {
             throw new IllegalArgumentException("La description ne peut pas dépasser 1000 caractères");
         }
 
-        // 5. Valider le prix
         if (s.getPrice() <= 0) {
             throw new IllegalArgumentException("Le prix doit être supérieur à 0");
         }
@@ -356,17 +362,15 @@ public class Gestion_Service {
             throw new IllegalArgumentException("Le prix ne peut pas dépasser 10000€");
         }
 
-        // 6. Vérifier que le prestataire existe
         if (s.getPrestataireId() > 0 && !prestataireExists(s.getPrestataireId())) {
             throw new IllegalArgumentException("Prestataire invalide");
         }
 
-        // 7. Vérifier que la catégorie existe
-        if (s.getCategoryId() > 0 && !categoryExists(s.getCategoryId())) {
+        // ✅ FIX: Handle Integer comparison properly
+        Integer categoryId = s.getCategoryId();
+        if (categoryId != null && categoryId > 0 && !categoryExists(categoryId)) {
             throw new IllegalArgumentException("Catégorie invalide");
         }
-
-        // ===== MISE À JOUR EN BASE DE DONNÉES =====
 
         String sql = """
             UPDATE services 
@@ -381,11 +385,30 @@ public class Gestion_Service {
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, s.getTitle().trim());
-            ps.setString(2, s.getDescription() != null ? s.getDescription().trim() : null);
-            ps.setString(3, s.getImage());
+
+            if (s.getDescription() != null && !s.getDescription().isEmpty()) {
+                ps.setString(2, s.getDescription().trim());
+            } else {
+                ps.setNull(2, Types.VARCHAR);
+            }
+
+            if (s.getImage() != null && !s.getImage().isEmpty()) {
+                ps.setString(3, s.getImage());
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+            }
+
             ps.setDouble(4, s.getPrice());
             ps.setInt(5, s.getPrestataireId());
-            ps.setInt(6, s.getCategoryId());
+
+            // ✅ FIX: Handle Integer properly
+            Integer categoryIdUpdate = s.getCategoryId();
+            if (categoryIdUpdate != null && categoryIdUpdate > 0) {
+                ps.setInt(6, categoryIdUpdate);
+            } else {
+                ps.setNull(6, Types.INTEGER);
+            }
+
             ps.setInt(7, s.getId());
 
             int rowsAffected = ps.executeUpdate();
@@ -401,7 +424,6 @@ public class Gestion_Service {
      */
     public void changerStatutService(int serviceId, String newStatus) throws SQLException {
 
-        // Validation du statut
         if (!newStatus.equals("ACTIF") && !newStatus.equals("INACTIF") &&
                 !newStatus.equals("EN_ATTENTE") && !newStatus.equals("REJETE")) {
             throw new IllegalArgumentException("Statut invalide");
@@ -479,7 +501,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Compter les services par statut
-     * NEW METHOD: Pour les statistiques du dashboard
      */
     public int compterServicesParStatut(String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM services WHERE status = ?";
@@ -497,7 +518,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Obtenir les statistiques des services
-     * NEW METHOD: Pour le dashboard admin
      */
     public java.util.Map<String, Integer> getStatistiquesServices() throws SQLException {
         java.util.Map<String, Integer> stats = new java.util.HashMap<>();
@@ -517,7 +537,6 @@ public class Gestion_Service {
 
     /**
      * ✅ Obtenir les services les plus demandés
-     * NEW METHOD: Pour recommandations et statistiques
      */
     public List<Services> getServicesPlusDemandesAvecDetails() throws SQLException {
         List<Services> list = new ArrayList<>();
@@ -550,7 +569,6 @@ public class Gestion_Service {
 
             while (rs.next()) {
                 Services s = mapResultSetToService(rs);
-                // Note: demande_count could be added to Services entity if needed
                 list.add(s);
             }
         }
@@ -559,9 +577,6 @@ public class Gestion_Service {
 
     // ==================== VALIDATION HELPERS ====================
 
-    /**
-     * ✅ Vérifier si un service existe
-     */
     private boolean serviceExists(int serviceId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM services WHERE id = ?";
 
@@ -576,9 +591,6 @@ public class Gestion_Service {
         return false;
     }
 
-    /**
-     * ✅ Vérifier si un prestataire existe
-     */
     private boolean prestataireExists(int prestataireId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM users WHERE id = ?";
 
@@ -593,9 +605,6 @@ public class Gestion_Service {
         return false;
     }
 
-    /**
-     * ✅ Vérifier si une catégorie existe
-     */
     private boolean categoryExists(int categoryId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM categories WHERE id = ?";
 
@@ -612,10 +621,6 @@ public class Gestion_Service {
 
     // ==================== MAPPER HELPER ====================
 
-    /**
-     * ✅ Mapper ResultSet vers Services entity
-     * IMPORTANT: Includes categoryName and prestataireName for display
-     */
     private Services mapResultSetToService(ResultSet rs) throws SQLException {
         Services s = new Services();
         s.setId(rs.getInt("id"));
@@ -627,7 +632,6 @@ public class Gestion_Service {
         s.setCategoryId(rs.getInt("category_id"));
         s.setStatus(rs.getString("status"));
 
-        // Set display fields (if columns exist)
         try {
             s.setCategoryName(rs.getString("category_name"));
         } catch (SQLException e) {
@@ -637,7 +641,6 @@ public class Gestion_Service {
         try {
             s.setPrestataireName(rs.getString("prestataire_name"));
         } catch (SQLException e) {
-
             // Column doesn't exist, skip
         }
 
