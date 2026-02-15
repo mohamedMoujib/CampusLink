@@ -462,7 +462,7 @@ public class CreateDemande_controller {
         try {
             System.out.println("Navigating back to demandes list...");
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Demande.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
             // Pass student ID to the demandes controller

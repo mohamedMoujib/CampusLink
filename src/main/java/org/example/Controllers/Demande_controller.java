@@ -15,7 +15,6 @@ import org.example.campusLink.Services.Gestion_Demande;
 import org.example.campusLink.entities.Demandes;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
@@ -460,7 +459,7 @@ public class Demande_controller {
     private void goToCreateDemande() {
         System.out.println("Navigating to create demande...");
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Create_Demande.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
             // Pass student ID to the controller
@@ -486,7 +485,7 @@ public class Demande_controller {
     @FXML
     private void goBackToServices() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/student.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Student.fxml"));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) demandesContainer.getScene().getWindow();
             stage.setScene(scene);

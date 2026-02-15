@@ -11,7 +11,7 @@ public class MainFx extends Application {
     public void start(Stage stage) throws Exception {
 
         Scene scene = new Scene(
-                FXMLLoader.load(getClass().getResource("/Student.fxml"))
+                FXMLLoader.load(getClass().getResource("/Views/Student.fxml"))
         );
 
         stage.setTitle("CampusLink");

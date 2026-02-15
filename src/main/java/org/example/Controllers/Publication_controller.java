@@ -12,7 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.scene.Node;
 
 import org.example.campusLink.Services.Gestion_publication;
 import org.example.campusLink.entities.Publications;
@@ -383,7 +382,7 @@ public class Publication_controller {
         try {
             System.out.println("Navigating to create publication...");
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Create_Publication.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Publication.fxml"));
             Scene scene = new Scene(loader.load());
 
             // Passer l'ID de l'étudiant
@@ -448,7 +447,7 @@ public class Publication_controller {
         try {
             System.out.println("Navigating to student page...");
 
-            Parent root = FXMLLoader.load(getClass().getResource("/Student.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/Student.fxml"));
 
             Stage stage = null;
             if (publicationsContainer != null && publicationsContainer.getScene() != null) {
@@ -477,7 +476,7 @@ public class Publication_controller {
         try {
             System.out.println("Navigating to services page...");
 
-            Parent root = FXMLLoader.load(getClass().getResource("/Student.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/Student.fxml"));
 
             Stage stage = null;
             if (publicationsContainer != null && publicationsContainer.getScene() != null) {

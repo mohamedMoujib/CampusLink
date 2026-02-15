@@ -259,7 +259,7 @@ public class CreateService_controller {
             }
 
             Stage stage = (Stage) titleField.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/service.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/service.fxml"));
             stage.setScene(new Scene(loader.load()));
             stage.setTitle("Mes Services");
 

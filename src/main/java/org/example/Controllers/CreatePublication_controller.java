@@ -413,7 +413,7 @@ public class CreatePublication_controller {
      */
     private void goBackToPublications() {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/Publication.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/Publication.fxml"));
 
             Stage stage = null;
             if (titreField != null && titreField.getScene() != null) {

@@ -382,7 +382,7 @@ public class Service_controller {
     private void goToCreateService() {
         System.out.println("Navigating to create service...");
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Create_Service.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Service.fxml"));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) servicesContainer.getScene().getWindow();
             stage.setScene(scene);

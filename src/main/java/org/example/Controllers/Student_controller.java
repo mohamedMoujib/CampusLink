@@ -3,7 +3,6 @@ package org.example.Controllers;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -251,7 +250,7 @@ public class Student_controller {
         try {
             System.out.println("Navigating to create demande for service: " + service.getTitle());
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Create_Demande.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
             // Pass service data to the controller
@@ -287,7 +286,7 @@ public class Student_controller {
         try {
             System.out.println("Navigating to services management...");
 
-            Parent root = FXMLLoader.load(getClass().getResource("/service.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/service.fxml"));
             Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Mes Services");
@@ -307,7 +306,7 @@ public class Student_controller {
         try {
             System.out.println("Navigating to mes demandes...");
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Demande.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
             // Pass student ID to the controller
@@ -333,7 +332,7 @@ public class Student_controller {
         try {
             System.out.println("Navigating to publications...");
 
-            Parent root = FXMLLoader.load(getClass().getResource("/Publication.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/Publication.fxml"));
             Stage stage = (Stage) servicesGrid.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Publications Étudiantes");
