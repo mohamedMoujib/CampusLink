@@ -17,18 +17,16 @@ public class MainFX extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/jarreb.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/View/Payment.fxml"));
         try{
             Parent root = fxmlLoader.load();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/PaymentForm.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/Style/PaymentForm.css").toExternalForm());
             primaryStage.setScene(scene);
             primaryStage.setTitle("Campus Link");
             primaryStage.show();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 }

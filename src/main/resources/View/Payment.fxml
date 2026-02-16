@@ -4,12 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <BorderPane xmlns="http://javafx.com/javafx/23"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.campusLink.controllers.PaymentController"
             styleClass="root"
-            stylesheets="@PaymentForm.css">
+            stylesheets="@../Style/PaymentForm.css">
 
     <top>
         <VBox>
@@ -40,12 +39,14 @@
                 <Button text="💳 Paiements" styleClass="nav-tab-active"/>
                 <Button text="⭐ Mes avis" styleClass="nav-tab"/>
                 <Button text="👤 Mon profil" styleClass="nav-tab"/>
+                <Button text="📄 Mes factures" styleClass="nav-tab" onAction="#openInvoices"/>
             </HBox>
         </VBox>
+
     </top>
 
     <center>
-        <VBox styleClass="form-card" spacing="20" alignment="TOP_LEFT">
+        <VBox styleClass="form-card" spacing="25" alignment="TOP_LEFT">
             <padding>
                 <Insets top="40" right="60" bottom="40" left="60"/>
             </padding>
@@ -67,13 +68,31 @@
                 <ComboBox fx:id="methodComboBox"/>
             </VBox>
 
-            <VBox spacing="5">
-                <Label text="Statut du paiement"/>
-                <ComboBox fx:id="statusComboBox"/>
-            </VBox>
+            <HBox spacing="15">
+                <Button fx:id="submitButton" text="Valider le paiement" styleClass="primary-button"/>
+            </HBox>
 
-            <Button fx:id="submitButton" text="Valider le paiement" styleClass="primary-button"/>
-            <Label fx:id="messageLabel" text="" style="-fx-text-fill: #ef4444;"/>
+            <Label fx:id="messageLabel" text=""/>
+
+            <Separator/>
+
+            <Label text="Facture générée" styleClass="form-subtitle"/>
+
+            <GridPane hgap="15" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="120"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="Payment ID:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="invoicePaymentIdField" editable="false" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Date:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="invoiceDateField" editable="false" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Détails:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextArea fx:id="invoiceDetailsArea" editable="false" prefRowCount="3" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            </GridPane>
         </VBox>
     </center>
 
