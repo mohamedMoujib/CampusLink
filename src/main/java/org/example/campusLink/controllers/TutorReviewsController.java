@@ -180,7 +180,7 @@ public class TutorReviewsController {
         return container;
     }
 
-    // 🔥 SIGNALER UN AVIS
+    // 🔥 SIGNALER UN AVIS AVEC CONTRÔLE DE SAISIE
     private void reportReview(Reviews review) {
         // Dialog pour choisir la raison du signalement
         Dialog<String> dialog = new Dialog<>();
@@ -218,6 +218,7 @@ public class TutorReviewsController {
         otherReason.setPrefRowCount(3);
         otherReason.setDisable(true);
 
+        // 🔥 Activer/désactiver le champ texte selon la sélection
         reason5.setOnAction(e -> otherReason.setDisable(!reason5.isSelected()));
 
         content.getChildren().addAll(
@@ -228,13 +229,40 @@ public class TutorReviewsController {
 
         dialog.getDialogPane().setContent(content);
 
+        // 🔥 VALIDATION : Désactiver le bouton "Signaler" si "Autre" est vide
+        Button signalButton = (Button) dialog.getDialogPane().lookupButton(reportButtonType);
+
+        // Validation initiale
+        signalButton.setDisable(false);
+
+        // Écouter les changements de sélection
+        reasonGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle == reason5) {
+                // Si "Autre" est sélectionné, vérifier que le champ n'est pas vide
+                signalButton.setDisable(otherReason.getText().trim().isEmpty());
+            } else {
+                // Si une autre option est sélectionnée, activer le bouton
+                signalButton.setDisable(false);
+            }
+        });
+
+        // 🔥 Écouter les changements dans le TextArea si "Autre" est sélectionné
+        otherReason.textProperty().addListener((obs, oldText, newText) -> {
+            if (reason5.isSelected()) {
+                signalButton.setDisable(newText.trim().isEmpty());
+            }
+        });
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == reportButtonType) {
                 RadioButton selected = (RadioButton) reasonGroup.getSelectedToggle();
                 if (selected == reason5) {
-                    return otherReason.getText().trim().isEmpty()
-                            ? "Autre (non précisé)"
-                            : otherReason.getText().trim();
+                    String customReason = otherReason.getText().trim();
+                    // 🔥 Double vérification avant de retourner
+                    if (customReason.isEmpty()) {
+                        return null; // Annuler si vide (normalement le bouton devrait être désactivé)
+                    }
+                    return customReason;
                 }
                 return selected.getText();
             }
@@ -244,6 +272,16 @@ public class TutorReviewsController {
         Optional<String> result = dialog.showAndWait();
 
         result.ifPresent(reason -> {
+            // 🔥 Vérification finale avant d'envoyer
+            if (reason == null || reason.trim().isEmpty()) {
+                Alert warningAlert = new Alert(Alert.AlertType.WARNING);
+                warningAlert.setTitle("Raison manquante");
+                warningAlert.setHeaderText("Veuillez préciser la raison du signalement");
+                warningAlert.setContentText("Vous devez indiquer une raison pour signaler cet avis.");
+                warningAlert.showAndWait();
+                return;
+            }
+
             try {
                 reviewsService.reportReview(review.getId(), reason);
 
