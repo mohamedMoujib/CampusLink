@@ -1,5 +1,6 @@
 package org.example.campusLink.controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,7 +17,7 @@ import java.sql.SQLException;
 
 public class LoginController {
 
-    @FXML private StackPane rootPane; // IMPORTANT: Ajouter fx:id="rootPane" dans le FXML
+    @FXML private StackPane rootPane;
     @FXML private ToggleButton btnEtudiant;
     @FXML private ToggleButton btnPrestataire;
     @FXML private ToggleButton btnAdmin;
@@ -123,16 +124,19 @@ public class LoginController {
 
             User user = authService.login(email, password, selectedRole);
 
-            /*if (!user.getStatus().equals("ACTIVE")) {
-                showError("Votre compte est " + user.getStatus().toLowerCase());
-                return;
-            }*/
-
             System.out.println("✅ Connexion réussie: " + user.getName());
             showSuccess("Bienvenue " + user.getName() + "!");
 
-            // TODO: Navigate to dashboard
-            // navigateToDashboard(user, selectedRole);
+            // ✅ NAVIGATION VERS L'INTERFACE DES AVIS
+            // Attendre un peu pour que l'utilisateur voie le message de succès
+            Platform.runLater(() -> {
+                try {
+                    Thread.sleep(1000); // 1 seconde
+                    navigateToDashboard(user, selectedRole);
+                } catch (InterruptedException e) {
+                    navigateToDashboard(user, selectedRole);
+                }
+            });
 
         } catch (SQLException e) {
             String errorMessage = e.getMessage();
@@ -165,6 +169,38 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
+    // ==================== NAVIGATION ====================
+
+    private void navigateToDashboard(User user, String role) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/TutorReviews.fxml"));
+            Parent root = loader.load();
+
+            ReviewController controller = loader.getController();
+            // TODO: Ajouter une méthode setUser() dans ReviewController si nécessaire
+            // controller.setUser(user);
+
+            Stage stage = (Stage) btnLogin.getScene().getWindow();
+            Scene scene = new Scene(root);
+
+            // Agrandir la fenêtre pour le dashboard
+            stage.setWidth(1200);
+            stage.setHeight(800);
+            stage.centerOnScreen();
+
+            stage.setScene(scene);
+
+            System.out.println("✅ Navigation vers ReviewView réussie!");
+
+        } catch (IOException e) {
+            System.err.println("❌ Erreur lors de la navigation vers ReviewView:");
+            e.printStackTrace();
+            showError("Impossible de charger l'interface. Vérifiez que ReviewView.fxml existe.");
+        }
+    }
+
+    // ==================== VALIDATION ====================
 
     private boolean validateAllInputs() {
         boolean valid = true;
