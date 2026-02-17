@@ -127,14 +127,13 @@ public class LoginController {
             System.out.println("✅ Connexion réussie: " + user.getName());
             showSuccess("Bienvenue " + user.getName() + "!");
 
-            // ✅ NAVIGATION VERS L'INTERFACE DES AVIS
-            // Attendre un peu pour que l'utilisateur voie le message de succès
+            // ✅ NAVIGATION VERS LE PROFIL
             Platform.runLater(() -> {
                 try {
-                    Thread.sleep(1000); // 1 seconde
-                    navigateToDashboard(user, selectedRole);
+                    Thread.sleep(1000); // Attendre 1 seconde pour voir le message
+                    navigateToProfile(user);
                 } catch (InterruptedException e) {
-                    navigateToDashboard(user, selectedRole);
+                    navigateToProfile(user);
                 }
             });
 
@@ -172,31 +171,33 @@ public class LoginController {
 
     // ==================== NAVIGATION ====================
 
-    private void navigateToDashboard(User user, String role) {
+    private void navigateToProfile(User user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/TutorReviews.fxml"));
+            System.out.println("🔍 Navigation vers ProfileView...");
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/ProfileView.fxml"));
             Parent root = loader.load();
 
-            ReviewController controller = loader.getController();
-            // TODO: Ajouter une méthode setUser() dans ReviewController si nécessaire
-            // controller.setUser(user);
+            // Récupérer le controller et passer l'utilisateur
+            ProfileController controller = loader.getController();
+            controller.setUser(user);
 
             Stage stage = (Stage) btnLogin.getScene().getWindow();
             Scene scene = new Scene(root);
 
-            // Agrandir la fenêtre pour le dashboard
+            // Agrandir la fenêtre
             stage.setWidth(1200);
             stage.setHeight(800);
             stage.centerOnScreen();
 
             stage.setScene(scene);
 
-            System.out.println("✅ Navigation vers ReviewView réussie!");
+            System.out.println("✅ Navigation vers ProfileView réussie!");
 
         } catch (IOException e) {
-            System.err.println("❌ Erreur lors de la navigation vers ReviewView:");
+            System.err.println("❌ Erreur lors de la navigation:");
             e.printStackTrace();
-            showError("Impossible de charger l'interface. Vérifiez que ReviewView.fxml existe.");
+            showError("Impossible de charger l'interface de profil.");
         }
     }
 
