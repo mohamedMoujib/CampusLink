@@ -33,17 +33,15 @@
                     <Insets top="40" right="40" bottom="40" left="40"/>
                 </padding>
 
-
-
-                <!-- ÉTAPE 2: INFORMATIONS PRINCIPALES -->
+                <!-- ÉTAPE 1: INFORMATIONS PRINCIPALES -->
                 <VBox spacing="15" styleClass="section">
-                    <Label text="2. Informations Principales" styleClass="section-title"/>
+                    <Label text="1. Informations Principales" styleClass="section-title"/>
 
                     <!-- Titre -->
                     <VBox spacing="8">
                         <Label text="Titre *" styleClass="field-label"/>
                         <TextField fx:id="titreField"
-                                   promptText="Ex: Vends Laptop Dell XPS 13 ou Cherche Colocataire"
+                                   promptText="Ex: Vends Laptop Dell XPS 13"
                                    styleClass="text-field"
                                    maxWidth="Infinity"/>
                         <Label text="Maximum 200 caractères" styleClass="help-text"/>
@@ -74,7 +72,7 @@
                                        prefWidth="200"/>
                             <Label text="€" styleClass="currency-symbol"/>
                         </HBox>
-                        <Label text="Prix de vente ou budget pour une demande" styleClass="help-text"/>
+                        <Label text="Prix de vente" styleClass="help-text"/>
                     </VBox>
 
                     <!-- Localisation -->
@@ -84,13 +82,13 @@
                                    promptText="Ex: Campus Nord, Résidence A"
                                    styleClass="text-field"
                                    maxWidth="Infinity"/>
-                        <Label text="Où se trouve l'objet ou où cherchez-vous le service ?" styleClass="help-text"/>
+                        <Label text="Où se trouve l'objet ?" styleClass="help-text"/>
                     </VBox>
                 </VBox>
 
-                <!-- ÉTAPE 3: IMAGE -->
+                <!-- ÉTAPE 2: IMAGE -->
                 <VBox spacing="15" styleClass="section">
-                    <Label text="3. Image (optionnel)" styleClass="section-title"/>
+                    <Label text="2. Image (optionnel)" styleClass="section-title"/>
                     <Label text="Ajoutez une photo pour rendre votre annonce plus attractive" styleClass="section-subtitle"/>
 
                     <!-- Zone d'upload -->
@@ -128,9 +126,9 @@
                     </VBox>
                 </VBox>
 
-                <!-- ÉTAPE 4: CONDITIONS -->
+                <!-- ÉTAPE 3: CONDITIONS -->
                 <VBox spacing="15" styleClass="section">
-                    <Label text="4. Conditions Générales" styleClass="section-title"/>
+                    <Label text="3. Conditions Générales" styleClass="section-title"/>
 
                     <!-- CGU Checkbox -->
                     <CheckBox fx:id="termsCheckBox"
@@ -158,12 +156,25 @@
                 </VBox>
 
                 <!-- BOUTONS D'ACTION -->
-                <HBox spacing="20" alignment="CENTER" styleClass="action-buttons">
+                <HBox spacing="15" alignment="CENTER" styleClass="action-buttons">
+                    <!-- Delete Button (Left side) -->
+                    <Button fx:id="deleteButton"
+                            text="🗑 Supprimer"
+                            onAction="#deletePublication"
+                            styleClass="btn-delete"
+                            prefWidth="150"
+                            visible="false"
+                            managed="false"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <!-- Cancel Button -->
                     <Button text="Annuler"
                             onAction="#goBack"
                             styleClass="btn-cancel"
-                            prefWidth="200"/>
+                            prefWidth="150"/>
 
+                    <!-- Submit Button -->
                     <Button fx:id="submitButton"
                             text="✓ Publier"
                             onAction="#submitPublication"

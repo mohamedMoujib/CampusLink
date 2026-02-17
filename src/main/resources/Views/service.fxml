@@ -44,7 +44,7 @@
             <HBox spacing="30" alignment="CENTER_LEFT"
                   style="-fx-background-color: white; -fx-padding: 15 30; -fx-border-color: #e5e5e5; -fx-border-width: 0 0 1 0;">
 
-                <HBox spacing="8" alignment="CENTER" style="-fx-text-fill: #10b981;">
+                <HBox spacing="8" alignment="CENTER">
                     <Label text="📋" style="-fx-font-size: 16px;"/>
                     <Label text="Mes services" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
                 </HBox>
@@ -74,12 +74,17 @@
 
     <!-- CONTENT -->
     <center>
+        <!--
+            FIX 1: VBox fills the BorderPane center automatically.
+                    The ScrollPane must have VBox.vgrow="ALWAYS" so it
+                    expands vertically and does not get clipped.
+        -->
         <VBox spacing="25" style="-fx-background-color: #f5f7fa;">
             <padding>
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
 
-            <!-- Header Section avec bouton créer -->
+            <!-- Header Section -->
             <HBox alignment="CENTER_LEFT">
                 <Label text="Mes services" style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
                 <Region HBox.hgrow="ALWAYS"/>
@@ -88,14 +93,30 @@
                         style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 8; -fx-font-weight: bold;"/>
             </HBox>
 
-            <!-- Container des services -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                <VBox>
-                    <FlowPane fx:id="servicesContainer"
-                              hgap="20"
-                              vgap="20"
-                              style="-fx-background-color: transparent;"/>
-                </VBox>
+            <!--
+                FIX 2: VBox.vgrow="ALWAYS" makes the ScrollPane take all
+                        remaining vertical space instead of collapsing.
+                FIX 3: fitToWidth="true" + fitToHeight="false" lets the
+                        FlowPane grow downward as cards are added, which
+                        enables the scroll bar to appear correctly.
+                FIX 4: Remove the inner wrapping VBox — it prevented
+                        fitToWidth from propagating to the FlowPane.
+            -->
+            <ScrollPane VBox.vgrow="ALWAYS"
+                        fitToWidth="true"
+                        fitToHeight="false"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+
+                <!--
+                    FIX 5: prefWrapLength tells the FlowPane at what width
+                            to start wrapping cards (matches window width).
+                -->
+                <FlowPane fx:id="servicesContainer"
+                          hgap="20"
+                          vgap="20"
+                          prefWrapLength="1340"
+                          style="-fx-background-color: transparent; -fx-padding: 0 0 20 0;"/>
+
             </ScrollPane>
 
         </VBox>

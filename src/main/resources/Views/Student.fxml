@@ -21,7 +21,7 @@
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Label text="📚" styleClass="logo-box"/>
                     <VBox>
-                        <Label text="EduMarket" styleClass="logo-title"/>
+                        <Label text="Campuslink" styleClass="logo-title"/>
                         <Label text="Espace Étudiant" styleClass="logo-subtitle"/>
                     </VBox>
                 </HBox>

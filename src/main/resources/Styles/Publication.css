@@ -1,8 +1,3 @@
-/* ================================================
-   MODERN PUBLICATIONS STYLESHEET
-   Premium design - JavaFX Compatible
-   ================================================ */
-
 /* ===== ROOT ===== */
 .root {
     -fx-background-color: #667eea;
@@ -236,12 +231,12 @@
 
 .type-vente {
     -fx-background-color: #667eea;
-    -fx-text-fill: white;
+    -fx-text-fill: black;
 }
 
 .type-demande {
     -fx-background-color: #f5576c;
-    -fx-text-fill: white;
+    -fx-text-fill: black;
 }
 
 /* Status Badges */
@@ -255,22 +250,22 @@
 
 .status-active {
     -fx-background-color: #38ef7d;
-    -fx-text-fill: white;
+    -fx-text-fill: black;
 }
 
 .status-en_cours {
     -fx-background-color: #00f2fe;
-    -fx-text-fill: white;
+    -fx-text-fill: orange;
 }
 
 .status-terminee {
     -fx-background-color: #fed6e3;
-    -fx-text-fill: #4a5568;
+    -fx-text-fill: green;
 }
 
 .status-annulee {
     -fx-background-color: #fecfef;
-    -fx-text-fill: #742a2a;
+    -fx-text-fill: red;
 }
 
 /* Card Title */

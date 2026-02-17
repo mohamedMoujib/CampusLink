@@ -72,7 +72,7 @@ public class Service_controller {
         }
     }
 
-    /* ================= MODERN CARD (based on image) ================= */
+    /* ================= MODERN CARD ================= */
 
     private VBox createModernServiceCard(Services s) {
         VBox card = new VBox(12);
@@ -88,7 +88,7 @@ public class Service_controller {
                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);"
         );
 
-        // ===== HEADER: Titre + Badge Actif =====
+        // ===== HEADER: Title + Status Badge =====
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -100,39 +100,10 @@ public class Service_controller {
         Region spacer = new Region();
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-        // Badge "Actif" (green) ou "Inactif" (gray)
         Label statusBadge = new Label(getStatusLabel(s.getStatus()));
         statusBadge.setStyle(getStatusBadgeStyle(s.getStatus()));
 
         header.getChildren().addAll(title, spacer, statusBadge);
-
-        // ✅ ADD: Image Display (AFTER header)
-        if (s.getImage() != null && !s.getImage().isEmpty()) {
-            try {
-                String imagePath = "uploads/services/" + s.getImage();
-                File imageFile = new File(imagePath);
-
-                if (imageFile.exists()) {
-                    Image image = new Image(imageFile.toURI().toString());
-                    ImageView imageView = new ImageView(image);
-                    imageView.setFitWidth(340);
-                    imageView.setFitHeight(200);
-                    imageView.setPreserveRatio(true);
-                    imageView.setStyle(
-                            "-fx-background-radius: 8;" +
-                                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);"
-                    );
-
-                    card.getChildren().add(imageView);
-                    System.out.println("✅ Image loaded: " + imagePath);
-                } else {
-                    System.err.println("❌ Image file not found: " + imagePath);
-                }
-            } catch (Exception e) {
-                System.err.println("Error loading service image: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
 
         // ===== CATEGORY =====
         Label category = new Label(s.getCategoryName() != null ? s.getCategoryName() : "Sans catégorie");
@@ -145,7 +116,7 @@ public class Service_controller {
         description.setMaxWidth(340);
         description.setMaxHeight(60);
 
-        // ===== INFO: Durée + Réservations =====
+        // ===== INFO: Duration + Reservations =====
         HBox info = new HBox(30);
         info.setAlignment(Pos.CENTER_LEFT);
 
@@ -157,19 +128,17 @@ public class Service_controller {
 
         info.getChildren().addAll(duration, reservations);
 
-        // ===== FOOTER: Prix + Actions =====
+        // ===== FOOTER: Price + Actions =====
         HBox footer = new HBox(15);
         footer.setAlignment(Pos.CENTER_LEFT);
         footer.setPadding(new Insets(10, 0, 0, 0));
 
-        // Prix en vert et grand
         Label price = new Label(String.format("%.0f€", s.getPrice()));
         price.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        // Bouton Modifier (icône crayon)
         Button editBtn = new Button("✏");
         editBtn.setStyle(
                 "-fx-background-color: transparent;" +
@@ -192,7 +161,6 @@ public class Service_controller {
                         "-fx-text-fill: #6b7280;"
         ));
 
-        // Bouton Supprimer (icône poubelle)
         Button deleteBtn = new Button("🗑");
         deleteBtn.setStyle(
                 "-fx-background-color: transparent;" +
@@ -217,10 +185,44 @@ public class Service_controller {
 
         footer.getChildren().addAll(price, footerSpacer, editBtn, deleteBtn);
 
-        // ===== ASSEMBLER LA CARTE =====
-        card.getChildren().addAll(header, category, description, info, footer);
+        // ===== ASSEMBLE THE CARD IN THE CORRECT ORDER =====
+        // 1. Header (title + badge)
+        card.getChildren().add(header);
 
-        // Effet hover sur la carte
+        // 2. Image (only if available) — added AFTER header, BEFORE other content
+        if (s.getImage() != null && !s.getImage().isEmpty()) {
+            try {
+                String imagePath = "uploads/services/" + s.getImage();
+                File imageFile = new File(imagePath);
+
+                // Debug: print the absolute path to help diagnose missing images
+                System.out.println("Looking for image at: " + imageFile.getAbsolutePath());
+
+                if (imageFile.exists()) {
+                    Image image = new Image(imageFile.toURI().toString());
+                    ImageView imageView = new ImageView(image);
+                    imageView.setFitWidth(340);
+                    imageView.setFitHeight(200);
+                    imageView.setPreserveRatio(true);
+                    imageView.setStyle(
+                            "-fx-background-radius: 8;" +
+                                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);"
+                    );
+                    card.getChildren().add(imageView);
+                    System.out.println("✅ Image loaded: " + imagePath);
+                } else {
+                    System.err.println("❌ Image file not found: " + imageFile.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading service image: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // 3. Remaining card content
+        card.getChildren().addAll(category, description, info, footer);
+
+        // ===== HOVER EFFECT =====
         card.setOnMouseEntered(e -> card.setStyle(
                 "-fx-background-color: white;" +
                         "-fx-background-radius: 12;" +
@@ -288,13 +290,12 @@ public class Service_controller {
     /* ================= ACTIONS ================= */
 
     /**
-     * ✅ Modifier un service
+     * Edit a service
      */
     private void editService(Services service) {
         System.out.println("Editing service: " + service.getTitle());
 
         try {
-            // Créer un dialogue de modification simple
             TextInputDialog titleDialog = new TextInputDialog(service.getTitle());
             titleDialog.setTitle("Modifier le service");
             titleDialog.setHeaderText("Modifier: " + service.getTitle());
@@ -321,13 +322,12 @@ public class Service_controller {
                     Optional<String> priceResult = priceDialog.showAndWait();
 
                     if (priceResult.isPresent()) {
-                        // Mettre à jour le service
                         service.setTitle(titleResult.get().trim());
                         service.setDescription(descResult.get().trim());
                         service.setPrice(Double.parseDouble(priceResult.get().trim()));
 
                         serviceManager.modifierService(service);
-                        loadServices(); // Recharger la liste
+                        loadServices();
 
                         showAlert("Succès", "Service modifié avec succès!", Alert.AlertType.INFORMATION);
                     }
@@ -344,7 +344,7 @@ public class Service_controller {
     }
 
     /**
-     * ✅ Supprimer un service
+     * Delete a service
      */
     private void deleteService(Services service) {
         System.out.println("Deleting service: " + service.getTitle());
@@ -359,7 +359,7 @@ public class Service_controller {
                 if (response == javafx.scene.control.ButtonType.OK) {
                     try {
                         serviceManager.supprimerService(service.getId());
-                        loadServices(); // Recharger la liste
+                        loadServices();
                         showAlert("Succès", "Service supprimé avec succès", Alert.AlertType.INFORMATION);
                     } catch (Exception e) {
                         System.err.println("Error deleting service: " + e.getMessage());
@@ -396,7 +396,7 @@ public class Service_controller {
     }
 
     /**
-     * ✅ Méthode utilitaire pour afficher des alertes
+     * Utility method to show alerts
      */
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);

@@ -7,7 +7,6 @@
 .root {
     -fx-background-color: #f8f9fa;
     -fx-font-family: "Segoe UI", "Arial", sans-serif;
-
 }
 
 /* ===== HEADER ===== */
@@ -310,6 +309,23 @@
 
 .btn-cancel:hover {
     -fx-background-color: #d1d5db;
+}
+
+.btn-delete {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 0;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #fecaca;
+    -fx-border-width: 1;
+}
+
+.btn-delete:hover {
+    -fx-background-color: #fecaca;
+    -fx-text-fill: #7f1d1d;
 }
 
 .btn-submit {

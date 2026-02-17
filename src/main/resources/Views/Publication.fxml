@@ -43,7 +43,8 @@
             <!-- Menu Navigation -->
             <HBox spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
 
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToServices" style="-fx-cursor: hand;">
+                <HBox spacing="8" alignment="CENTER" styleClass="menu-item"
+                      onMouseClicked="#goToServices" style="-fx-cursor: hand;">
                     <Label text="🔍" styleClass="menu-icon"/>
                     <Label text="Rechercher des services"/>
                 </HBox>
@@ -83,7 +84,7 @@
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
 
-            <!-- Tabs and Create Button Section -->
+            <!-- Tabs and Create Button -->
             <HBox spacing="15" alignment="CENTER_LEFT">
                 <Button fx:id="allPublicationsTab"
                         text="📋 Toutes les publications"
@@ -106,14 +107,9 @@
                 </Button>
 
                 <Region HBox.hgrow="ALWAYS"/>
-
-                <!-- Statistics Label -->
-                <Label fx:id="publicationsCountLabel"
-                       text="0 publication(s)"
-                       style="-fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
             </HBox>
 
-            <!-- Centered Filters Section -->
+            <!-- Filters -->
             <HBox spacing="15" alignment="CENTER">
                 <TextField fx:id="searchField"
                            promptText="Rechercher une publication..."
@@ -124,22 +120,25 @@
                           promptText="Type"
                           prefWidth="200"
                           style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
-
-                <ComboBox fx:id="statusFilter"
-                          promptText="Statut"
-                          prefWidth="180"
-                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
             </HBox>
 
-            <!-- Publications Container -->
-            <ScrollPane fitToWidth="true"
+            <!--
+                FIX: VBox.vgrow="ALWAYS" makes the ScrollPane fill remaining
+                     vertical space so cards are not clipped.
+                     Removed the inner wrapping VBox so fitToWidth reaches
+                     the FlowPane directly.
+            -->
+            <ScrollPane VBox.vgrow="ALWAYS"
+                        fitToWidth="true"
+                        fitToHeight="false"
                         style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-width: 0;">
-                <VBox>
-                    <FlowPane fx:id="publicationsContainer"
-                              hgap="20"
-                              vgap="20"
-                              style="-fx-background-color: transparent;"/>
-                </VBox>
+
+                <FlowPane fx:id="publicationsContainer"
+                          hgap="20"
+                          vgap="20"
+                          prefWrapLength="1340"
+                          style="-fx-background-color: transparent; -fx-padding: 0 0 20 0;"/>
+
             </ScrollPane>
 
         </VBox>

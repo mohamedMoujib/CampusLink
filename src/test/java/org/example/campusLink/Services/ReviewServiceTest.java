@@ -154,6 +154,6 @@ public class ReviewServiceTest {
 
         assertEquals("Statut invalide", ex.getMessage());
 
-        System.out.println("✔ Exception statut invalide validée");
+        System.out.println(" Exception statut invalide validée");
     }
 }

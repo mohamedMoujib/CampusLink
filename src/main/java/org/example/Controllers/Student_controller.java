@@ -7,6 +7,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -15,6 +17,7 @@ import javafx.scene.Node;
 import org.example.campusLink.Services.Gestion_Service;
 import org.example.campusLink.entities.Services;
 
+import java.io.File;
 import java.util.List;
 
 public class Student_controller {
@@ -27,8 +30,7 @@ public class Student_controller {
 
     private Gestion_Service gestionService;
 
-    // TODO: Replace with actual logged-in student ID from session
-    private int currentStudentId = 1; // Hardcoded for now
+    private int currentStudentId = 1; // TODO: Replace with session
 
     @FXML
     public void initialize() {
@@ -36,10 +38,8 @@ public class Student_controller {
 
         try {
             gestionService = new Gestion_Service();
-
             setupFilters();
             loadServices();
-
             System.out.println("Student_controller initialized successfully");
 
         } catch (Exception e) {
@@ -49,53 +49,29 @@ public class Student_controller {
         }
     }
 
-    /**
-     * ✅ Configuration des filtres
-     */
     private void setupFilters() {
-        // Catégories
         categorieCombo.setItems(FXCollections.observableArrayList(
-                "Tous",
-                "Mathématiques",
-                "Informatique",
-                "Physique",
-                "Chimie",
-                "Langues",
-                "Rédaction"
+                "Tous", "Mathématiques", "Informatique", "Physique",
+                "Chimie", "Langues", "Rédaction"
         ));
         categorieCombo.setValue("Tous");
         categorieCombo.setOnAction(e -> loadServices());
 
-        // Tarifs
         tarifCombo.setItems(FXCollections.observableArrayList(
-                "Tous les tarifs",
-                "Moins de 15€",
-                "15€ - 25€",
-                "25€ - 35€",
-                "Plus de 35€"
+                "Tous les tarifs", "Moins de 15€", "15€ - 25€", "25€ - 35€", "Plus de 35€"
         ));
         tarifCombo.setValue("Tous les tarifs");
         tarifCombo.setOnAction(e -> loadServices());
 
-        // Tri
         trierCombo.setItems(FXCollections.observableArrayList(
-                "Meilleure note",
-                "Prix croissant",
-                "Prix décroissant",
-                "Plus récent"
+                "Meilleure note", "Prix croissant", "Prix décroissant", "Plus récent"
         ));
         trierCombo.setValue("Meilleure note");
         trierCombo.setOnAction(e -> loadServices());
 
-        // Recherche
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
-            loadServices();
-        });
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> loadServices());
     }
 
-    /**
-     * ✅ Charger et afficher les services
-     */
     private void loadServices() {
         try {
             System.out.println("Loading services...");
@@ -110,7 +86,6 @@ public class Student_controller {
                 return;
             }
 
-            // Créer une grille 3 colonnes
             int row = 0;
             int col = 0;
 
@@ -135,13 +110,20 @@ public class Student_controller {
     }
 
     /**
-     * ✅ Créer une carte de service (design de l'image)
+     * Builds a service card.
+     * Assembly order:
+     *   1. header  (title + rating)
+     *   2. image   (only when the service has one and the file exists)
+     *   3. provider
+     *   4. infoBox
+     *   5. description
+     *   6. footer  (price + reserve button)
      */
     private VBox createServiceCard(Services service) {
         VBox card = new VBox(12);
         card.getStyleClass().add("service-card");
 
-        // ===== HEADER: Titre + Note =====
+        // ===== 1. HEADER: Title + Rating =====
         HBox header = new HBox(10);
         header.getStyleClass().add("card-header");
         header.setAlignment(Pos.CENTER_LEFT);
@@ -153,7 +135,6 @@ public class Student_controller {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Note avec étoile
         HBox rating = new HBox(5);
         rating.getStyleClass().add("card-rating");
         Label star = new Label("⭐");
@@ -164,14 +145,42 @@ public class Student_controller {
 
         header.getChildren().addAll(title, spacer, rating);
 
-        // ===== PROVIDER =====
+        // ===== 2. IMAGE (if available) =====
+        // Build all nodes first, then add them in order at the end.
+        ImageView imageView = null;
+        if (service.getImage() != null && !service.getImage().isEmpty()) {
+            String imagePath = "uploads/services/" + service.getImage();
+            File imageFile = new File(imagePath);
+
+            System.out.println("Looking for image at: " + imageFile.getAbsolutePath());
+
+            if (imageFile.exists()) {
+                try {
+                    Image image = new Image(imageFile.toURI().toString());
+                    imageView = new ImageView(image);
+                    imageView.setFitWidth(360);
+                    imageView.setFitHeight(180);
+                    imageView.setPreserveRatio(true);
+                    imageView.setStyle(
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 2);"
+                    );
+                    System.out.println("✅ Image loaded: " + imagePath);
+                } catch (Exception e) {
+                    System.err.println("Error loading image: " + e.getMessage());
+                    imageView = null;
+                }
+            } else {
+                System.err.println("❌ Image not found: " + imageFile.getAbsolutePath());
+            }
+        }
+
+        // ===== 3. PROVIDER =====
         Label provider = new Label("Prestataire #" + service.getPrestataireId());
         provider.getStyleClass().add("card-provider");
 
-        // ===== INFOS: Lieu, Durée, Matière =====
+        // ===== 4. INFO ROWS =====
         VBox infoBox = new VBox(6);
 
-        // Lieu
         HBox locationRow = new HBox(8);
         locationRow.getStyleClass().add("card-info-row");
         Label locationIcon = new Label("📍");
@@ -180,7 +189,6 @@ public class Student_controller {
         locationText.getStyleClass().add("card-info-text");
         locationRow.getChildren().addAll(locationIcon, locationText);
 
-        // Durée
         HBox durationRow = new HBox(8);
         durationRow.getStyleClass().add("card-info-row");
         Label durationIcon = new Label("🕐");
@@ -189,7 +197,6 @@ public class Student_controller {
         durationText.getStyleClass().add("card-info-text");
         durationRow.getChildren().addAll(durationIcon, durationText);
 
-        // Matière
         HBox subjectRow = new HBox(8);
         subjectRow.getStyleClass().add("card-info-row");
         Label subjectIcon = new Label("📚");
@@ -200,7 +207,7 @@ public class Student_controller {
 
         infoBox.getChildren().addAll(locationRow, durationRow, subjectRow);
 
-        // ===== DESCRIPTION =====
+        // ===== 5. DESCRIPTION =====
         Label description = new Label(
                 service.getDescription() != null && !service.getDescription().isEmpty()
                         ? service.getDescription()
@@ -211,11 +218,10 @@ public class Student_controller {
         description.setMaxWidth(360);
         description.setMaxHeight(60);
 
-        // ===== FOOTER: Prix + Avis + Bouton =====
+        // ===== 6. FOOTER: Price + Reserve Button =====
         HBox footer = new HBox(15);
         footer.getStyleClass().add("card-footer");
 
-        // Prix + avis
         VBox priceBox = new VBox(2);
         priceBox.getStyleClass().add("card-price-container");
 
@@ -230,22 +236,24 @@ public class Student_controller {
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        // Bouton Réserver
         Button reserveBtn = new Button("Réserver");
         reserveBtn.getStyleClass().add("btn-reserve");
         reserveBtn.setOnAction(e -> goToCreateDemande(service));
 
         footer.getChildren().addAll(priceBox, footerSpacer, reserveBtn);
 
-        // ===== ASSEMBLER LA CARTE =====
-        card.getChildren().addAll(header, provider, infoBox, description, footer);
+        // ===== ASSEMBLE IN CORRECT ORDER =====
+        card.getChildren().add(header);
+
+        if (imageView != null) {
+            card.getChildren().add(imageView); // only added when image loaded successfully
+        }
+
+        card.getChildren().addAll(provider, infoBox, description, footer);
 
         return card;
     }
 
-    /**
-     * ✅ Navigate to create demand page with pre-filled service
-     */
     private void goToCreateDemande(Services service) {
         try {
             System.out.println("Navigating to create demande for service: " + service.getTitle());
@@ -253,7 +261,6 @@ public class Student_controller {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
-            // Pass service data to the controller
             CreateDemande_controller controller = loader.getController();
             controller.setServiceData(service, currentStudentId);
 
@@ -268,9 +275,6 @@ public class Student_controller {
         }
     }
 
-    /**
-     * ✅ Méthode utilitaire pour afficher des alertes
-     */
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -287,7 +291,7 @@ public class Student_controller {
             System.out.println("Navigating to services management...");
 
             Parent root = FXMLLoader.load(getClass().getResource("/Views/service.fxml"));
-            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Mes Services");
 
@@ -298,9 +302,6 @@ public class Student_controller {
         }
     }
 
-    /**
-     * ✅ CORRECTION: Méthode pour gérer le clic de souris (MouseEvent)
-     */
     @FXML
     private void goToMesDemandes(MouseEvent event) {
         try {
@@ -309,7 +310,6 @@ public class Student_controller {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Demande.fxml"));
             Scene scene = new Scene(loader.load());
 
-            // Pass student ID to the controller
             Demande_controller controller = loader.getController();
             controller.setStudentId(currentStudentId);
 
@@ -324,9 +324,6 @@ public class Student_controller {
         }
     }
 
-    /**
-     * ✅ CORRECTION: Méthode pour naviguer vers Publications (MouseEvent)
-     */
     @FXML
     private void goToPublications(MouseEvent event) {
         try {

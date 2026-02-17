@@ -21,19 +21,17 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
- * Simplified Controller for creating new Services with image upload
- * 4 fields: title, description, price, image
- * Matches database: id, title, description, price, image, prestataire_id, category_id, status
+ * Controller for creating new Services with image upload.
+ * Fields: title, description, price, image
+ * Database: id, title, description, price, image, prestataire_id, category_id, status
  */
 public class CreateService_controller {
 
-    // FXML fields
     @FXML private TextField titleField;
     @FXML private TextArea descriptionField;
     @FXML private TextField priceField;
     @FXML private Label charCountLabel;
 
-    // Image upload fields
     @FXML private Button uploadImageButton;
     @FXML private ImageView imagePreview;
     @FXML private Label imageFileLabel;
@@ -42,7 +40,6 @@ public class CreateService_controller {
     private Gestion_Service gestionService;
     private int currentPrestataireId = 1; // TODO: Replace with session
 
-    // Image upload
     private File selectedImageFile;
     private String uploadedImagePath;
     private static final String UPLOAD_DIR = "uploads/services/";
@@ -66,19 +63,10 @@ public class CreateService_controller {
         }
     }
 
-    /**
-     * Setup image upload components
-     */
     private void setupImageUpload() {
-        if (imagePreview != null) {
-            imagePreview.setVisible(false);
-        }
-        if (imageFileLabel != null) {
-            imageFileLabel.setVisible(false);
-        }
-        if (removeImageButton != null) {
-            removeImageButton.setVisible(false);
-        }
+        if (imagePreview != null) imagePreview.setVisible(false);
+        if (imageFileLabel != null) imageFileLabel.setVisible(false);
+        if (removeImageButton != null) removeImageButton.setVisible(false);
     }
 
     private void setupCharacterCounter() {
@@ -112,7 +100,6 @@ public class CreateService_controller {
     private boolean validateForm() {
         StringBuilder errors = new StringBuilder();
 
-        // title: VARCHAR(100) NOT NULL
         if (titleField.getText() == null || titleField.getText().trim().isEmpty()) {
             errors.append("• Le titre est obligatoire\n");
         } else if (titleField.getText().trim().length() < 3) {
@@ -121,12 +108,10 @@ public class CreateService_controller {
             errors.append("• Le titre: max 100 caractères\n");
         }
 
-        // description: TEXT DEFAULT NULL (optional, max 1000 for UI)
         if (descriptionField.getText() != null && descriptionField.getText().trim().length() > 1000) {
             errors.append("• Description: max 1000 caractères\n");
         }
 
-        // price: DECIMAL(10,2) NOT NULL
         if (priceField.getText() == null || priceField.getText().trim().isEmpty()) {
             errors.append("• Le prix est obligatoire\n");
         } else {
@@ -142,7 +127,6 @@ public class CreateService_controller {
             }
         }
 
-        // image: uploaded file validation (optional)
         if (selectedImageFile != null && selectedImageFile.length() > MAX_FILE_SIZE) {
             errors.append("• L'image est trop volumineuse (max 5 MB)\n");
         }
@@ -159,9 +143,7 @@ public class CreateService_controller {
     private void saveService() {
         System.out.println("Saving service...");
 
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateForm()) return;
 
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Confirmer");
@@ -181,29 +163,20 @@ public class CreateService_controller {
 
         if (result.isPresent() && result.get() == btnOk) {
             try {
-                // Upload image if selected
                 if (selectedImageFile != null) {
                     uploadedImagePath = uploadImage(selectedImageFile);
                 }
 
                 Services service = new Services();
-
-                // Required fields
                 service.setTitle(titleField.getText().trim());
                 service.setPrice(Double.parseDouble(priceField.getText().trim()));
                 service.setPrestataireId(currentPrestataireId);
 
-                // Optional fields
                 String desc = descriptionField.getText();
                 service.setDescription(desc != null && !desc.trim().isEmpty() ? desc.trim() : null);
 
-                // Set uploaded image filename
                 service.setImage(uploadedImagePath);
-
-                // ✅ FIX: Set category_id to NULL (it's DEFAULT NULL in database)
                 service.setCategoryId(0);
-
-                // status defaults to EN_ATTENTE in database
 
                 gestionService.ajouterService(service);
 
@@ -253,9 +226,7 @@ public class CreateService_controller {
                 confirmAlert.getButtonTypes().setAll(btnYes, btnNo);
 
                 Optional<ButtonType> result = confirmAlert.showAndWait();
-                if (result.isEmpty() || result.get() != btnYes) {
-                    return;
-                }
+                if (result.isEmpty() || result.get() != btnYes) return;
             }
 
             Stage stage = (Stage) titleField.getScene().getWindow();
@@ -277,9 +248,6 @@ public class CreateService_controller {
                 (selectedImageFile != null);
     }
 
-    /**
-     * Upload image button click handler
-     */
     @FXML
     private void onUploadImage() {
         FileChooser fileChooser = new FileChooser();
@@ -294,20 +262,15 @@ public class CreateService_controller {
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
-            // Verify file size
             if (file.length() > MAX_FILE_SIZE) {
                 showAlert("Erreur", "L'image est trop volumineuse (max 5 MB)", Alert.AlertType.WARNING);
                 return;
             }
-
             selectedImageFile = file;
             displayImagePreview(file);
         }
     }
 
-    /**
-     * Display image preview
-     */
     private void displayImagePreview(File imageFile) {
         try {
             Image image = new Image(imageFile.toURI().toString());
@@ -316,16 +279,13 @@ public class CreateService_controller {
                 imagePreview.setImage(image);
                 imagePreview.setVisible(true);
             }
-
             if (imageFileLabel != null) {
                 imageFileLabel.setText(imageFile.getName());
                 imageFileLabel.setVisible(true);
             }
-
             if (removeImageButton != null) {
                 removeImageButton.setVisible(true);
             }
-
             if (uploadImageButton != null) {
                 uploadImageButton.setText("📷 Changer l'image");
             }
@@ -336,9 +296,6 @@ public class CreateService_controller {
         }
     }
 
-    /**
-     * Remove selected image
-     */
     @FXML
     private void onRemoveImage() {
         selectedImageFile = null;
@@ -348,40 +305,31 @@ public class CreateService_controller {
             imagePreview.setImage(null);
             imagePreview.setVisible(false);
         }
-
         if (imageFileLabel != null) {
             imageFileLabel.setVisible(false);
         }
-
         if (removeImageButton != null) {
             removeImageButton.setVisible(false);
         }
-
         if (uploadImageButton != null) {
             uploadImageButton.setText("📷 Ajouter une image (optionnel)");
         }
     }
 
-    /**
-     * Upload image to server directory
-     */
     private String uploadImage(File imageFile) throws IOException {
-        // Create upload directory if it doesn't exist
         Path uploadDir = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        // Generate unique filename
         String filename = System.currentTimeMillis() + "_" + imageFile.getName();
         Path targetPath = uploadDir.resolve(filename);
 
-        // Copy file to upload directory
         Files.copy(imageFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
         System.out.println("✅ Image uploaded: " + UPLOAD_DIR + filename);
 
-        return filename; // Store only filename in database
+        return filename;
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {

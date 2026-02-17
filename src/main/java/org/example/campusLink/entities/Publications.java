@@ -6,16 +6,7 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/**
- * Entity: Publications
- * Table: publications
- *
- * Permet aux étudiants de publier:
- * - Demandes de services (DEMANDE_SERVICE)
- * - Ventes d'objets (VENTE_OBJET)
- *
- * Avec support d'images optionnelles
- */
+
 public class Publications {
 
     // ==================== ENUMERATIONS ====================

@@ -24,11 +24,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
-/**
- * Controller pour créer une nouvelle publication
- * Support upload d'image - Type: VENTE uniquement
- * FIXED VERSION - Sets TypePublication and Status
- */
 public class CreatePublication_controller {
 
     @FXML private RadioButton typeVenteRadio;
@@ -47,6 +42,7 @@ public class CreatePublication_controller {
 
     @FXML private CheckBox termsCheckBox;
     @FXML private Button submitButton;
+    @FXML private Button deleteButton;
 
     private Gestion_publication gestionPublication;
     private int currentStudentId = 1; // TODO: Replace with session
@@ -62,14 +58,11 @@ public class CreatePublication_controller {
 
         try {
             gestionPublication = new Gestion_publication();
-
             setupMessageCounter();
             setupFormValidation();
             setupPriceField();
             setupImageUpload();
-
             validateForm();
-
             System.out.println("CreatePublication_controller initialized successfully");
 
         } catch (Exception e) {
@@ -79,9 +72,6 @@ public class CreatePublication_controller {
         }
     }
 
-    /**
-     * Compteur de caractères pour le message
-     */
     private void setupMessageCounter() {
         messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
             int length = newValue.length();
@@ -100,9 +90,6 @@ public class CreatePublication_controller {
         });
     }
 
-    /**
-     * Validation du formulaire
-     */
     private void setupFormValidation() {
         titreField.textProperty().addListener((obs, old, newVal) -> validateForm());
         messageArea.textProperty().addListener((obs, old, newVal) -> validateForm());
@@ -110,9 +97,6 @@ public class CreatePublication_controller {
         termsCheckBox.selectedProperty().addListener((obs, old, newVal) -> validateForm());
     }
 
-    /**
-     * Le champ prix n'accepte que les nombres et décimales
-     */
     private void setupPriceField() {
         prixField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
@@ -121,18 +105,12 @@ public class CreatePublication_controller {
         });
     }
 
-    /**
-     * Configuration de l'upload d'image
-     */
     private void setupImageUpload() {
         imagePreview.setVisible(false);
         imageFileLabel.setVisible(false);
         removeImageButton.setVisible(false);
     }
 
-    /**
-     * Valider le formulaire
-     */
     private void validateForm() {
         boolean isValid = titreField != null && !titreField.getText().trim().isEmpty()
                 && messageArea != null && !messageArea.getText().trim().isEmpty()
@@ -145,14 +123,10 @@ public class CreatePublication_controller {
         }
     }
 
-    /**
-     * Upload d'image
-     */
     @FXML
     private void onUploadImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Sélectionner une image");
-
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"),
                 new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
@@ -166,24 +140,18 @@ public class CreatePublication_controller {
                 showAlert("Erreur", "L'image est trop volumineuse (max 5 MB)", Alert.AlertType.WARNING);
                 return;
             }
-
             selectedImageFile = file;
             displayImagePreview(file);
         }
     }
 
-    /**
-     * Afficher la prévisualisation de l'image
-     */
     private void displayImagePreview(File imageFile) {
         try {
             Image image = new Image(imageFile.toURI().toString());
             imagePreview.setImage(image);
             imagePreview.setVisible(true);
-
             imageFileLabel.setText(imageFile.getName());
             imageFileLabel.setVisible(true);
-
             removeImageButton.setVisible(true);
             uploadImageButton.setText("Changer l'image");
 
@@ -193,9 +161,6 @@ public class CreatePublication_controller {
         }
     }
 
-    /**
-     * Supprimer l'image sélectionnée
-     */
     @FXML
     private void onRemoveImage() {
         selectedImageFile = null;
@@ -206,20 +171,13 @@ public class CreatePublication_controller {
         uploadImageButton.setText("📷 Ajouter une image (optionnel)");
     }
 
-    /**
-     * Soumettre la publication
-     */
     @FXML
     private void submitPublication() {
         System.out.println("Submitting publication...");
 
         try {
-            // Step 1: Validate form data
-            if (!validateFormData()) {
-                return;
-            }
+            if (!validateFormData()) return;
 
-            // Step 2: User confirmation
             Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
             confirmDialog.setTitle("Confirmer la publication");
             confirmDialog.setHeaderText("Publier votre annonce ?");
@@ -231,34 +189,27 @@ public class CreatePublication_controller {
             );
 
             ButtonType btnConfirm = new ButtonType("✓ Publier", ButtonBar.ButtonData.OK_DONE);
-            ButtonType btnCancel = new ButtonType("✗ Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnCancel  = new ButtonType("✗ Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
             confirmDialog.getButtonTypes().setAll(btnConfirm, btnCancel);
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
+            if (result.isEmpty() || result.get() != btnConfirm) return;
 
-            if (result.isEmpty() || result.get() != btnConfirm) {
-                return;
-            }
-
-            // Step 3: Upload image if present
             if (selectedImageFile != null) {
                 uploadedImagePath = uploadImage(selectedImageFile);
             }
 
-            // Step 4: Create publication object
             Publications newPublication = createPublicationFromForm();
 
             System.out.println("=== PUBLICATION OBJECT CREATED ===");
-            System.out.println("Type: " + newPublication.getTypePublication());
-            System.out.println("Status: " + newPublication.getStatus());
+            System.out.println("Type: "       + newPublication.getTypePublication());
+            System.out.println("Status: "     + newPublication.getStatus());
             System.out.println("Student ID: " + newPublication.getStudentId());
-            System.out.println("Title: " + newPublication.getTitre());
-            System.out.println("Price: " + newPublication.getPrixVente());
+            System.out.println("Title: "      + newPublication.getTitre());
+            System.out.println("Price: "      + newPublication.getPrixVente());
 
-            // Step 5: Save to database
             gestionPublication.ajouterPublication(newPublication);
 
-            // Step 6: Success message
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setTitle("Succès");
             successAlert.setHeaderText("Publication créée !");
@@ -269,7 +220,6 @@ public class CreatePublication_controller {
             );
             successAlert.showAndWait();
 
-            // Step 7: Navigate back
             goBackToPublications();
 
         } catch (Exception e) {
@@ -279,16 +229,12 @@ public class CreatePublication_controller {
         }
     }
 
-    /**
-     * Valider les données du formulaire
-     */
     private boolean validateFormData() {
         if (titreField.getText().trim().isEmpty()) {
             showAlert("Erreur", "Veuillez saisir un titre", Alert.AlertType.WARNING);
             titreField.requestFocus();
             return false;
         }
-
         if (titreField.getText().length() > 200) {
             showAlert("Erreur", "Le titre ne doit pas dépasser 200 caractères", Alert.AlertType.WARNING);
             return false;
@@ -300,7 +246,6 @@ public class CreatePublication_controller {
             messageArea.requestFocus();
             return false;
         }
-
         if (message.length() > 1000) {
             showAlert("Erreur", "La description ne doit pas dépasser 1000 caractères", Alert.AlertType.WARNING);
             return false;
@@ -312,7 +257,6 @@ public class CreatePublication_controller {
             prixField.requestFocus();
             return false;
         }
-
         try {
             BigDecimal price = new BigDecimal(priceText);
             if (price.compareTo(BigDecimal.ZERO) <= 0) {
@@ -332,56 +276,36 @@ public class CreatePublication_controller {
         return true;
     }
 
-    /**
-     * Créer l'objet Publication depuis le formulaire
-     * ✅ FIXED: Now properly sets TypePublication and Status
-     */
     private Publications createPublicationFromForm() {
         Publications pub = new Publications();
-
-        // Basic fields
         pub.setStudentId(currentStudentId);
         pub.setTitre(titreField.getText().trim());
         pub.setMessage(messageArea.getText().trim());
         pub.setImageUrl(uploadedImagePath);
 
-        // Localisation - can be empty/null
         String localisation = localisationField.getText().trim();
         pub.setLocalisation(localisation.isEmpty() ? null : localisation);
 
-        // Price
-        BigDecimal prix = new BigDecimal(prixField.getText().trim());
-        pub.setPrixVente(prix);
-
-        // ✅ FIX: Set TypePublication (default to VENTE_OBJET)
+        pub.setPrixVente(new BigDecimal(prixField.getText().trim()));
         pub.setTypePublication(TypePublication.VENTE_OBJET);
-
-        // ✅ FIX: Set Status to ACTIVE
         pub.setStatus(StatusPublication.ACTIVE);
 
         return pub;
     }
 
-    /**
-     * Upload l'image sur le serveur
-     */
     private String uploadImage(File imageFile) throws IOException {
         Path uploadDir = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        String filename = System.currentTimeMillis() + "_" + imageFile.getName();
-        Path targetPath = uploadDir.resolve(filename);
-
+        String filename   = System.currentTimeMillis() + "_" + imageFile.getName();
+        Path   targetPath = uploadDir.resolve(filename);
         Files.copy(imageFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
         return UPLOAD_DIR + filename;
     }
 
-    /**
-     * Annuler et retourner
-     */
     @FXML
     private void goBack() {
         boolean hasChanges = !titreField.getText().trim().isEmpty()
@@ -394,12 +318,11 @@ public class CreatePublication_controller {
             confirmDialog.setHeaderText("Quitter sans enregistrer ?");
             confirmDialog.setContentText("Toutes les informations saisies seront perdues.");
 
-            ButtonType btnYes = new ButtonType("Oui, annuler", ButtonBar.ButtonData.OK_DONE);
-            ButtonType btnNo = new ButtonType("Non, continuer", ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnYes = new ButtonType("Oui, annuler",   ButtonBar.ButtonData.OK_DONE);
+            ButtonType btnNo  = new ButtonType("Non, continuer", ButtonBar.ButtonData.CANCEL_CLOSE);
             confirmDialog.getButtonTypes().setAll(btnYes, btnNo);
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
-
             if (result.isPresent() && result.get() == btnYes) {
                 goBackToPublications();
             }
@@ -409,24 +332,24 @@ public class CreatePublication_controller {
     }
 
     /**
-     * Retour à la liste des publications
+     * Navigate back to the publications list.
+     *
+     * FIX: The original path was "/Publication.fxml" which returned null
+     * because all FXML files live under /Views/. The correct path is
+     * "/Views/Publication.fxml" — matching every other navigation call
+     * in the project.
      */
     private void goBackToPublications() {
         try {
+            // ✅ FIXED: was "/Publication.fxml" — missing /Views/ prefix
             Parent root = FXMLLoader.load(getClass().getResource("/Views/Publication.fxml"));
 
-            Stage stage = null;
-            if (titreField != null && titreField.getScene() != null) {
-                stage = (Stage) titreField.getScene().getWindow();
-            } else if (messageArea != null && messageArea.getScene() != null) {
-                stage = (Stage) messageArea.getScene().getWindow();
-            } else if (uploadImageButton != null && uploadImageButton.getScene() != null) {
-                stage = (Stage) uploadImageButton.getScene().getWindow();
-            }
-
+            Stage stage = getStage();
             if (stage != null) {
                 stage.setScene(new Scene(root));
                 stage.setTitle("Publications");
+            } else {
+                System.err.println("Could not find stage to navigate back!");
             }
 
         } catch (Exception e) {
@@ -435,9 +358,17 @@ public class CreatePublication_controller {
         }
     }
 
-    /**
-     * Afficher une alerte
-     */
+    /** Convenience: find the current Stage from any available scene node. */
+    private Stage getStage() {
+        if (titreField != null && titreField.getScene() != null)
+            return (Stage) titreField.getScene().getWindow();
+        if (messageArea != null && messageArea.getScene() != null)
+            return (Stage) messageArea.getScene().getWindow();
+        if (uploadImageButton != null && uploadImageButton.getScene() != null)
+            return (Stage) uploadImageButton.getScene().getWindow();
+        return null;
+    }
+
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -446,11 +377,39 @@ public class CreatePublication_controller {
         alert.showAndWait();
     }
 
-    /**
-     * Setter pour l'ID de l'étudiant
-     */
     public void setCurrentStudentId(int studentId) {
         this.currentStudentId = studentId;
         System.out.println("Current student ID set to: " + studentId);
+    }
+
+    @FXML
+    private void deletePublication() {
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("⚠️ Confirmation de suppression");
+        confirmDialog.setHeaderText("Supprimer cette publication ?");
+        confirmDialog.setContentText(
+                "Cette action est irréversible.\n" +
+                        "Êtes-vous sûr de vouloir supprimer cette publication ?"
+        );
+
+        ButtonType btnDelete = new ButtonType("🗑 Supprimer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnCancel = new ButtonType("Annuler",      ButtonBar.ButtonData.CANCEL_CLOSE);
+        confirmDialog.getButtonTypes().setAll(btnDelete, btnCancel);
+
+        confirmDialog.getDialogPane().lookupButton(btnDelete).setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold;"
+        );
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == btnDelete) {
+                try {
+                    showAlert("Info", "Fonctionnalité de suppression à implémenter", Alert.AlertType.INFORMATION);
+                    goBackToPublications();
+                } catch (Exception e) {
+                    System.err.println("Error deleting: " + e.getMessage());
+                    showAlert("Erreur", "Impossible de supprimer: " + e.getMessage(), Alert.AlertType.ERROR);
+                }
+            }
+        });
     }
 }
