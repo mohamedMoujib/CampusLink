@@ -15,6 +15,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.geometry.Pos;
 
 public class TutorReviewsController {
 
@@ -362,5 +366,20 @@ public class TutorReviewsController {
                 .filter(r -> r.getRating() <= 2)
                 .collect(Collectors.toList());
         displayReviews(filteredReviews);
+    }
+    @FXML
+    private void goToDashboard() {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/TutorDashboardView.fxml"));
+            Scene scene = reviewsContainer.getScene();
+            scene.setRoot(root);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Erreur de navigation");
+            alert.setContentText("Impossible d'ouvrir le tableau de bord.");
+            alert.showAndWait();
+        }
     }
 }

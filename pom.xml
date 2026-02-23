@@ -46,6 +46,33 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 🔥 Apache POI (Excel) - VERSION QUI EXISTE -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+
+        <!-- 🔥 iText 5 (PDF) - VERSION QUI EXISTE -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13.2</version>
+        </dependency>
+
+        <!-- 🔥 OpenCSV - VERSION QUI EXISTE -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.7.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -68,7 +95,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>org.example.campusLink.mains.MainFx</mainClass>
-
                 </configuration>
             </plugin>
 

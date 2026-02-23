@@ -8,11 +8,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import org.example.campusLink.Services.ReviewsService;
 import org.example.campusLink.entities.Reviews;
 
-import java.time.LocalDate;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,7 +72,7 @@ public class AdminReviewsController {
                 "Très positives (+4 et +5)",
                 "Très négatives (-5 et -4)",
                 "Neutres (0)",
-                "🚩 Signalés uniquement" // 🔥 Nouveau filtre
+                "🚩 Signalés uniquement"
         ));
         ratingFilter.setValue("Toutes les notes");
 
@@ -131,7 +136,7 @@ public class AdminReviewsController {
                             .filter(r -> r.getRating() == 0)
                             .collect(Collectors.toList());
                     break;
-                case "🚩 Signalés uniquement": // 🔥 Nouveau filtre
+                case "🚩 Signalés uniquement":
                     filteredReviews = filteredReviews.stream()
                             .filter(Reviews::isReported)
                             .collect(Collectors.toList());
@@ -173,7 +178,6 @@ public class AdminReviewsController {
         VBox card = new VBox(15);
         card.getStyleClass().add("review-card");
 
-        // 🔥 Bordure rouge pour les avis signalés
         if (review.isReported()) {
             card.setStyle("-fx-border-color: #ef4444; -fx-border-width: 2; -fx-background-color: #fef2f2;");
         }
@@ -212,7 +216,6 @@ public class AdminReviewsController {
 
         HBox starsDisplay = createStarsDisplay(review.getRating());
 
-        // 🔥 AFFICHER LA RAISON DU SIGNALEMENT
         VBox commentSection = new VBox(5);
 
         if (review.isReported()) {
@@ -260,7 +263,6 @@ public class AdminReviewsController {
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        // 🔥 Bouton pour annuler le signalement
         if (review.isReported()) {
             Button btnUnreport = new Button("✓ Marquer comme traité");
             btnUnreport.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; " +
@@ -333,14 +335,12 @@ public class AdminReviewsController {
                 .count();
         negativeReviewsLabel.setText(String.valueOf(negativeCount));
 
-        // 🔥 Compte réel des avis signalés
         long reportedCount = allReviews.stream()
                 .filter(Reviews::isReported)
                 .count();
         reportedReviewsLabel.setText(String.valueOf(reportedCount));
     }
 
-    // 🔥 ANNULER LE SIGNALEMENT
     private void unreportReview(Reviews review) {
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Marquer comme traité");
@@ -460,12 +460,110 @@ public class AdminReviewsController {
         applyFilters();
     }
 
+    // ===================== 🔥 EXPORT REVIEWS =====================
+
     @FXML
     private void exportReviews() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Exporter les avis");
+        alert.setHeaderText("Choisissez le format d'export");
+        alert.setContentText("Quel format souhaitez-vous utiliser ?");
+
+        ButtonType btnCSV = new ButtonType("CSV");
+        ButtonType btnExcel = new ButtonType("Excel");
+        ButtonType btnPDF = new ButtonType("PDF");
+        ButtonType btnCancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(btnCSV, btnExcel, btnPDF, btnCancel);
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent()) {
+            FileChooser fileChooser = new FileChooser();
+
+            if (result.get() == btnCSV) {
+                fileChooser.setTitle("Enregistrer le fichier CSV");
+                fileChooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("Fichiers CSV", "*.csv"));
+                fileChooser.setInitialFileName("avis_" +
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
+
+                File file = fileChooser.showSaveDialog(null);
+                if (file != null) {
+                    try {
+                        String csvContent = reviewsService.exportToCSV(filteredReviews);
+                        Files.write(file.toPath(), csvContent.getBytes(StandardCharsets.UTF_8));
+                        showSuccessAlert("Export réussi", "Les données ont été exportées en CSV.");
+                    } catch (Exception e) {
+                        showErrorAlert("Erreur d'export", e.getMessage());
+                    }
+                }
+
+            } else if (result.get() == btnExcel) {
+                fileChooser.setTitle("Enregistrer le fichier Excel");
+                fileChooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("Fichiers Excel", "*.xlsx"));
+                fileChooser.setInitialFileName("avis_" +
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx");
+
+                File file = fileChooser.showSaveDialog(null);
+                if (file != null) {
+                    try {
+                        byte[] excelContent = reviewsService.exportToExcel(filteredReviews);
+                        Files.write(file.toPath(), excelContent);
+                        showSuccessAlert("Export réussi", "Les données ont été exportées en Excel.");
+                    } catch (Exception e) {
+                        showErrorAlert("Erreur d'export", e.getMessage());
+                    }
+                }
+
+            } else if (result.get() == btnPDF) {
+                fileChooser.setTitle("Enregistrer le fichier PDF");
+                fileChooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("Fichiers PDF", "*.pdf"));
+                fileChooser.setInitialFileName("avis_" +
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf");
+
+                File file = fileChooser.showSaveDialog(null);
+                if (file != null) {
+                    try {
+                        byte[] pdfContent = reviewsService.exportToPDF(filteredReviews);
+                        Files.write(file.toPath(), pdfContent);
+                        showSuccessAlert("Export réussi", "Les données ont été exportées en PDF.");
+                    } catch (Exception e) {
+                        showErrorAlert("Erreur d'export", e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    private void showSuccessAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Export");
-        alert.setHeaderText("Fonctionnalité à venir");
-        alert.setContentText("L'export des avis sera disponible prochainement.");
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void showErrorAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText("Erreur");
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+    private void showStyledAlert(Alert.AlertType type, String title, String header, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+
+        // 🔥 Appliquer le CSS
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("custom-alert");
+
         alert.showAndWait();
     }
 }

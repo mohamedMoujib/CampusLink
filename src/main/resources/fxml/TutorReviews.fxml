@@ -35,7 +35,7 @@
 
             <!-- Navigation tabs -->
             <HBox spacing="0" styleClass="nav-tabs">
-                <Button text="📊 Tableau de bord" styleClass="nav-tab-tutor"/>
+                <Button text="📊 Tableau de bord" styleClass="nav-tab-tutor" onAction="#goToDashboard"/>
                 <Button text="🛠️ Mes services" styleClass="nav-tab-tutor"/>
                 <Button text="📅 Réservations" styleClass="nav-tab-tutor"/>
                 <Button text="⭐ Avis reçus" styleClass="nav-tab-active-tutor"/>
