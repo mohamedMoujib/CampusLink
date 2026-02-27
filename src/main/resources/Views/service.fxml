@@ -93,6 +93,30 @@
                         style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12 24; -fx-cursor: hand; -fx-background-radius: 8; -fx-font-weight: bold;"/>
             </HBox>
 
+            <!-- Search & Filters -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField"
+                           promptText="Rechercher un service..."
+                           prefWidth="320"
+                           style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 15; -fx-font-size: 14px;"/>
+
+                <ComboBox fx:id="statusFilter"
+                          promptText="Statut"
+                          prefWidth="200"
+                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+
+                <ComboBox fx:id="categoryFilter"
+                          promptText="Catégorie"
+                          prefWidth="240"
+                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button text="Réinitialiser"
+                        onAction="#resetFilters"
+                        style="-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280; -fx-font-size: 13px; -fx-padding: 10 16; -fx-cursor: hand; -fx-background-radius: 8; -fx-border-color: #e5e7eb; -fx-border-width: 1;"/>
+            </HBox>
+
             <!--
                 FIX 2: VBox.vgrow="ALWAYS" makes the ScrollPane take all
                         remaining vertical space instead of collapsing.

@@ -2,188 +2,364 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.example.Controllers.CreatePublication_controller"
-            prefWidth="1000" prefHeight="800"
-            stylesheets="/Styles/Create_Publication.css"
+            prefWidth="1100" prefHeight="850"
+            stylesheets="/Styles/student.css"
             styleClass="root">
 
     <!-- TOP BAR -->
     <top>
-        <HBox alignment="CENTER_LEFT" styleClass="header">
-            <Button text="← Retour" onAction="#goBack" styleClass="back-btn"/>
-
-            <Region HBox.hgrow="ALWAYS"/>
-
-            <Label text="📢 Nouvelle Publication" styleClass="header-title"/>
-
-            <Region HBox.hgrow="ALWAYS"/>
-        </HBox>
+        <VBox>
+            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📚" styleClass="logo-box"/>
+                    <VBox>
+                        <Label text="CampusLink" styleClass="logo-title"/>
+                        <Label text="Espace Étudiant" styleClass="logo-subtitle"/>
+                    </VBox>
+                </HBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🔔" styleClass="notification-btn"/>
+                    <VBox alignment="CENTER_RIGHT">
+                        <Label text="Marie Dubois" styleClass="user-name"/>
+                        <Label text="marie.dubois@univ.fr" styleClass="user-email"/>
+                    </VBox>
+                    <Label text="👤" styleClass="user-avatar"/>
+                    <Button text="⎋" styleClass="logout-btn"/>
+                </HBox>
+            </HBox>
+        </VBox>
     </top>
 
-    <!-- CONTENT -->
+    <!-- MAIN CONTENT -->
     <center>
-        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-            <VBox spacing="30" styleClass="form-container">
+        <ScrollPane fitToWidth="true" fitToHeight="false"
+                    style="-fx-background-color: #f9fafb; -fx-background: #f9fafb; -fx-border-width: 0;">
+            <HBox spacing="25" alignment="TOP_CENTER">
                 <padding>
-                    <Insets top="40" right="40" bottom="40" left="40"/>
+                    <Insets top="30" right="30" bottom="30" left="30"/>
                 </padding>
 
-                <!-- ÉTAPE 1: INFORMATIONS PRINCIPALES -->
-                <VBox spacing="15" styleClass="section">
-                    <Label text="1. Informations Principales" styleClass="section-title"/>
+                <!-- ═══════════════════════════════════════
+                     LEFT COLUMN — Publication Form (UNCHANGED)
+                ════════════════════════════════════════ -->
+                <VBox spacing="20" prefWidth="540"
+                      style="-fx-background-color: white; -fx-background-radius: 12;
+                             -fx-border-color: #e5e7eb; -fx-border-radius: 12;
+                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+                    <padding>
+                        <Insets top="28" right="28" bottom="28" left="28"/>
+                    </padding>
+
+                    <!-- Form title -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📢" style="-fx-font-size: 22px;"/>
+                        <VBox>
+                            <Label text="Nouvelle Publication"
+                                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
+                            <Label text="Remplissez le formulaire ci-dessous"
+                                   style="-fx-font-size: 13px; -fx-text-fill: #6b7280;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Separator/>
+
+                    <!-- Type -->
+                    <VBox spacing="8">
+                        <Label text="Type de publication *"
+                               style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                        <HBox spacing="15">
+                            <RadioButton fx:id="typeVenteRadio" text="Vente d'objet"
+                                         style="-fx-font-size: 14px; -fx-text-fill: #374151;"/>
+                            <RadioButton fx:id="typeDemandeRadio" text="Demande de service"
+                                         style="-fx-font-size: 14px; -fx-text-fill: #374151;"/>
+                        </HBox>
+                    </VBox>
 
                     <!-- Titre -->
-                    <VBox spacing="8">
-                        <Label text="Titre *" styleClass="field-label"/>
+                    <VBox spacing="6">
+                        <Label text="Titre *"
+                               style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
                         <TextField fx:id="titreField"
-                                   promptText="Ex: Vends Laptop Dell XPS 13"
-                                   styleClass="text-field"
-                                   maxWidth="Infinity"/>
-                        <Label text="Maximum 200 caractères" styleClass="help-text"/>
+                                   promptText="Ex: Cherche tuteur maths niveau L1..."
+                                   style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                                          -fx-border-radius: 8; -fx-background-radius: 8;
+                                          -fx-padding: 10 14; -fx-font-size: 14px;"/>
                     </VBox>
 
                     <!-- Description -->
-                    <VBox spacing="8">
-                        <HBox alignment="CENTER_LEFT">
-                            <Label text="Description *" styleClass="field-label"/>
+                    <VBox spacing="6">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Description *"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="messageCounter" text="0/1000" styleClass="char-counter"/>
+                            <Label fx:id="messageCounter" text="0/1000"
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
                         </HBox>
                         <TextArea fx:id="messageArea"
-                                  promptText="Décrivez votre publication en détail..."
-                                  styleClass="text-area"
-                                  prefRowCount="6"
-                                  wrapText="true"/>
-                        <Label text="Soyez précis et détaillé pour attirer l'attention" styleClass="help-text"/>
+                                  promptText="Décrivez votre besoin en détail..."
+                                  prefRowCount="5"
+                                  wrapText="true"
+                                  style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                                         -fx-border-radius: 8; -fx-background-radius: 8;
+                                         -fx-padding: 10 14; -fx-font-size: 14px;"/>
                     </VBox>
 
-                    <!-- Prix -->
-                    <VBox spacing="8">
-                        <Label text="Prix (€) *" styleClass="field-label"/>
-                        <HBox spacing="10" alignment="CENTER_LEFT">
+                    <!-- Prix + Localisation -->
+                    <HBox spacing="15">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Prix (€) *"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
                             <TextField fx:id="prixField"
-                                       promptText="Ex: 650.00"
-                                       styleClass="text-field"
-                                       prefWidth="200"/>
-                            <Label text="€" styleClass="currency-symbol"/>
-                        </HBox>
-                        <Label text="Prix de vente" styleClass="help-text"/>
-                    </VBox>
-
-                    <!-- Localisation -->
-                    <VBox spacing="8">
-                        <Label text="Localisation (optionnel)" styleClass="field-label"/>
-                        <TextField fx:id="localisationField"
-                                   promptText="Ex: Campus Nord, Résidence A"
-                                   styleClass="text-field"
-                                   maxWidth="Infinity"/>
-                        <Label text="Où se trouve l'objet ?" styleClass="help-text"/>
-                    </VBox>
-                </VBox>
-
-                <!-- ÉTAPE 2: IMAGE -->
-                <VBox spacing="15" styleClass="section">
-                    <Label text="2. Image (optionnel)" styleClass="section-title"/>
-                    <Label text="Ajoutez une photo pour rendre votre annonce plus attractive" styleClass="section-subtitle"/>
-
-                    <!-- Zone d'upload -->
-                    <VBox spacing="15" styleClass="upload-zone" alignment="CENTER">
-
-                        <!-- Preview de l'image -->
-                        <ImageView fx:id="imagePreview"
-                                   fitWidth="400"
-                                   fitHeight="300"
-                                   preserveRatio="true"
-                                   visible="false"
-                                   styleClass="image-preview"/>
-
-                        <!-- Nom du fichier -->
-                        <Label fx:id="imageFileLabel"
-                               text=""
-                               visible="false"
-                               styleClass="file-name"/>
-
-                        <!-- Boutons -->
-                        <HBox spacing="15" alignment="CENTER">
-                            <Button fx:id="uploadImageButton"
-                                    text="📷 Ajouter une image (optionnel)"
-                                    onAction="#onUploadImage"
-                                    styleClass="upload-btn"/>
-
-                            <Button fx:id="removeImageButton"
-                                    text="🗑️ Supprimer"
-                                    onAction="#onRemoveImage"
-                                    visible="false"
-                                    styleClass="remove-btn"/>
-                        </HBox>
-
-                        <Label text="Formats acceptés: JPG, PNG, GIF • Taille max: 5 MB" styleClass="help-text"/>
-                    </VBox>
-                </VBox>
-
-                <!-- ÉTAPE 3: CONDITIONS -->
-                <VBox spacing="15" styleClass="section">
-                    <Label text="3. Conditions Générales" styleClass="section-title"/>
-
-                    <!-- CGU Checkbox -->
-                    <CheckBox fx:id="termsCheckBox"
-                              styleClass="terms-checkbox"
-                              wrapText="true">
-                        <graphic>
-                            <Label text="J'accepte les conditions générales d'utilisation et je certifie que les informations fournies sont exactes"
-                                   styleClass="terms-text"
-                                   wrapText="true"
-                                   maxWidth="650"/>
-                        </graphic>
-                    </CheckBox>
-
-                    <!-- Avertissement -->
-                    <HBox spacing="12" styleClass="warning-box">
-                        <Label text="⚠️" styleClass="warning-icon"/>
-                        <VBox spacing="5">
-                            <Label text="Attention" styleClass="warning-title"/>
-                            <Label text="Votre publication sera visible par tous les étudiants. Assurez-vous de ne pas partager d'informations personnelles sensibles."
-                                   styleClass="warning-text"
-                                   wrapText="true"
-                                   maxWidth="650"/>
+                                       promptText="Ex: 25.00"
+                                       style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                                              -fx-border-radius: 8; -fx-background-radius: 8;
+                                              -fx-padding: 10 14; -fx-font-size: 14px;"/>
                         </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Localisation"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                            <TextField fx:id="localisationField"
+                                       promptText="Ex: Paris 5ème"
+                                       style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                                              -fx-border-radius: 8; -fx-background-radius: 8;
+                                              -fx-padding: 10 14; -fx-font-size: 14px;"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Image upload -->
+                    <VBox spacing="8">
+                        <Label text="Image (optionnel)"
+                               style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Button fx:id="uploadImageButton"
+                                    text="📷 Ajouter une image"
+                                    onAction="#onUploadImage"
+                                    style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151;
+                                           -fx-border-color: #d1d5db; -fx-border-width: 1;
+                                           -fx-border-radius: 8; -fx-background-radius: 8;
+                                           -fx-padding: 8 16; -fx-font-size: 13px; -fx-cursor: hand;"/>
+                            <Button fx:id="removeImageButton"
+                                    text="✕ Retirer"
+                                    onAction="#onRemoveImage"
+                                    style="-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;
+                                           -fx-border-width: 0; -fx-border-radius: 8;
+                                           -fx-background-radius: 8; -fx-padding: 8 12;
+                                           -fx-font-size: 13px; -fx-cursor: hand;"/>
+                            <Label fx:id="imageFileLabel" text=""
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
+                        </HBox>
+                        <ImageView fx:id="imagePreview"
+                                   fitWidth="490" fitHeight="180" preserveRatio="true"/>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- Terms + Submit -->
+                    <CheckBox fx:id="termsCheckBox"
+                              text="J'accepte les conditions générales d'utilisation"
+                              style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+
+                    <HBox spacing="12">
+                        <Button text="← Retour"
+                                onAction="#goBack"
+                                style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151;
+                                       -fx-border-color: #d1d5db; -fx-border-width: 1;
+                                       -fx-border-radius: 8; -fx-background-radius: 8;
+                                       -fx-padding: 11 22; -fx-font-size: 14px; -fx-cursor: hand;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="submitButton"
+                                text="📢 Publier"
+                                onAction="#submitPublication"
+                                disable="true"
+                                style="-fx-background-color: #5D5FEF; -fx-text-fill: white;
+                                       -fx-font-weight: bold; -fx-border-radius: 8;
+                                       -fx-background-radius: 8; -fx-padding: 11 28;
+                                       -fx-font-size: 14px; -fx-cursor: hand;"/>
                     </HBox>
                 </VBox>
 
-                <!-- BOUTONS D'ACTION -->
-                <HBox spacing="15" alignment="CENTER" styleClass="action-buttons">
-                    <!-- Delete Button (Left side) -->
-                    <Button fx:id="deleteButton"
-                            text="🗑 Supprimer"
-                            onAction="#deletePublication"
-                            styleClass="btn-delete"
-                            prefWidth="150"
-                            visible="false"
-                            managed="false"/>
+                <!-- ═══════════════════════════════════════
+                     RIGHT COLUMN — AI Assistant
+                ════════════════════════════════════════ -->
+                <VBox spacing="16" prefWidth="480"
+                      style="-fx-background-color: white; -fx-background-radius: 12;
+                             -fx-border-color: #e5e7eb; -fx-border-radius: 12;
+                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+                    <padding>
+                        <Insets top="28" right="28" bottom="28" left="28"/>
+                    </padding>
 
-                    <Region HBox.hgrow="ALWAYS"/>
+                    <!-- AI Header -->
+                    <HBox spacing="10" alignment="CENTER_LEFT"
+                          style="-fx-background-color: linear-gradient(to right, #EEF2FF, #F5F3FF);
+                                 -fx-background-radius: 10; -fx-padding: 14 16;">
+                        <Label text="✨" style="-fx-font-size: 22px;"/>
+                        <VBox>
+                            <Label text="Assistant IA"
+                                   style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #4338CA;"/>
+                            <Label text="Génère et publie automatiquement depuis votre description"
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6366f1;"/>
+                        </VBox>
+                    </HBox>
 
-                    <!-- Cancel Button -->
-                    <Button text="Annuler"
-                            onAction="#goBack"
-                            styleClass="btn-cancel"
-                            prefWidth="150"/>
+                    <!-- AI Idea input -->
+                    <VBox spacing="6">
+                        <Label text="Décrivez votre idée en quelques mots"
+                               style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                        <Label text="L'IA va rédiger le titre et la description, puis enregistrer la publication."
+                               style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
+                        <TextArea fx:id="aiIdeaField"
+                                  promptText="Ex: J'ai besoin d'un tuteur pour m'aider en algèbre linéaire avant mon examen..."
+                                  prefRowCount="4"
+                                  wrapText="true"
+                                  style="-fx-background-color: #fafafa; -fx-border-color: #c7d2fe;
+                                         -fx-border-radius: 8; -fx-background-radius: 8;
+                                         -fx-padding: 10 14; -fx-font-size: 14px;"/>
+                    </VBox>
 
-                    <!-- Submit Button -->
-                    <Button fx:id="submitButton"
-                            text="✓ Publier"
-                            onAction="#submitPublication"
-                            styleClass="btn-submit"
-                            prefWidth="200"
-                            disable="true"/>
-                </HBox>
+                    <!-- Generate + Save button -->
+                    <Button fx:id="generateAiBtn"
+                            text="✨ Créer et publier avec l'IA"
+                            onAction="#generateAndPublish"
+                            maxWidth="Infinity"
+                            style="-fx-background-color: #5D5FEF; -fx-text-fill: white;
+                                   -fx-font-weight: bold; -fx-border-radius: 8;
+                                   -fx-background-radius: 8; -fx-padding: 12 20;
+                                   -fx-font-size: 14px; -fx-cursor: hand;"/>
 
-            </VBox>
+                    <!-- Loading label -->
+                    <Label fx:id="aiLoadingLabel"
+                           text="⏳ Création en cours..."
+                           visible="false"
+                           style="-fx-font-size: 13px; -fx-text-fill: #6366f1; -fx-padding: 0 0 0 4;"/>
+
+                    <!-- AI status result box -->
+                    <VBox fx:id="aiResultsPanel" spacing="10" visible="false" managed="false"
+                          style="-fx-background-color: #F0FDF4; -fx-border-color: #86efac;
+                                 -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 16;">
+                        <Label fx:id="aiStatusLabel" text=""
+                               style="-fx-font-weight: bold; -fx-text-fill: #15803d; -fx-font-size: 14px;"
+                               wrapText="true"/>
+                        <Label fx:id="aiGeneratedTitre" text=""
+                               style="-fx-font-weight: bold; -fx-text-fill: #166534; -fx-font-size: 13px;"
+                               wrapText="true"/>
+                        <Label fx:id="aiGeneratedMessage" text=""
+                               style="-fx-text-fill: #374151; -fx-font-size: 12px;"
+                               wrapText="true" maxWidth="420"/>
+                    </VBox>
+
+                    <!-- Error box -->
+                    <VBox fx:id="aiErrorPanel" spacing="8" visible="false" managed="false"
+                          style="-fx-background-color: #FEF2F2; -fx-border-color: #fca5a5;
+                                 -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                        <Label fx:id="aiErrorLabel" text=""
+                               style="-fx-font-weight: bold; -fx-text-fill: #dc2626; -fx-font-size: 13px;"
+                               wrapText="true"/>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- Divider hint -->
+                    <Label text="💡 Ou remplissez le formulaire manuellement à gauche."
+                           style="-fx-font-size: 12px; -fx-text-fill: #9ca3af; -fx-padding: 0 0 4 0;"
+                           wrapText="true"/>
+
+                    <!-- ─── OLD suggestions panel (kept, hidden by default) ─── -->
+                    <VBox fx:id="suggestionsPanel" spacing="12" visible="false" managed="false">
+
+                        <Separator/>
+
+                        <Label text="📋 Choisissez une version à appliquer"
+                               style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+
+                        <!-- Version Courte -->
+                        <VBox spacing="6"
+                              style="-fx-background-color: #F0FDF4; -fx-border-color: #86efac;
+                                     -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="⚡ Version Courte"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #15803d; -fx-font-size: 13px;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="applyShortBtn" text="Appliquer"
+                                        onAction="#applyShortVersion"
+                                        style="-fx-background-color: #22c55e; -fx-text-fill: white;
+                                               -fx-border-radius: 6; -fx-background-radius: 6;
+                                               -fx-padding: 5 12; -fx-font-size: 12px; -fx-cursor: hand;"/>
+                            </HBox>
+                            <Label fx:id="shortTitreLabel" text=""
+                                   style="-fx-font-weight: bold; -fx-text-fill: #166534; -fx-font-size: 13px;"
+                                   wrapText="true"/>
+                            <Label fx:id="shortDescLabel" text=""
+                                   style="-fx-text-fill: #374151; -fx-font-size: 12px;"
+                                   wrapText="true" maxWidth="420"/>
+                        </VBox>
+
+                        <!-- Version Détaillée -->
+                        <VBox spacing="6"
+                              style="-fx-background-color: #EFF6FF; -fx-border-color: #93c5fd;
+                                     -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="📄 Version Détaillée"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #1d4ed8; -fx-font-size: 13px;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="applyDetailBtn" text="Appliquer"
+                                        onAction="#applyDetailedVersion"
+                                        style="-fx-background-color: #3b82f6; -fx-text-fill: white;
+                                               -fx-border-radius: 6; -fx-background-radius: 6;
+                                               -fx-padding: 5 12; -fx-font-size: 12px; -fx-cursor: hand;"/>
+                            </HBox>
+                            <Label fx:id="detailTitreLabel" text=""
+                                   style="-fx-font-weight: bold; -fx-text-fill: #1e40af; -fx-font-size: 13px;"
+                                   wrapText="true"/>
+                            <Label fx:id="detailDescLabel" text=""
+                                   style="-fx-text-fill: #374151; -fx-font-size: 12px;"
+                                   wrapText="true" maxWidth="420"/>
+                        </VBox>
+
+                        <!-- Version Urgente -->
+                        <VBox spacing="6"
+                              style="-fx-background-color: #FFF7ED; -fx-border-color: #fdba74;
+                                     -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="🚨 Version Urgente"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #c2410c; -fx-font-size: 13px;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="applyUrgentBtn" text="Appliquer"
+                                        onAction="#applyUrgentVersion"
+                                        style="-fx-background-color: #f97316; -fx-text-fill: white;
+                                               -fx-border-radius: 6; -fx-background-radius: 6;
+                                               -fx-padding: 5 12; -fx-font-size: 12px; -fx-cursor: hand;"/>
+                            </HBox>
+                            <Label fx:id="urgentTitreLabel" text=""
+                                   style="-fx-font-weight: bold; -fx-text-fill: #9a3412; -fx-font-size: 13px;"
+                                   wrapText="true"/>
+                            <Label fx:id="urgentDescLabel" text=""
+                                   style="-fx-text-fill: #374151; -fx-font-size: 12px;"
+                                   wrapText="true" maxWidth="420"/>
+                        </VBox>
+
+                        <!-- Conseils IA -->
+                        <VBox spacing="6"
+                              style="-fx-background-color: #FAFAFA; -fx-border-color: #e5e7eb;
+                                     -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                            <Label text="💡 Conseils pour améliorer votre publication"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 13px;"/>
+                            <Label fx:id="conseilsLabel" text=""
+                                   style="-fx-text-fill: #4b5563; -fx-font-size: 12px;"
+                                   wrapText="true" maxWidth="420"/>
+                        </VBox>
+
+                    </VBox>
+
+                </VBox>
+            </HBox>
         </ScrollPane>
     </center>
 

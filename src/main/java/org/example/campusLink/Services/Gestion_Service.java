@@ -465,7 +465,7 @@ public class Gestion_Service {
             ResultSet rs = ps.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
                 throw new IllegalStateException(
-                        "Impossible de supprimer un service avec des demandes actives"
+                        "Impossible de supprimer un service avec des réservations actives"
                 );
             }
         }

@@ -52,7 +52,7 @@ public class Gestion_Demande {
             ps.setInt(2, d.getServiceId());
             ResultSet rs = ps.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
-                throw new IllegalStateException("Vous avez déjà une demande active pour ce service");
+                throw new IllegalStateException("Vous avez déjà réservé ce service");
             }
         }
 
@@ -103,7 +103,7 @@ public class Gestion_Demande {
 
         // Validate status value
         if (!nouveauStatut.matches("EN_ATTENTE|CONFIRMEE|REFUSEE|TERMINEE")) {
-            throw new IllegalArgumentException("Statut invalide: " + nouveauStatut);
+            throw new IllegalArgumentException("Statut invalide");
         }
 
         // Get current status

@@ -19,7 +19,10 @@ import org.example.campusLink.entities.Publications.TypePublication;
 import org.example.campusLink.entities.Publications.StatusPublication;
 
 import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Publication_controller {
 
@@ -37,8 +40,9 @@ public class Publication_controller {
     @FXML private Label statsActives;
 
     private Gestion_publication gestionPublication;
-    private int currentStudentId = 1; // TODO: Replace with session
+    private int currentStudentId = 1;
     private boolean showingMyPublications = false;
+    private List<Publications> basePublications = new ArrayList<>();
 
     @FXML
     public void initialize() {
@@ -47,7 +51,7 @@ public class Publication_controller {
             gestionPublication = new Gestion_publication();
             setupFilters();
             loadStatistics();
-            loadPublications();
+            reloadBasePublications();
             System.out.println("Publication_controller initialized successfully");
         } catch (Exception e) {
             System.err.println("Error initializing Publication_controller: " + e.getMessage());
@@ -56,25 +60,83 @@ public class Publication_controller {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // IMAGE RESOLUTION  ← THE FIX
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Resolves an image URL stored in the DB to an actual File on disk.
+     *
+     * Handles three formats that may exist in the database:
+     *
+     *   1. Relative path  → "uploads/publications/1234_photo.png"
+     *      (written by the new CreatePublication_controller)
+     *      Resolved against the app working directory.
+     *
+     *   2. Absolute file URI → "file:/C:/Users/ALI/OneDrive/Images/photo.jpg"
+     *      (written by the OLD upload code — still in the DB for legacy records)
+     *      Parsed with URI so Windows paths are handled correctly.
+     *
+     *   3. Absolute native path → "C:/Users/ALI/..."  (edge case)
+     *      Wrapped directly in new File().
+     *
+     * Returns null if the string is blank or the file does not exist.
+     */
+    private File resolveImageFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+
+        try {
+            File file;
+
+            if (imageUrl.startsWith("file:")) {
+                // Case 2: absolute file URI — use URI parser (handles %20 spaces etc.)
+                file = new File(new URI(imageUrl));
+            } else if (imageUrl.contains(":\\") || imageUrl.startsWith("/")) {
+                // Case 3: absolute native path (Windows C:\ or Unix /)
+                file = new File(imageUrl);
+            } else {
+                // Case 1: relative path — resolve from working directory
+                file = new File(imageUrl);
+            }
+
+            System.out.println("Looking for publication image at: " + file.getAbsolutePath());
+
+            if (file.exists()) {
+                System.out.println("✅ Publication image loaded: " + imageUrl);
+                return file;
+            } else {
+                System.err.println("❌ Publication image not found: " + file.getAbsolutePath());
+                return null;
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Error resolving image path '" + imageUrl + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FILTERS & LOADING
+    // ═══════════════════════════════════════════════════════════════
+
     private void setupFilters() {
         if (typeFilter != null) {
             typeFilter.setItems(FXCollections.observableArrayList(
                     "Tous", "🏷️ Ventes", "🔍 Demandes de services"
             ));
             typeFilter.setValue("Tous");
-            typeFilter.setOnAction(e -> loadPublications());
+            typeFilter.setOnAction(e -> updateDisplayedPublications());
         }
         if (statusFilter != null) {
             statusFilter.setItems(FXCollections.observableArrayList(
                     "Tous", "Actif", "En cours", "Terminé", "Annulé"
             ));
             statusFilter.setValue("Tous");
-            statusFilter.setOnAction(e -> loadPublications());
+            statusFilter.setOnAction(e -> updateDisplayedPublications());
         }
         if (searchField != null) {
             searchField.textProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && newVal.length() >= 2) searchPublications(newVal);
-                else if (newVal == null || newVal.isEmpty()) loadPublications();
+                updateDisplayedPublications();
             });
         }
     }
@@ -96,75 +158,93 @@ public class Publication_controller {
         }
     }
 
-    private void loadPublications() {
+    private void reloadBasePublications() {
         try {
-            if (publicationsContainer == null) return;
-            List<Publications> publications = gestionPublication.afficherPublications();
-            publicationsContainer.getChildren().clear();
-
-            if (publications == null || publications.isEmpty()) {
-                Label emptyLabel = new Label("Aucune publication disponible pour le moment.");
-                emptyLabel.getStyleClass().add("empty-state");
-                publicationsContainer.getChildren().add(emptyLabel);
-                return;
+            if (showingMyPublications) {
+                basePublications = gestionPublication.afficherPublicationsParEtudiant(currentStudentId);
+            } else {
+                basePublications = gestionPublication.afficherPublications();
             }
-
-            publications = applyFilters(publications);
-            for (Publications pub : publications) {
-                publicationsContainer.getChildren().add(createPublicationCard(pub));
-            }
+            updateDisplayedPublications();
         } catch (Exception e) {
-            System.err.println("Error loading publications: " + e.getMessage());
+            System.err.println("Error reloading publications: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger les publications: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    private void searchPublications(String keyword) {
-        try {
-            if (publicationsContainer == null) return;
-            List<Publications> publications = gestionPublication.rechercherPublications(keyword);
-            publicationsContainer.getChildren().clear();
+    private void updateDisplayedPublications() {
+        if (publicationsContainer == null) return;
 
-            if (publications == null || publications.isEmpty()) {
-                Label emptyLabel = new Label("Aucun résultat pour \"" + keyword + "\"");
-                emptyLabel.getStyleClass().add("empty-state");
-                publicationsContainer.getChildren().add(emptyLabel);
-                return;
-            }
-            for (Publications pub : publications) {
-                publicationsContainer.getChildren().add(createPublicationCard(pub));
-            }
-        } catch (Exception e) {
-            System.err.println("Error searching publications: " + e.getMessage());
+        publicationsContainer.getChildren().clear();
+
+        if (basePublications == null || basePublications.isEmpty()) {
+            Label emptyLabel = new Label(
+                    showingMyPublications
+                            ? "Vous n'avez pas encore de publications.\nCliquez sur '+ Créer une publication' pour commencer."
+                            : "Aucune publication disponible pour le moment."
+            );
+            emptyLabel.getStyleClass().add("empty-state");
+            emptyLabel.setWrapText(true);
+            publicationsContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
+        List<Publications> publications = applyFilters(basePublications);
+        publications = applyKeywordFilter(publications, searchField != null ? searchField.getText() : null);
+
+        if (publications.isEmpty()) {
+            String keyword = searchField != null ? searchField.getText() : null;
+            String msg = (keyword != null && !keyword.isBlank())
+                    ? "Aucun résultat pour \"" + keyword.trim() + "\""
+                    : "Aucune publication ne correspond aux filtres sélectionnés.";
+            Label emptyLabel = new Label(msg);
+            emptyLabel.getStyleClass().add("empty-state");
+            emptyLabel.setWrapText(true);
+            publicationsContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
+        for (Publications pub : publications) {
+            publicationsContainer.getChildren().add(createPublicationCard(pub));
         }
     }
 
-    /**
-     * Builds a publication card.
-     *
-     * Assembly order:
-     *   1. header      (type badge + status badge)
-     *   2. title
-     *   3. image       (only when available and file exists)
-     *   4. infoBox     (student, location, date)
-     *   5. description
-     *   6. footer      (price + views + "Voir détails" button + 🗑 delete button)
-     *
-     * The delete button is only shown for the current student's own publications.
-     */
+    private List<Publications> applyKeywordFilter(List<Publications> publications, String keyword) {
+        if (keyword == null) return publications;
+        String k = keyword.trim();
+        if (k.isEmpty()) return publications;
+        String needle = k.toLowerCase(Locale.ROOT);
+
+        return publications.stream().filter(p -> {
+            String titre = p.getTitre();
+            String msg = p.getMessage();
+            String loc = p.getLocalisation();
+            String serviceName = p.getServiceName();
+            String categoryName = p.getCategoryName();
+            String prestataireName = p.getPrestataireName();
+
+            return (titre != null && titre.toLowerCase(Locale.ROOT).contains(needle)) ||
+                    (msg != null && msg.toLowerCase(Locale.ROOT).contains(needle)) ||
+                    (loc != null && loc.toLowerCase(Locale.ROOT).contains(needle)) ||
+                    (serviceName != null && serviceName.toLowerCase(Locale.ROOT).contains(needle)) ||
+                    (categoryName != null && categoryName.toLowerCase(Locale.ROOT).contains(needle)) ||
+                    (prestataireName != null && prestataireName.toLowerCase(Locale.ROOT).contains(needle));
+        }).toList();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CARD BUILDER
+    // ═══════════════════════════════════════════════════════════════
+
     private VBox createPublicationCard(Publications pub) {
         VBox card = new VBox(12);
         card.getStyleClass().add("publication-card");
 
-        // ===== 1. HEADER =====
+        // ===== 1. HEADER (sans type visible — demande/vente masqué pour l'utilisateur) =====
         HBox header = new HBox(10);
         header.getStyleClass().add("card-header");
         header.setAlignment(Pos.CENTER_LEFT);
-
-        Label typeBadge = new Label(pub.getTypeIcon() + " " + pub.getTypePublication().getLabel());
-        typeBadge.getStyleClass().add("type-badge");
-        typeBadge.getStyleClass().add(pub.isVenteObjet() ? "type-vente" : "type-demande");
 
         Region spacer1 = new Region();
         HBox.setHgrow(spacer1, Priority.ALWAYS);
@@ -173,7 +253,7 @@ public class Publication_controller {
         statusBadge.getStyleClass().add("status-badge");
         statusBadge.getStyleClass().add("status-" + pub.getStatus().name().toLowerCase());
 
-        header.getChildren().addAll(typeBadge, spacer1, statusBadge);
+        header.getChildren().addAll(spacer1, statusBadge);
 
         // ===== 2. TITLE =====
         Label title = new Label(pub.getTitre());
@@ -181,25 +261,21 @@ public class Publication_controller {
         title.setMaxWidth(360);
         title.setWrapText(true);
 
-        // ===== 3. IMAGE =====
+        // ===== 3. IMAGE — uses resolveImageFile() for robust path handling =====
         ImageView imageView = null;
         if (pub.hasImage()) {
-            try {
-                File imageFile = new File(pub.getImageUrl());
-                System.out.println("Looking for publication image at: " + imageFile.getAbsolutePath());
-                if (imageFile.exists()) {
+            File imageFile = resolveImageFile(pub.getImageUrl());
+            if (imageFile != null) {
+                try {
                     Image image = new Image(imageFile.toURI().toString());
                     imageView = new ImageView(image);
                     imageView.getStyleClass().add("card-image");
                     imageView.setFitWidth(360);
                     imageView.setFitHeight(200);
                     imageView.setPreserveRatio(true);
-                    System.out.println("✅ Publication image loaded: " + pub.getImageUrl());
-                } else {
-                    System.err.println("❌ Publication image not found: " + imageFile.getAbsolutePath());
+                } catch (Exception e) {
+                    System.err.println("Error creating ImageView: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("Error loading publication image: " + e.getMessage());
             }
         }
 
@@ -210,7 +286,10 @@ public class Publication_controller {
         studentRow.getStyleClass().add("card-info-row");
         Label studentIcon = new Label("👤");
         studentIcon.getStyleClass().add("card-info-icon");
-        Label studentText = new Label("Étudiant #" + pub.getStudentId());
+        String displayStudentName = (pub.getStudentName() != null && !pub.getStudentName().isBlank())
+                ? pub.getStudentName()
+                : "Étudiant #" + pub.getStudentId();
+        Label studentText = new Label(displayStudentName);
         studentText.getStyleClass().add("card-info-text");
         studentRow.getChildren().addAll(studentIcon, studentText);
         infoBox.getChildren().add(studentRow);
@@ -248,29 +327,31 @@ public class Publication_controller {
         footer.getStyleClass().add("card-footer");
         footer.setAlignment(Pos.CENTER_LEFT);
 
-        // Price + views
         VBox priceBox = new VBox(2);
         priceBox.getStyleClass().add("card-price-container");
-
-        Label price = new Label(pub.getFormattedPrice());
+        // Show formatted price — fallback if entity returns null/empty
+        String priceText = pub.getFormattedPrice();
+        if (priceText == null || priceText.isBlank() || priceText.contains("non spécifié")) {
+            java.math.BigDecimal pv = pub.getPrixVente();
+            priceText = (pv != null && pv.compareTo(java.math.BigDecimal.ZERO) > 0)
+                    ? String.format("%.2f €", pv).replace(".", ",")
+                    : "Prix non spécifié";
+        }
+        Label price = new Label(priceText);
         price.getStyleClass().add("card-price");
-
         Label views = new Label("👁 " + pub.getVues() + " vues");
         views.getStyleClass().add("card-views");
-
         priceBox.getChildren().addAll(price, views);
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        // "Voir détails" button
         Button detailsBtn = new Button("Voir détails");
         detailsBtn.getStyleClass().add("btn-contact");
         detailsBtn.setOnAction(e -> viewPublicationDetails(pub));
 
         footer.getChildren().addAll(priceBox, footerSpacer, detailsBtn);
 
-        // 🗑 Delete button — only shown in "Mes publications" tab
         if (showingMyPublications && pub.getStudentId() == currentStudentId) {
             Button deleteBtn = new Button("🗑");
             deleteBtn.setStyle(
@@ -282,8 +363,6 @@ public class Publication_controller {
                             "-fx-background-radius: 8;"
             );
             deleteBtn.setOnAction(e -> deletePublication(pub, card));
-
-            // Hover: red tint
             deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(
                     "-fx-background-color: #fee2e2;" +
                             "-fx-font-size: 16px;" +
@@ -300,11 +379,10 @@ public class Publication_controller {
                             "-fx-padding: 6 10;" +
                             "-fx-background-radius: 8;"
             ));
-
             footer.getChildren().add(deleteBtn);
         }
 
-        // ===== ASSEMBLE IN CORRECT ORDER =====
+        // ===== ASSEMBLE =====
         card.getChildren().add(header);
         card.getChildren().add(title);
         if (imageView != null) card.getChildren().add(imageView);
@@ -313,10 +391,10 @@ public class Publication_controller {
         return card;
     }
 
-    /**
-     * Confirms then deletes a publication.
-     * Removes the card from the UI immediately on success — no full reload needed.
-     */
+    // ═══════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════
+
     private void deletePublication(Publications pub, VBox card) {
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Supprimer la publication");
@@ -326,8 +404,6 @@ public class Publication_controller {
         ButtonType btnDelete = new ButtonType("🗑 Supprimer", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("Annuler",      ButtonBar.ButtonData.CANCEL_CLOSE);
         confirmAlert.getButtonTypes().setAll(btnDelete, btnCancel);
-
-        // Style the confirm button red
         confirmAlert.getDialogPane().lookupButton(btnDelete).setStyle(
                 "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold;"
         );
@@ -336,20 +412,14 @@ public class Publication_controller {
             if (response == btnDelete) {
                 try {
                     gestionPublication.supprimerPublication(pub.getId());
-
-                    // Remove the card from the container instantly — no flicker from full reload
                     publicationsContainer.getChildren().remove(card);
-
-                    // Show empty state if no cards remain
                     if (publicationsContainer.getChildren().isEmpty()) {
                         Label emptyLabel = new Label("Aucune publication disponible pour le moment.");
                         emptyLabel.getStyleClass().add("empty-state");
                         publicationsContainer.getChildren().add(emptyLabel);
                     }
-
-                    loadStatistics(); // refresh counters
+                    loadStatistics();
                     System.out.println("✅ Publication deleted: ID=" + pub.getId());
-
                 } catch (Exception e) {
                     System.err.println("Error deleting publication: " + e.getMessage());
                     e.printStackTrace();
@@ -380,12 +450,16 @@ public class Publication_controller {
             alert.setContentText(content.toString());
             alert.showAndWait();
 
-            loadPublications();
+            reloadBasePublications();
             loadStatistics();
         } catch (Exception e) {
             System.err.println("Error viewing publication: " + e.getMessage());
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════════
 
     @FXML
     private void goToCreatePublication() {
@@ -398,6 +472,8 @@ public class Publication_controller {
 
             Stage stage = getStage();
             if (stage != null) {
+                // Pass the current scene so goBack() can restore it exactly
+                controller.setPreviousScene(stage.getScene());
                 stage.setScene(scene);
                 stage.setTitle("Nouvelle Publication");
             }
@@ -457,14 +533,14 @@ public class Publication_controller {
     private void showAllPublications() {
         showingMyPublications = false;
         updateTabStyles();
-        loadPublications();
+        reloadBasePublications();
     }
 
     @FXML
     private void showMyPublications() {
         showingMyPublications = true;
         updateTabStyles();
-        loadMyPublications();
+        reloadBasePublications();
     }
 
     private void updateTabStyles() {
@@ -476,31 +552,6 @@ public class Publication_controller {
         } else {
             if (allPublicationsTab != null) allPublicationsTab.setStyle(active);
             if (myPublicationsTab  != null) myPublicationsTab.setStyle(inactive);
-        }
-    }
-
-    private void loadMyPublications() {
-        try {
-            if (publicationsContainer == null) return;
-            List<Publications> publications = gestionPublication.afficherPublicationsParEtudiant(currentStudentId);
-            publicationsContainer.getChildren().clear();
-
-            if (publications == null || publications.isEmpty()) {
-                Label emptyLabel = new Label("Vous n'avez pas encore de publications.\nCliquez sur '+ Créer une publication' pour commencer.");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6b7280; -fx-padding: 60px; -fx-text-alignment: center;");
-                emptyLabel.setWrapText(true);
-                publicationsContainer.getChildren().add(emptyLabel);
-                return;
-            }
-
-            publications = applyFilters(publications);
-            for (Publications pub : publications) {
-                publicationsContainer.getChildren().add(createPublicationCard(pub));
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading my publications: " + e.getMessage());
-            e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger vos publications: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -536,7 +587,7 @@ public class Publication_controller {
     @FXML
     private void refreshPublications() {
         loadStatistics();
-        loadPublications();
+        reloadBasePublications();
     }
 
     private Stage getStage() {

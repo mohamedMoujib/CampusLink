@@ -242,7 +242,8 @@ public class Publications {
         if (typePublication == null) return false;
 
         if (typePublication == TypePublication.DEMANDE_SERVICE) {
-            return serviceId != null && serviceId > 0;
+            // serviceId peut être null pour une nouvelle demande (pas encore matchée)
+            return serviceId == null || serviceId > 0;
         } else if (typePublication == TypePublication.VENTE_OBJET) {
             return prixVente != null && prixVente.compareTo(BigDecimal.ZERO) > 0;
         }

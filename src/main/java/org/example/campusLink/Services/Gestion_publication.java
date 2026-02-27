@@ -33,7 +33,13 @@ public class Gestion_publication {
             ps.setString(2, pub.getTypePublication().name());
             ps.setString(3, pub.getTitre());
             ps.setString(4, pub.getMessage());
-            ps.setString(5, pub.getImageUrl());
+            // Image : chemin relatif (ex: uploads/publications/1234_photo.png)
+            String imageUrl = pub.getImageUrl();
+            if (imageUrl != null && !imageUrl.isBlank()) {
+                ps.setString(5, imageUrl.trim().replace('\\', '/'));
+            } else {
+                ps.setNull(5, Types.VARCHAR);
+            }
             ps.setString(6, pub.getLocalisation());
 
             if (pub.getServiceId() != null) ps.setInt(7, pub.getServiceId());
@@ -64,12 +70,15 @@ public class Gestion_publication {
         List<Publications> publications = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, s.prestataire_id, c.name as category_name,
-                   u.name as prestataire_name
+                   s.price as service_price, s.prestataire_id,
+                   c.name as category_name,
+                   u.name  as prestataire_name,
+                   us.name as student_name
             FROM publications p
-            LEFT JOIN services s ON p.service_id = s.id
-            LEFT JOIN categories c ON s.category_id = c.id
-            LEFT JOIN users u ON s.prestataire_id = u.id
+            LEFT JOIN services   s  ON p.service_id   = s.id
+            LEFT JOIN categories c  ON s.category_id  = c.id
+            LEFT JOIN users      u  ON s.prestataire_id = u.id
+            LEFT JOIN users      us ON p.student_id  = us.id
             WHERE 1=1
         """);
 
@@ -89,12 +98,15 @@ public class Gestion_publication {
     public List<Publications> afficherPublicationsParEtudiant(int studentId) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, s.prestataire_id, c.name as category_name,
-                   u.name as prestataire_name
+                   s.price as service_price, s.prestataire_id,
+                   c.name as category_name,
+                   u.name  as prestataire_name,
+                   us.name as student_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
-            LEFT JOIN users u ON s.prestataire_id = u.id
+            LEFT JOIN users u  ON s.prestataire_id = u.id
+            LEFT JOIN users us ON p.student_id     = us.id
             WHERE p.student_id = ?
             ORDER BY p.created_at DESC
         """;
@@ -113,12 +125,15 @@ public class Gestion_publication {
     public Publications getPublicationById(int id) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, s.prestataire_id, c.name as category_name,
-                   u.name as prestataire_name
+                   s.price as service_price, s.prestataire_id,
+                   c.name as category_name,
+                   u.name  as prestataire_name,
+                   us.name as student_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
-            LEFT JOIN users u ON s.prestataire_id = u.id
+            LEFT JOIN users u  ON s.prestataire_id = u.id
+            LEFT JOIN users us ON p.student_id     = us.id
             WHERE p.id = ?
         """;
 
@@ -135,12 +150,15 @@ public class Gestion_publication {
     public List<Publications> rechercherPublications(String keyword) throws SQLException {
         String sql = """
             SELECT p.*, s.title as service_name, s.description as service_description,
-                   s.price as service_price, s.prestataire_id, c.name as category_name,
-                   u.name as prestataire_name
+                   s.price as service_price, s.prestataire_id,
+                   c.name as category_name,
+                   u.name  as prestataire_name,
+                   us.name as student_name
             FROM publications p
             LEFT JOIN services s ON p.service_id = s.id
             LEFT JOIN categories c ON s.category_id = c.id
-            LEFT JOIN users u ON s.prestataire_id = u.id
+            LEFT JOIN users u  ON s.prestataire_id = u.id
+            LEFT JOIN users us ON p.student_id     = us.id
             WHERE p.titre LIKE ? OR p.message LIKE ?
             ORDER BY p.created_at DESC
         """;
@@ -242,6 +260,12 @@ public class Gestion_publication {
             p.setPrestataireName(rs.getString("prestataire_name"));
         } catch (SQLException e) {
             // La colonne n'existe pas, ignorer
+        }
+
+        try {
+            p.setStudentName(rs.getString("student_name"));
+        } catch (SQLException e) {
+            // facultatif selon la requête
         }
 
         return p;

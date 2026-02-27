@@ -1,19 +1,26 @@
 package org.example.Controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import org.example.campusLink.Services.Gestion_Service;
 import org.example.campusLink.entities.Services;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +43,18 @@ public class CreateService_controller {
     @FXML private ImageView imagePreview;
     @FXML private Label imageFileLabel;
     @FXML private Button removeImageButton;
+
+    @FXML private TextArea aiIdeaField;
+    @FXML private Button generateAiBtn;
+    @FXML private Label aiLoadingLabel;
+    @FXML private VBox aiResultsPanel;
+    @FXML private VBox aiErrorPanel;
+    @FXML private Label aiStatusLabel;
+    @FXML private Label aiGeneratedTitre;
+    @FXML private Label aiGeneratedDesc;
+    @FXML private Label aiErrorLabel;
+
+    private static final String N8N_SERVICE_URL = "http://localhost:5678/webhook/creer-service";
 
     private Gestion_Service gestionService;
     private int currentPrestataireId = 1; // TODO: Replace with session
@@ -242,10 +261,226 @@ public class CreateService_controller {
     }
 
     private boolean hasUnsavedChanges() {
-        return (titleField.getText() != null && !titleField.getText().trim().isEmpty()) ||
-                (descriptionField.getText() != null && !descriptionField.getText().trim().isEmpty()) ||
-                (priceField.getText() != null && !priceField.getText().trim().isEmpty()) ||
-                (selectedImageFile != null);
+        return (titleField != null && titleField.getText() != null && !titleField.getText().trim().isEmpty()) ||
+                (descriptionField != null && descriptionField.getText() != null && !descriptionField.getText().trim().isEmpty()) ||
+                (priceField != null && priceField.getText() != null && !priceField.getText().trim().isEmpty()) ||
+                (selectedImageFile != null) ||
+                (aiIdeaField != null && aiIdeaField.getText() != null && !aiIdeaField.getText().trim().isEmpty());
+    }
+
+    private boolean fallbackCreateServiceLocally(String idea, double prix, String imageUrl, Exception n8nError) {
+        try {
+            String title = idea.length() > 80 ? idea.substring(0, 77) + "..." : idea;
+            double priceVal = prix > 0 ? prix : 10.0;
+            String imgPath = imageUrl != null ? imageUrl.replace(UPLOAD_DIR, "") : null;
+
+            Services svc = new Services();
+            svc.setTitle(title);
+            svc.setDescription(idea);
+            svc.setPrice(priceVal);
+            svc.setPrestataireId(currentPrestataireId);
+            svc.setImage(imgPath);
+            svc.setCategoryId(0);
+
+            gestionService.ajouterService(svc);
+            int id = svc.getId();
+
+            if (aiStatusLabel != null) aiStatusLabel.setText("✅ Service créé (sans IA) ! ID #" + id);
+            if (aiGeneratedTitre != null) aiGeneratedTitre.setText("📌 " + title);
+            if (aiGeneratedDesc != null) aiGeneratedDesc.setText(idea);
+            if (aiResultsPanel != null) {
+                aiResultsPanel.setVisible(true);
+                aiResultsPanel.setManaged(true);
+            }
+            if (aiIdeaField != null) aiIdeaField.clear();
+            clearFormForExit();
+            showAlert("Succès", "Service créé (workflow n8n indisponible, création locale). ID #" + id, Alert.AlertType.INFORMATION);
+            goBack();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void hideAiPanels() {
+        if (aiResultsPanel != null) { aiResultsPanel.setVisible(false); aiResultsPanel.setManaged(false); }
+        if (aiErrorPanel != null) { aiErrorPanel.setVisible(false); aiErrorPanel.setManaged(false); }
+    }
+
+    private void clearFormForExit() {
+        if (titleField != null) titleField.clear();
+        if (descriptionField != null) descriptionField.clear();
+        if (priceField != null) priceField.clear();
+        if (aiIdeaField != null) aiIdeaField.clear();
+        onRemoveImage();
+        hideAiPanels();
+    }
+
+    private JSONObject envoyerAn8n(JSONObject payload) throws Exception {
+        String payloadStr = payload.toString();
+        System.out.println("→ Envoi payload service : " + payloadStr);
+
+        URL url = new URL(N8N_SERVICE_URL);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setConnectTimeout(10_000);
+        conn.setReadTimeout(30_000);
+        conn.setDoOutput(true);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payloadStr.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int statusCode = conn.getResponseCode();
+        String responseBody;
+        if (statusCode >= 200 && statusCode < 300) {
+            responseBody = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } else {
+            responseBody = new String(
+                    conn.getErrorStream() != null ? conn.getErrorStream().readAllBytes() : new byte[0],
+                    StandardCharsets.UTF_8);
+        }
+
+        if (responseBody.isEmpty()) {
+            if (statusCode >= 200 && statusCode < 300)
+                return new JSONObject().put("success", true).put("message", "Service créé").put("_httpStatus", statusCode);
+            return new JSONObject().put("success", false).put("message", "Erreur HTTP " + statusCode).put("_httpStatus", statusCode);
+        }
+        try {
+            JSONObject json = new JSONObject(responseBody);
+            json.put("_httpStatus", statusCode);
+            return json;
+        } catch (Exception e) {
+            return new JSONObject()
+                    .put("success", false)
+                    .put("message", responseBody.length() > 200 ? responseBody.substring(0, 200) : responseBody)
+                    .put("_httpStatus", statusCode);
+        }
+    }
+
+    @FXML
+    private void generateAndCreateService() {
+        String idea = aiIdeaField != null ? aiIdeaField.getText().trim() : "";
+        if (idea.isEmpty()) {
+            showAlert("Erreur", "Veuillez décrire votre service avant de continuer.", Alert.AlertType.WARNING);
+            if (aiIdeaField != null) aiIdeaField.requestFocus();
+            return;
+        }
+        if (idea.length() < 10) {
+            showAlert("Erreur", "Décrivez votre service en au moins 10 caractères.", Alert.AlertType.WARNING);
+            if (aiIdeaField != null) aiIdeaField.requestFocus();
+            return;
+        }
+
+        double prix = 0;
+        try {
+            if (priceField != null && priceField.getText() != null && !priceField.getText().trim().isEmpty()) {
+                prix = Double.parseDouble(priceField.getText().trim());
+                if (prix < 0) prix = 0;
+            }
+        } catch (NumberFormatException ignored) {}
+
+        String imageUrl = null;
+        if (selectedImageFile != null) {
+            try {
+                imageUrl = UPLOAD_DIR + uploadImage(selectedImageFile);
+            } catch (IOException e) {
+                showAlert("Erreur", "Impossible d'uploader l'image : " + e.getMessage(), Alert.AlertType.ERROR);
+                return;
+            }
+        }
+
+        final String finalIdea = idea;
+        final double finalPrix = prix;
+        final String finalImageUrl = imageUrl;
+
+        JSONObject payload = new JSONObject();
+        payload.put("prestataire_id", currentPrestataireId);
+        payload.put("prompt", idea);
+        payload.put("prix", prix);
+        if (imageUrl != null) payload.put("image_url", imageUrl);
+        payload.put("category_id", 0);
+
+        generateAiBtn.setDisable(true);
+        if (aiLoadingLabel != null) aiLoadingLabel.setVisible(true);
+        hideAiPanels();
+
+        new Thread(() -> {
+            try {
+                JSONObject response = envoyerAn8n(payload);
+                int statusCode = response.optInt("_httpStatus", 200);
+
+                Platform.runLater(() -> {
+                    generateAiBtn.setDisable(false);
+                    if (aiLoadingLabel != null) aiLoadingLabel.setVisible(false);
+
+                    // Fallback: webhook non enregistré (404) ou erreur n8n → création locale
+                    boolean webhookUnavailable = (statusCode == 404) ||
+                            (statusCode >= 500) ||
+                            (response.optString("message", "").toLowerCase().contains("not registered")) ||
+                            (response.optString("message", "").toLowerCase().contains("webhook"));
+                    if (!response.optBoolean("success", false) && webhookUnavailable) {
+                        try {
+                            if (fallbackCreateServiceLocally(finalIdea, finalPrix, finalImageUrl, new Exception("Webhook indisponible"))) {
+                                return;
+                            }
+                        } catch (Exception fe) {
+                            fe.printStackTrace();
+                        }
+                    }
+
+                    if (response.optBoolean("success", false)) {
+                        int serviceId = response.optInt("service_id", 0);
+                        JSONObject svc = response.optJSONObject("service");
+
+                        if (aiStatusLabel != null) aiStatusLabel.setText("✅ Service créé avec succès ! (ID #" + serviceId + ")");
+                        if (aiGeneratedTitre != null) aiGeneratedTitre.setText("📌 " + (svc != null ? svc.optString("title", "Service") : "Service"));
+                        if (aiGeneratedDesc != null) aiGeneratedDesc.setText(svc != null ? svc.optString("description", "") : "");
+
+                        if (aiResultsPanel != null) {
+                            aiResultsPanel.setVisible(true);
+                            aiResultsPanel.setManaged(true);
+                        }
+                        if (aiIdeaField != null) aiIdeaField.clear();
+                        clearFormForExit();
+
+                        showAlert("Succès", "Service créé ! ID #" + serviceId, Alert.AlertType.INFORMATION);
+                        goBack();
+                    } else {
+                        String err = response.optString("message", "Erreur inconnue");
+                        if (aiErrorLabel != null) aiErrorLabel.setText("❌ " + err);
+                        if (aiErrorPanel != null) {
+                            aiErrorPanel.setVisible(true);
+                            aiErrorPanel.setManaged(true);
+                        }
+                        showAlert("Erreur", err, Alert.AlertType.ERROR);
+                    }
+                });
+            } catch (Exception e) {
+                Exception ex = e;
+                Platform.runLater(() -> {
+                    generateAiBtn.setDisable(false);
+                    if (aiLoadingLabel != null) aiLoadingLabel.setVisible(false);
+                    boolean fallbackOk = false;
+                    try {
+                        fallbackOk = fallbackCreateServiceLocally(finalIdea, finalPrix, finalImageUrl, ex);
+                    } catch (Exception fe) {
+                        fe.printStackTrace();
+                    }
+                    if (!fallbackOk) {
+                        String msg = "Impossible de contacter le workflow n8n : " + ex.getMessage();
+                        if (aiErrorLabel != null) aiErrorLabel.setText("❌ " + msg);
+                        if (aiErrorPanel != null) {
+                            aiErrorPanel.setVisible(true);
+                            aiErrorPanel.setManaged(true);
+                        }
+                        showAlert("Erreur", msg + "\n\nCréez le service manuellement à gauche ou configurez le workflow n8n 'creer-service'.", Alert.AlertType.ERROR);
+                    }
+                });
+            }
+        }).start();
     }
 
     @FXML

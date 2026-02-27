@@ -1,415 +1,646 @@
 package org.example.Controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
+import org.example.campusLink.Services.Gestion_Matching;
 import org.example.campusLink.Services.Gestion_publication;
 import org.example.campusLink.entities.Publications;
-import org.example.campusLink.entities.Publications.TypePublication;
-import org.example.campusLink.entities.Publications.StatusPublication;
+import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Optional;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ResourceBundle;
 
-public class CreatePublication_controller {
+/**
+ * Controller for CreatePublication.fxml
+ *
+ * FIXES APPLIQUÉS :
+ *  1. UTF-8 forcé sur toutes les requêtes HTTP (plus de caractères cassés)
+ *  2. Accepte HTTP 200 ET 201 en réponse de n8n
+ *  3. Lecture correcte du body de réponse (plus de "0 chars")
+ *  4. Mapping correct des types de publication
+ *  5. Suppression de la dépendance Gestion_IA — HTTP natif Java
+ */
+public class CreatePublication_controller implements Initializable {
 
+    // ── URL n8n ──────────────────────────────────────────────────
+    private static final String N8N_URL = "http://localhost:5678/webhook/creer-publication";
+
+    // ── Form fields (LEFT) ───────────────────────────────────────
     @FXML private RadioButton typeVenteRadio;
     @FXML private RadioButton typeDemandeRadio;
+    @FXML private TextField   titreField;
+    @FXML private TextArea    messageArea;
+    @FXML private Label       messageCounter;
+    @FXML private TextField   prixField;
+    @FXML private TextField   localisationField;
+    @FXML private Button      uploadImageButton;
+    @FXML private Button      removeImageButton;
+    @FXML private Label       imageFileLabel;
+    @FXML private ImageView   imagePreview;
+    @FXML private CheckBox    termsCheckBox;
+    @FXML private Button      submitButton;
 
-    @FXML private TextField titreField;
-    @FXML private TextArea messageArea;
-    @FXML private Label messageCounter;
-    @FXML private TextField prixField;
-    @FXML private TextField localisationField;
+    // ── AI panel (RIGHT) ─────────────────────────────────────────
+    @FXML private TextArea  aiIdeaField;
+    @FXML private Button    generateAiBtn;
+    @FXML private Label     aiLoadingLabel;
 
-    @FXML private Button uploadImageButton;
-    @FXML private ImageView imagePreview;
-    @FXML private Label imageFileLabel;
-    @FXML private Button removeImageButton;
+    @FXML private javafx.scene.layout.VBox aiResultsPanel;
+    @FXML private Label aiStatusLabel;
+    @FXML private Label aiGeneratedTitre;
+    @FXML private Label aiGeneratedMessage;
 
-    @FXML private CheckBox termsCheckBox;
-    @FXML private Button submitButton;
-    @FXML private Button deleteButton;
+    @FXML private javafx.scene.layout.VBox aiErrorPanel;
+    @FXML private Label aiErrorLabel;
 
+    // ── Old suggestions panel (kept, hidden) ─────────────────────
+    @FXML private javafx.scene.layout.VBox suggestionsPanel;
+    @FXML private Label  shortTitreLabel;
+    @FXML private Label  shortDescLabel;
+    @FXML private Button applyShortBtn;
+    @FXML private Label  detailTitreLabel;
+    @FXML private Label  detailDescLabel;
+    @FXML private Button applyDetailBtn;
+    @FXML private Label  urgentTitreLabel;
+    @FXML private Label  urgentDescLabel;
+    @FXML private Button applyUrgentBtn;
+    @FXML private Label  conseilsLabel;
+
+    // ── State ─────────────────────────────────────────────────────
+    private JSONObject lastAiResult     = null;
+    private String     selectedImageUrl = null;
+    private int        currentStudentId = 1;
     private Gestion_publication gestionPublication;
-    private int currentStudentId = 1; // TODO: Replace with session
-    private File selectedImageFile;
-    private String uploadedImagePath;
+    private javafx.scene.Scene previousScene = null;
 
-    private static final String UPLOAD_DIR = "uploads/publications/";
-    private static final long MAX_FILE_SIZE = 5_000_000; // 5 MB
+    public void setCurrentStudentId(int id)             { this.currentStudentId = id; }
+    public void setPreviousScene(javafx.scene.Scene s)  { this.previousScene = s; }
 
-    @FXML
-    public void initialize() {
-        System.out.println("Initializing CreatePublication_controller...");
-
+    // ─────────────────────────────────────────────────────────────
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
         try {
             gestionPublication = new Gestion_publication();
-            setupMessageCounter();
-            setupFormValidation();
-            setupPriceField();
-            setupImageUpload();
-            validateForm();
-            System.out.println("CreatePublication_controller initialized successfully");
-
         } catch (Exception e) {
-            System.err.println("Error initializing CreatePublication_controller: " + e.getMessage());
-            e.printStackTrace();
-            showAlert("Erreur", "Erreur d'initialisation: " + e.getMessage(), Alert.AlertType.ERROR);
+            gestionPublication = null;
         }
+        ToggleGroup typeGroup = new ToggleGroup();
+        typeVenteRadio.setToggleGroup(typeGroup);
+        typeDemandeRadio.setToggleGroup(typeGroup);
+        typeDemandeRadio.setSelected(true);
+
+        messageArea.textProperty().addListener((obs, oldVal, newVal) -> {
+            int len = newVal.length();
+            if (len > 1000) messageArea.setText(oldVal);
+            else messageCounter.setText(len + "/1000");
+        });
+
+        submitButton.disableProperty().bind(termsCheckBox.selectedProperty().not());
+        removeImageButton.setVisible(false);
+        if (imagePreview != null) imagePreview.setVisible(false);
     }
 
-    private void setupMessageCounter() {
-        messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            int length = newValue.length();
-            messageCounter.setText(length + "/1000");
+    // ═══════════════════════════════════════════════════════════════
+    // MÉTHODE HTTP CENTRALE — FIX UTF-8 + FIX CODE 201
+    // ═══════════════════════════════════════════════════════════════
 
-            if (length > 1000) {
-                messageCounter.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                messageArea.setText(oldValue);
-            } else if (length > 900) {
-                messageCounter.setStyle("-fx-text-fill: #f59e0b;");
+    /**
+     * Envoie un payload JSON à n8n et retourne la réponse parsée.
+     * FIX 1 : charset=UTF-8 forcé partout
+     * FIX 2 : accepte HTTP 200 et 201
+     * FIX 3 : lit le body même pour les codes non-200
+     */
+    private JSONObject envoyerAn8n(JSONObject payload) throws Exception {
+        String payloadStr = payload.toString();
+        System.out.println("→ Envoi payload : " + payloadStr);
+
+        URL url = new URL(N8N_URL);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        // FIX UTF-8 : forcer l'encodage dans le Content-Type
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setConnectTimeout(10_000);
+        conn.setReadTimeout(30_000);
+        conn.setDoOutput(true);
+
+        // FIX UTF-8 : écrire en UTF-8 explicitement
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] bytes = payloadStr.getBytes(StandardCharsets.UTF_8);
+            os.write(bytes);
+        }
+
+        int statusCode = conn.getResponseCode();
+        System.out.println("← HTTP " + statusCode + " de n8n");
+
+        // FIX CODE 201 : lire le body pour 200 ET 201
+        String responseBody;
+        if (statusCode >= 200 && statusCode < 300) {
+            // FIX UTF-8 : lire en UTF-8 explicitement
+            responseBody = new String(
+                    conn.getInputStream().readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
+        } else {
+            // Lire le body d'erreur aussi
+            responseBody = new String(
+                    conn.getErrorStream() != null
+                            ? conn.getErrorStream().readAllBytes()
+                            : new byte[0],
+                    StandardCharsets.UTF_8
+            );
+        }
+
+        System.out.println("← Réponse brute (" + responseBody.length() + " chars) : " + responseBody);
+
+        if (responseBody.isEmpty()) {
+            // n8n a répondu sans body — construire une réponse générique succès
+            if (statusCode >= 200 && statusCode < 300) {
+                return new JSONObject().put("success", true).put("message", "Publication créée");
             } else {
-                messageCounter.setStyle("-fx-text-fill: #6b7280;");
+                return new JSONObject().put("success", false)
+                        .put("message", "Erreur HTTP " + statusCode + " sans détails");
             }
-
-            validateForm();
-        });
-    }
-
-    private void setupFormValidation() {
-        titreField.textProperty().addListener((obs, old, newVal) -> validateForm());
-        messageArea.textProperty().addListener((obs, old, newVal) -> validateForm());
-        prixField.textProperty().addListener((obs, old, newVal) -> validateForm());
-        termsCheckBox.selectedProperty().addListener((obs, old, newVal) -> validateForm());
-    }
-
-    private void setupPriceField() {
-        prixField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
-                prixField.setText(oldValue);
-            }
-        });
-    }
-
-    private void setupImageUpload() {
-        imagePreview.setVisible(false);
-        imageFileLabel.setVisible(false);
-        removeImageButton.setVisible(false);
-    }
-
-    private void validateForm() {
-        boolean isValid = titreField != null && !titreField.getText().trim().isEmpty()
-                && messageArea != null && !messageArea.getText().trim().isEmpty()
-                && messageArea.getText().length() <= 1000
-                && prixField != null && !prixField.getText().trim().isEmpty()
-                && termsCheckBox != null && termsCheckBox.isSelected();
-
-        if (submitButton != null) {
-            submitButton.setDisable(!isValid);
         }
+
+        return new JSONObject(responseBody);
     }
 
-    @FXML
-    private void onUploadImage() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Sélectionner une image");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"),
-                new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
-        );
-
-        Stage stage = (Stage) uploadImageButton.getScene().getWindow();
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null) {
-            if (file.length() > MAX_FILE_SIZE) {
-                showAlert("Erreur", "L'image est trop volumineuse (max 5 MB)", Alert.AlertType.WARNING);
-                return;
-            }
-            selectedImageFile = file;
-            displayImagePreview(file);
-        }
-    }
-
-    private void displayImagePreview(File imageFile) {
-        try {
-            Image image = new Image(imageFile.toURI().toString());
-            imagePreview.setImage(image);
-            imagePreview.setVisible(true);
-            imageFileLabel.setText(imageFile.getName());
-            imageFileLabel.setVisible(true);
-            removeImageButton.setVisible(true);
-            uploadImageButton.setText("Changer l'image");
-
-        } catch (Exception e) {
-            System.err.println("Error displaying image: " + e.getMessage());
-            showAlert("Erreur", "Impossible d'afficher l'image", Alert.AlertType.ERROR);
-        }
-    }
-
-    @FXML
-    private void onRemoveImage() {
-        selectedImageFile = null;
-        imagePreview.setImage(null);
-        imagePreview.setVisible(false);
-        imageFileLabel.setVisible(false);
-        removeImageButton.setVisible(false);
-        uploadImageButton.setText("📷 Ajouter une image (optionnel)");
-    }
+    // ═══════════════════════════════════════════════════════════════
+    // A) SOUMISSION MANUELLE
+    // ═══════════════════════════════════════════════════════════════
 
     @FXML
     private void submitPublication() {
-        System.out.println("Submitting publication...");
+        if (!validateManualForm()) return;
 
-        try {
-            if (!validateFormData()) return;
+        String titre   = titreField.getText().trim();
+        String message = messageArea.getText().trim();
+        double prix    = Double.parseDouble(prixField.getText().trim());
 
-            Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmDialog.setTitle("Confirmer la publication");
-            confirmDialog.setHeaderText("Publier votre annonce ?");
-            confirmDialog.setContentText(
-                    "Titre: " + titreField.getText() + "\n" +
-                            "Prix: " + prixField.getText() + "€\n\n" +
-                            "Votre publication sera visible par tous les étudiants.\n" +
-                            "Voulez-vous continuer ?"
-            );
+        // FIX MAPPING TYPE : utiliser les valeurs exactes attendues par n8n
+        String typePublication = typeVenteRadio.isSelected() ? "VENTE_OBJET" : "DEMANDE_SERVICE";
+        String localisation    = localisationField.getText().trim();
 
-            ButtonType btnConfirm = new ButtonType("✓ Publier", ButtonBar.ButtonData.OK_DONE);
-            ButtonType btnCancel  = new ButtonType("✗ Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-            confirmDialog.getButtonTypes().setAll(btnConfirm, btnCancel);
+        JSONObject payload = new JSONObject();
+        payload.put("student_id",       currentStudentId);
+        payload.put("titre",            titre);
+        payload.put("message",          message);
+        payload.put("type_publication", typePublication);
+        payload.put("prix_vente",       prix);
+        payload.put("status",           "ACTIVE");
+        if (!localisation.isEmpty())  payload.put("localisation", localisation);
+        if (selectedImageUrl != null) payload.put("image_url", selectedImageUrl);
 
-            Optional<ButtonType> result = confirmDialog.showAndWait();
-            if (result.isEmpty() || result.get() != btnConfirm) return;
+        submitButton.disableProperty().unbind();
+        submitButton.setDisable(true);
+        submitButton.setText("⏳ Publication...");
 
-            if (selectedImageFile != null) {
-                uploadedImagePath = uploadImage(selectedImageFile);
+        // Capturer le chemin image pour le thread (éviter problèmes de closure)
+        final String imagePathToSave = selectedImageUrl != null
+                ? selectedImageUrl.replace('\\', '/')
+                : null;
+
+        // Mode manuel : création directe en base (fiable, fonctionne toujours)
+        new Thread(() -> {
+            try {
+                if (gestionPublication != null) {
+                    Publications pub = new Publications();
+                    pub.setStudentId(currentStudentId);
+                    pub.setTypePublicationFromString(typePublication);
+                    pub.setTitre(titre);
+                    pub.setMessage(message);
+                    pub.setPrixVente(java.math.BigDecimal.valueOf(prix));
+                    pub.setLocalisation(localisation.isEmpty() ? null : localisation);
+                    pub.setImageUrl(imagePathToSave);
+                    pub.setStatus(Publications.StatusPublication.ACTIVE);
+                    gestionPublication.ajouterPublication(pub);
+                    int pubId = pub.getId();
+                    Platform.runLater(() -> {
+                        submitButton.disableProperty().bind(termsCheckBox.selectedProperty().not());
+                        submitButton.setText("📢 Publier");
+                        showAlert(Alert.AlertType.INFORMATION, "Publication créée !",
+                                "Votre publication a été enregistrée avec succès.\nID : " + pubId);
+                        clearForm();
+                        // Déclencher le matching et donc les notifications tuteur
+                        runMatchingAsync();
+                    });
+                } else {
+                    throw new IllegalStateException("Gestion_publication indisponible");
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    submitButton.disableProperty().bind(termsCheckBox.selectedProperty().not());
+                    submitButton.setText("📢 Publier");
+                    showAlert(Alert.AlertType.ERROR, "Erreur",
+                            "Impossible d'enregistrer la publication :\n" + e.getMessage());
+                });
             }
-
-            Publications newPublication = createPublicationFromForm();
-
-            System.out.println("=== PUBLICATION OBJECT CREATED ===");
-            System.out.println("Type: "       + newPublication.getTypePublication());
-            System.out.println("Status: "     + newPublication.getStatus());
-            System.out.println("Student ID: " + newPublication.getStudentId());
-            System.out.println("Title: "      + newPublication.getTitre());
-            System.out.println("Price: "      + newPublication.getPrixVente());
-
-            gestionPublication.ajouterPublication(newPublication);
-
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Succès");
-            successAlert.setHeaderText("Publication créée !");
-            successAlert.setContentText(
-                    "Votre publication a été créée avec succès.\n" +
-                            "Elle est maintenant visible par tous les étudiants.\n\n" +
-                            "ID de la publication: #" + newPublication.getId()
-            );
-            successAlert.showAndWait();
-
-            goBackToPublications();
-
-        } catch (Exception e) {
-            System.err.println("Error creating publication: " + e.getMessage());
-            e.printStackTrace();
-            showAlert("Erreur", "Erreur lors de la création: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
+        }).start();
     }
 
-    private boolean validateFormData() {
-        if (titreField.getText().trim().isEmpty()) {
-            showAlert("Erreur", "Veuillez saisir un titre", Alert.AlertType.WARNING);
-            titreField.requestFocus();
-            return false;
+    // ═══════════════════════════════════════════════════════════════
+    // B) CRÉATION IA AUTO
+    // ═══════════════════════════════════════════════════════════════
+
+    @FXML
+    private void generateAndPublish() {
+        String idea = aiIdeaField.getText().trim();
+
+        if (idea.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Description manquante",
+                    "Veuillez décrire votre publication avant de continuer.");
+            aiIdeaField.requestFocus();
+            return;
         }
-        if (titreField.getText().length() > 200) {
-            showAlert("Erreur", "Le titre ne doit pas dépasser 200 caractères", Alert.AlertType.WARNING);
-            return false;
+        if (idea.length() < 10) {
+            showAlert(Alert.AlertType.WARNING, "Description trop courte",
+                    "Écrivez au moins 10 caractères pour que l'IA génère une publication de qualité.");
+            aiIdeaField.requestFocus();
+            return;
         }
 
-        String message = messageArea.getText().trim();
+        // On réutilise les validations de base : prix valide, titre facultatif (l'IA peut le générer),
+        // mais on impose au moins un prix cohérent pour une VENTE_OBJET.
+        if (!validatePriceOnlyForAi()) return;
+
+        // FIX MAPPING TYPE
+        String typePublication = typeVenteRadio.isSelected() ? "VENTE_OBJET" : "DEMANDE_SERVICE";
+        double prix            = parsePrix();
+        String localisation    = localisationField.getText().trim();
+
+        JSONObject payload = new JSONObject();
+        payload.put("student_id",       currentStudentId);
+        payload.put("prompt",           idea);
+        payload.put("type_publication", typePublication);
+        payload.put("prix_vente",       prix);
+        if (!localisation.isEmpty())  payload.put("localisation", localisation);
+        if (selectedImageUrl != null) payload.put("image_url", selectedImageUrl);
+
+        final String finalIdea = idea;
+        final String finalTypePublication = typePublication;
+        final double finalPrix = prix;
+        final String finalLocalisation = localisation.isEmpty() ? null : localisation;
+        final String finalImageUrl = selectedImageUrl != null ? selectedImageUrl.replace('\\', '/') : null;
+
+        generateAiBtn.setDisable(true);
+        aiLoadingLabel.setVisible(true);
+        hideAiPanels();
+
+        new Thread(() -> {
+            try {
+                JSONObject response = envoyerAn8n(payload);
+
+                Platform.runLater(() -> {
+                    generateAiBtn.setDisable(false);
+                    aiLoadingLabel.setVisible(false);
+
+                    if (response.optBoolean("success", false)) {
+                        int pubId = response.optInt("publication_id", 0);
+                        JSONObject pub = response.optJSONObject("publication");
+                        String titreGenere   = pub != null ? pub.optString("titre",   "") : "";
+                        String messageGenere = pub != null ? pub.optString("message", "") : "";
+
+                        aiStatusLabel.setText("✅ Publication créée avec succès ! (ID #" + pubId + ")");
+                        aiGeneratedTitre.setText("📌 " + titreGenere);
+                        aiGeneratedMessage.setText(messageGenere);
+                        aiResultsPanel.setVisible(true);
+                        aiResultsPanel.setManaged(true);
+                        aiIdeaField.clear();
+
+                        // Lancer le matching après une création via IA/n8n
+                        runMatchingAsync();
+                        return;
+                    }
+
+                    // Fallback IA : n8n échoue → créer localement avec l'idée
+                    if (gestionPublication != null) {
+                        try {
+                            String titreFallback = finalIdea.length() > 100 ? finalIdea.substring(0, 97) + "..." : finalIdea;
+                            Publications pub = new Publications();
+                            pub.setStudentId(currentStudentId);
+                            pub.setTypePublicationFromString(finalTypePublication);
+                            pub.setTitre(titreFallback);
+                            pub.setMessage(finalIdea);
+                            pub.setPrixVente(java.math.BigDecimal.valueOf(finalPrix > 0 ? finalPrix : 10));
+                            pub.setLocalisation(finalLocalisation);
+                            pub.setImageUrl(finalImageUrl);
+                            pub.setStatus(Publications.StatusPublication.ACTIVE);
+                            gestionPublication.ajouterPublication(pub);
+                            int pubId = pub.getId();
+
+                            aiStatusLabel.setText("✅ Publication créée (sans IA) ! ID #" + pubId);
+                            aiGeneratedTitre.setText("📌 " + titreFallback);
+                            aiGeneratedMessage.setText(finalIdea);
+                            aiResultsPanel.setVisible(true);
+                            aiResultsPanel.setManaged(true);
+                            aiIdeaField.clear();
+
+                            // Matching aussi dans le fallback local
+                            runMatchingAsync();
+                            return;
+                        } catch (Exception localEx) {
+                            localEx.printStackTrace();
+                        }
+                    }
+
+                    String err = response.optString("message", "Erreur inconnue");
+                    aiErrorLabel.setText("❌ " + err);
+                    aiErrorPanel.setVisible(true);
+                    aiErrorPanel.setManaged(true);
+                });
+
+            } catch (Exception e) {
+                Exception ex = e;
+                Platform.runLater(() -> {
+                    generateAiBtn.setDisable(false);
+                    aiLoadingLabel.setVisible(false);
+
+                    // Fallback IA : n8n injoignable → créer localement
+                    if (gestionPublication != null) {
+                        try {
+                            String titreFallback = finalIdea.length() > 100 ? finalIdea.substring(0, 97) + "..." : finalIdea;
+                            Publications pub = new Publications();
+                            pub.setStudentId(currentStudentId);
+                            pub.setTypePublicationFromString(finalTypePublication);
+                            pub.setTitre(titreFallback);
+                            pub.setMessage(finalIdea);
+                            pub.setPrixVente(java.math.BigDecimal.valueOf(finalPrix > 0 ? finalPrix : 10));
+                            pub.setLocalisation(finalLocalisation);
+                            pub.setImageUrl(finalImageUrl);
+                            pub.setStatus(Publications.StatusPublication.ACTIVE);
+                            gestionPublication.ajouterPublication(pub);
+                            int pubId = pub.getId();
+
+                            aiStatusLabel.setText("✅ Publication créée (n8n indisponible) ! ID #" + pubId);
+                            aiGeneratedTitre.setText("📌 " + titreFallback);
+                            aiGeneratedMessage.setText(finalIdea);
+                            aiResultsPanel.setVisible(true);
+                            aiResultsPanel.setManaged(true);
+                            aiIdeaField.clear();
+
+                            // Matching après fallback réseau
+                            runMatchingAsync();
+                            return;
+                        } catch (Exception localEx) {
+                            localEx.printStackTrace();
+                        }
+                    }
+
+                    aiErrorLabel.setText("❌ Impossible de contacter n8n : " + ex.getMessage());
+                    aiErrorPanel.setVisible(true);
+                    aiErrorPanel.setManaged(true);
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Validation complète du formulaire manuel (avant appel n8n).
+     */
+    private boolean validateManualForm() {
+        StringBuilder errors = new StringBuilder();
+
+        String titre   = titreField.getText() != null ? titreField.getText().trim() : "";
+        String message = messageArea.getText() != null ? messageArea.getText().trim() : "";
+        String prixStr = prixField.getText() != null ? prixField.getText().trim() : "";
+
+        // Type
+        if (!typeVenteRadio.isSelected() && !typeDemandeRadio.isSelected()) {
+            errors.append("• Sélectionnez un type de publication (Vente ou Demande).\n");
+        }
+
+        // Titre
+        if (titre.isEmpty()) {
+            errors.append("• Le titre est obligatoire.\n");
+        } else if (titre.length() < 3) {
+            errors.append("• Le titre doit contenir au moins 3 caractères.\n");
+        } else if (titre.length() > 120) {
+            errors.append("• Le titre ne peut pas dépasser 120 caractères.\n");
+        }
+
+        // Message
         if (message.isEmpty()) {
-            showAlert("Erreur", "Veuillez saisir une description", Alert.AlertType.WARNING);
-            messageArea.requestFocus();
-            return false;
-        }
-        if (message.length() > 1000) {
-            showAlert("Erreur", "La description ne doit pas dépasser 1000 caractères", Alert.AlertType.WARNING);
-            return false;
+            errors.append("• La description est obligatoire.\n");
+        } else if (message.length() < 10) {
+            errors.append("• La description doit contenir au moins 10 caractères.\n");
+        } else if (message.length() > 1000) {
+            errors.append("• La description ne peut pas dépasser 1000 caractères.\n");
         }
 
-        String priceText = prixField.getText().trim();
-        if (priceText.isEmpty()) {
-            showAlert("Erreur", "Veuillez saisir un prix", Alert.AlertType.WARNING);
+        // Prix
+        if (prixStr.isEmpty()) {
+            errors.append("• Le prix est obligatoire.\n");
+        } else {
+            try {
+                double prix = Double.parseDouble(prixStr);
+                if (prix <= 0) {
+                    errors.append("• Le prix doit être supérieur à 0 (ex: 25.00).\n");
+                } else if (prix > 99999999.99) {
+                    errors.append("• Le prix est trop élevé.\n");
+                }
+            } catch (NumberFormatException e) {
+                errors.append("• Le prix doit être un nombre valide (ex: 25.00).\n");
+            }
+        }
+
+        // Conditions d'utilisation
+        if (!termsCheckBox.isSelected()) {
+            errors.append("• Vous devez accepter les conditions d'utilisation.\n");
+        }
+
+        if (errors.length() > 0) {
+            showAlert(Alert.AlertType.WARNING, "Formulaire incomplet", "Corrigez les points suivants :\n\n" + errors);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Validation minimale pour la création pilotée par l'IA :
+     * on impose seulement un prix cohérent si c'est une vente.
+     */
+    private boolean validatePriceOnlyForAi() {
+        String prixStr = prixField.getText() != null ? prixField.getText().trim() : "";
+
+        // Si DEMANDE_SERVICE, le prix peut être 0 ou laissé vide (sera géré côté backend).
+        if (typeDemandeRadio.isSelected()) {
+            return true;
+        }
+
+        // Pour VENTE_OBJET, on exige un prix > 0
+        if (prixStr.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Prix manquant",
+                    "Pour une vente, le prix est obligatoire.");
             prixField.requestFocus();
             return false;
         }
+
         try {
-            BigDecimal price = new BigDecimal(priceText);
-            if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                showAlert("Erreur", "Le prix doit être supérieur à zéro", Alert.AlertType.WARNING);
+            double prix = Double.parseDouble(prixStr);
+            if (prix <= 0) {
+                showAlert(Alert.AlertType.WARNING, "Prix invalide",
+                        "Pour une vente, le prix doit être supérieur à 0 (ex: 25.00).");
+                prixField.requestFocus();
                 return false;
             }
         } catch (NumberFormatException e) {
-            showAlert("Erreur", "Le prix n'est pas valide", Alert.AlertType.WARNING);
-            return false;
-        }
-
-        if (!termsCheckBox.isSelected()) {
-            showAlert("Erreur", "Veuillez accepter les conditions générales", Alert.AlertType.WARNING);
+            showAlert(Alert.AlertType.WARNING, "Prix invalide",
+                    "Le prix doit être un nombre valide (ex: 25.00).");
+            prixField.requestFocus();
             return false;
         }
 
         return true;
     }
 
-    private Publications createPublicationFromForm() {
-        Publications pub = new Publications();
-        pub.setStudentId(currentStudentId);
-        pub.setTitre(titreField.getText().trim());
-        pub.setMessage(messageArea.getText().trim());
-        pub.setImageUrl(uploadedImagePath);
+    // ═══════════════════════════════════════════════════════════════
+    // SUGGESTIONS (kept wired)
+    // ═══════════════════════════════════════════════════════════════
 
-        String localisation = localisationField.getText().trim();
-        pub.setLocalisation(localisation.isEmpty() ? null : localisation);
+    @FXML private void applyShortVersion()    { applyVersion("version_courte"); }
+    @FXML private void applyDetailedVersion() { applyVersion("version_detaillee"); }
+    @FXML private void applyUrgentVersion()   { applyVersion("version_urgente"); }
 
-        pub.setPrixVente(new BigDecimal(prixField.getText().trim()));
-        pub.setTypePublication(TypePublication.VENTE_OBJET);
-        pub.setStatus(StatusPublication.ACTIVE);
-
-        return pub;
-    }
-
-    private String uploadImage(File imageFile) throws IOException {
-        Path uploadDir = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadDir)) {
-            Files.createDirectories(uploadDir);
+    private void applyVersion(String key) {
+        if (lastAiResult == null) return;
+        JSONObject v = lastAiResult.optJSONObject(key);
+        if (v != null) {
+            titreField.setText(v.optString("titre", ""));
+            messageArea.setText(v.optString("description", ""));
         }
-
-        String filename   = System.currentTimeMillis() + "_" + imageFile.getName();
-        Path   targetPath = uploadDir.resolve(filename);
-        Files.copy(imageFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        return UPLOAD_DIR + filename;
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // IMAGE HANDLING
+    // ═══════════════════════════════════════════════════════════════
+
+    @FXML
+    private void onUploadImage() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Choisir une image");
+        fc.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp"));
+
+        File file = fc.showOpenDialog(uploadImageButton.getScene().getWindow());
+        if (file == null) return;
+
+        try {
+            String timestamp    = String.valueOf(System.currentTimeMillis());
+            String destFileName = timestamp + "_" + file.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+            File   uploadsDir   = new File("uploads/publications");
+            uploadsDir.mkdirs();
+            File destFile = new File(uploadsDir, destFileName);
+
+            java.nio.file.Files.copy(
+                    file.toPath(), destFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // Chemin relatif avec / (compatible tous OS)
+            selectedImageUrl = "uploads/publications/" + destFileName;
+            imageFileLabel.setText(file.getName());
+            imagePreview.setImage(new Image(file.toURI().toString()));
+            imagePreview.setVisible(true);
+            removeImageButton.setVisible(true);
+
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Erreur image",
+                    "Impossible de copier l'image :\n" + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onRemoveImage() {
+        selectedImageUrl = null;
+        imageFileLabel.setText("");
+        imagePreview.setImage(null);
+        imagePreview.setVisible(false);
+        removeImageButton.setVisible(false);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════════
 
     @FXML
     private void goBack() {
-        boolean hasChanges = !titreField.getText().trim().isEmpty()
-                || !messageArea.getText().trim().isEmpty()
-                || selectedImageFile != null;
-
-        if (hasChanges) {
-            Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmDialog.setTitle("Annuler la publication");
-            confirmDialog.setHeaderText("Quitter sans enregistrer ?");
-            confirmDialog.setContentText("Toutes les informations saisies seront perdues.");
-
-            ButtonType btnYes = new ButtonType("Oui, annuler",   ButtonBar.ButtonData.OK_DONE);
-            ButtonType btnNo  = new ButtonType("Non, continuer", ButtonBar.ButtonData.CANCEL_CLOSE);
-            confirmDialog.getButtonTypes().setAll(btnYes, btnNo);
-
-            Optional<ButtonType> result = confirmDialog.showAndWait();
-            if (result.isPresent() && result.get() == btnYes) {
-                goBackToPublications();
-            }
+        javafx.stage.Stage stage = (javafx.stage.Stage) submitButton.getScene().getWindow();
+        if (previousScene != null) {
+            stage.setScene(previousScene);
+            stage.setTitle("Publications");
         } else {
-            goBackToPublications();
+            try {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                        getClass().getResource("/Views/Publications.fxml"));
+                stage.setScene(new javafx.scene.Scene(loader.load()));
+                stage.setTitle("Publications");
+            } catch (Exception e) {
+                stage.hide();
+            }
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════════════
 
     /**
-     * Navigate back to the publications list.
-     *
-     * FIX: The original path was "/Publication.fxml" which returned null
-     * because all FXML files live under /Views/. The correct path is
-     * "/Views/Publication.fxml" — matching every other navigation call
-     * in the project.
+     * Lance le moteur de matching en arrière-plan afin de notifier
+     * automatiquement les tuteurs dont le service est compatible avec
+     * les nouvelles publications DEMANDE_SERVICE.
      */
-    private void goBackToPublications() {
-        try {
-            // ✅ FIXED: was "/Publication.fxml" — missing /Views/ prefix
-            Parent root = FXMLLoader.load(getClass().getResource("/Views/Publication.fxml"));
-
-            Stage stage = getStage();
-            if (stage != null) {
-                stage.setScene(new Scene(root));
-                stage.setTitle("Publications");
-            } else {
-                System.err.println("Could not find stage to navigate back!");
+    private void runMatchingAsync() {
+        new Thread(() -> {
+            try {
+                Gestion_Matching matching = new Gestion_Matching();
+                matching.analyserNouvellesPublications();
+            } catch (Exception e) {
+                System.err.println("❌ Erreur matching automatique : " + e.getMessage());
+                e.printStackTrace();
             }
-
-        } catch (Exception e) {
-            System.err.println("Error navigating back: " + e.getMessage());
-            e.printStackTrace();
-        }
+        }).start();
     }
 
-    /** Convenience: find the current Stage from any available scene node. */
-    private Stage getStage() {
-        if (titreField != null && titreField.getScene() != null)
-            return (Stage) titreField.getScene().getWindow();
-        if (messageArea != null && messageArea.getScene() != null)
-            return (Stage) messageArea.getScene().getWindow();
-        if (uploadImageButton != null && uploadImageButton.getScene() != null)
-            return (Stage) uploadImageButton.getScene().getWindow();
-        return null;
+    private void hideAiPanels() {
+        aiResultsPanel.setVisible(false);
+        aiResultsPanel.setManaged(false);
+        aiErrorPanel.setVisible(false);
+        aiErrorPanel.setManaged(false);
+        suggestionsPanel.setVisible(false);
+        suggestionsPanel.setManaged(false);
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
+    private double parsePrix() {
+        try { return Double.parseDouble(prixField.getText().trim()); }
+        catch (Exception e) { return 0.0; }
+    }
+
+    private void clearForm() {
+        titreField.clear();
+        messageArea.clear();
+        prixField.clear();
+        localisationField.clear();
+        aiIdeaField.clear();
+        termsCheckBox.setSelected(false);
+        onRemoveImage();
+        hideAiPanels();
+        lastAiResult = null;
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    public void setCurrentStudentId(int studentId) {
-        this.currentStudentId = studentId;
-        System.out.println("Current student ID set to: " + studentId);
-    }
-
-    @FXML
-    private void deletePublication() {
-        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmDialog.setTitle("⚠️ Confirmation de suppression");
-        confirmDialog.setHeaderText("Supprimer cette publication ?");
-        confirmDialog.setContentText(
-                "Cette action est irréversible.\n" +
-                        "Êtes-vous sûr de vouloir supprimer cette publication ?"
-        );
-
-        ButtonType btnDelete = new ButtonType("🗑 Supprimer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType btnCancel = new ButtonType("Annuler",      ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirmDialog.getButtonTypes().setAll(btnDelete, btnCancel);
-
-        confirmDialog.getDialogPane().lookupButton(btnDelete).setStyle(
-                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold;"
-        );
-
-        confirmDialog.showAndWait().ifPresent(response -> {
-            if (response == btnDelete) {
-                try {
-                    showAlert("Info", "Fonctionnalité de suppression à implémenter", Alert.AlertType.INFORMATION);
-                    goBackToPublications();
-                } catch (Exception e) {
-                    System.err.println("Error deleting: " + e.getMessage());
-                    showAlert("Erreur", "Impossible de supprimer: " + e.getMessage(), Alert.AlertType.ERROR);
-                }
-            }
-        });
     }
 }

@@ -7,7 +7,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,11 +18,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.collections.FXCollections;
 import org.example.campusLink.Services.Gestion_Service;
+import org.example.campusLink.Services.Gestion_Categorie;
 import org.example.campusLink.entities.Services;
+import org.example.campusLink.entities.Categorie;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class Service_controller {
@@ -28,14 +35,27 @@ public class Service_controller {
     @FXML
     private FlowPane servicesContainer;
 
+    @FXML
+    private TextField searchField;
+
+    @FXML
+    private ComboBox<String> statusFilter;
+
+    @FXML
+    private ComboBox<String> categoryFilter;
+
     private Gestion_Service serviceManager;
+    private Gestion_Categorie categoryManager;
+    private List<Services> baseServices = new ArrayList<>();
 
     @FXML
     public void initialize() {
         System.out.println("Initializing Service_controller...");
         try {
             serviceManager = new Gestion_Service();
-            loadServices();
+            categoryManager = new Gestion_Categorie();
+            setupFilters();
+            reloadBaseServices();
             System.out.println("Service_controller initialized successfully");
         } catch (Exception e) {
             System.err.println("Error initializing Service_controller: " + e.getMessage());
@@ -44,32 +64,142 @@ public class Service_controller {
         }
     }
 
+    private void setupFilters() {
+        if (statusFilter != null) {
+            statusFilter.setItems(FXCollections.observableArrayList(
+                    "Tous", "Actif", "En attente", "Inactif", "Rejeté"
+            ));
+            statusFilter.setValue("Tous");
+            statusFilter.setOnAction(e -> updateDisplayedServices());
+        }
+
+        if (categoryFilter != null) {
+            try {
+                List<Categorie> cats = categoryManager.afficherCategories();
+                List<String> names = new ArrayList<>();
+                names.add("Toutes");
+                for (Categorie c : cats) {
+                    if (c != null && c.getName() != null && !c.getName().isBlank()) {
+                        names.add(c.getName());
+                    }
+                }
+                categoryFilter.setItems(FXCollections.observableArrayList(names));
+                categoryFilter.setValue("Toutes");
+                categoryFilter.setOnAction(e -> updateDisplayedServices());
+            } catch (Exception e) {
+                // Fallback: keep filter usable even if categories fail to load
+                categoryFilter.setItems(FXCollections.observableArrayList("Toutes"));
+                categoryFilter.setValue("Toutes");
+                categoryFilter.setOnAction(ev -> updateDisplayedServices());
+            }
+        }
+
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> updateDisplayedServices());
+        }
+    }
+
     /* ================= LOAD SERVICES ================= */
 
-    private void loadServices() {
+    private void reloadBaseServices() {
         try {
             System.out.println("Loading services...");
-            List<Services> servicesList = serviceManager.afficherServices();
-            servicesContainer.getChildren().clear();
-
-            if (servicesList == null || servicesList.isEmpty()) {
-                System.out.println("No services available");
-                Label emptyLabel = new Label("Aucun service disponible.\nCliquez sur '+ Créer un nouveau service' pour commencer.");
-                emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6b7280; -fx-padding: 60px; -fx-text-alignment: center;");
-                servicesContainer.getChildren().add(emptyLabel);
-                return;
-            }
-
-            System.out.println("Loaded " + servicesList.size() + " services");
-            for (Services s : servicesList) {
-                servicesContainer.getChildren().add(createModernServiceCard(s));
-            }
+            baseServices = serviceManager.afficherServices();
+            updateDisplayedServices();
 
         } catch (Exception e) {
             System.err.println("Error loading services: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Erreur lors du chargement des services: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    private void updateDisplayedServices() {
+        if (servicesContainer == null) return;
+
+        servicesContainer.getChildren().clear();
+
+        if (baseServices == null || baseServices.isEmpty()) {
+            System.out.println("No services available");
+            Label emptyLabel = new Label("Aucun service disponible.\nCliquez sur '+ Créer un nouveau service' pour commencer.");
+            emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6b7280; -fx-padding: 60px; -fx-text-alignment: center;");
+            emptyLabel.setWrapText(true);
+            servicesContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
+        List<Services> filtered = applyFilters(baseServices);
+
+        if (filtered.isEmpty()) {
+            Label emptyLabel = new Label("Aucun service ne correspond aux filtres sélectionnés.");
+            emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6b7280; -fx-padding: 60px; -fx-text-alignment: center;");
+            emptyLabel.setWrapText(true);
+            servicesContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
+        System.out.println("Loaded " + filtered.size() + " services (filtered)");
+        for (Services s : filtered) {
+            servicesContainer.getChildren().add(createModernServiceCard(s));
+        }
+    }
+
+    private List<Services> applyFilters(List<Services> services) {
+        List<Services> out = services;
+
+        // Status
+        if (statusFilter != null) {
+            String val = statusFilter.getValue();
+            if (val != null && !val.equals("Tous")) {
+                String target = switch (val) {
+                    case "Actif" -> "ACTIF";
+                    case "En attente" -> "EN_ATTENTE";
+                    case "Inactif" -> "INACTIF";
+                    case "Rejeté" -> "REJETE";
+                    default -> null;
+                };
+                if (target != null) {
+                    out = out.stream().filter(s -> {
+                        String st = s.getStatus();
+                        if (st == null || st.isBlank()) st = "ACTIF";
+                        return st.equalsIgnoreCase(target);
+                    }).toList();
+                }
+            }
+        }
+
+        // Category (by name)
+        if (categoryFilter != null) {
+            String val = categoryFilter.getValue();
+            if (val != null && !val.equals("Toutes")) {
+                String wanted = val.toLowerCase(Locale.ROOT);
+                out = out.stream().filter(s -> {
+                    String cat = s.getCategoryName();
+                    return cat != null && cat.toLowerCase(Locale.ROOT).equals(wanted);
+                }).toList();
+            }
+        }
+
+        // Keyword
+        String keyword = searchField != null ? searchField.getText() : null;
+        if (keyword != null) {
+            String k = keyword.trim();
+            if (!k.isEmpty()) {
+                String needle = k.toLowerCase(Locale.ROOT);
+                out = out.stream().filter(s -> {
+                    String title = s.getTitle();
+                    String desc = s.getDescription();
+                    String cat = s.getCategoryName();
+                    String prest = s.getPrestataireName();
+                    return (title != null && title.toLowerCase(Locale.ROOT).contains(needle)) ||
+                            (desc != null && desc.toLowerCase(Locale.ROOT).contains(needle)) ||
+                            (cat != null && cat.toLowerCase(Locale.ROOT).contains(needle)) ||
+                            (prest != null && prest.toLowerCase(Locale.ROOT).contains(needle));
+                }).toList();
+            }
+        }
+
+        return out;
     }
 
     /* ================= MODERN CARD ================= */
@@ -105,16 +235,17 @@ public class Service_controller {
 
         header.getChildren().addAll(title, spacer, statusBadge);
 
-        // ===== CATEGORY =====
-        Label category = new Label(s.getCategoryName() != null ? s.getCategoryName() : "Sans catégorie");
+        // ===== CATEGORY (nom, pas l'ID) =====
+        Label category = new Label(s.getCategoryDisplayName());
         category.setStyle("-fx-font-size: 13px; -fx-text-fill: #6b7280;");
 
-        // ===== DESCRIPTION =====
-        Label description = new Label(s.getDescription() != null ? s.getDescription() : "Pas de description");
+        // ===== DESCRIPTION (description complète du service) =====
+        String desc = s.getDescription() != null && !s.getDescription().isEmpty() ? s.getDescription() : "Pas de description";
+        Label description = new Label(desc);
         description.setStyle("-fx-font-size: 14px; -fx-text-fill: #374151; -fx-wrap-text: true;");
         description.setWrapText(true);
         description.setMaxWidth(340);
-        description.setMaxHeight(60);
+        description.setMaxHeight(90);
 
         // ===== INFO: Duration + Reservations =====
         HBox info = new HBox(30);
@@ -327,7 +458,7 @@ public class Service_controller {
                         service.setPrice(Double.parseDouble(priceResult.get().trim()));
 
                         serviceManager.modifierService(service);
-                        loadServices();
+                        reloadBaseServices();
 
                         showAlert("Succès", "Service modifié avec succès!", Alert.AlertType.INFORMATION);
                     }
@@ -359,7 +490,7 @@ public class Service_controller {
                 if (response == javafx.scene.control.ButtonType.OK) {
                     try {
                         serviceManager.supprimerService(service.getId());
-                        loadServices();
+                        reloadBaseServices();
                         showAlert("Succès", "Service supprimé avec succès", Alert.AlertType.INFORMATION);
                     } catch (Exception e) {
                         System.err.println("Error deleting service: " + e.getMessage());
@@ -393,6 +524,14 @@ public class Service_controller {
             e.printStackTrace();
             showAlert("Erreur", "Impossible d'ouvrir la page de création: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    @FXML
+    private void resetFilters() {
+        if (searchField != null) searchField.clear();
+        if (statusFilter != null) statusFilter.setValue("Tous");
+        if (categoryFilter != null) categoryFilter.setValue("Toutes");
+        updateDisplayedServices();
     }
 
     /**

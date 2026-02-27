@@ -174,8 +174,8 @@ public class Student_controller {
             }
         }
 
-        // ===== 3. PROVIDER =====
-        Label provider = new Label("Prestataire #" + service.getPrestataireId());
+        // ===== 3. PROVIDER (nom du tuteur, pas l'ID) =====
+        Label provider = new Label(service.getPrestataireDisplayName());
         provider.getStyleClass().add("card-provider");
 
         // ===== 4. INFO ROWS =====
@@ -201,22 +201,21 @@ public class Student_controller {
         subjectRow.getStyleClass().add("card-info-row");
         Label subjectIcon = new Label("📚");
         subjectIcon.getStyleClass().add("card-info-icon");
-        Label subjectText = new Label("Catégorie #" + service.getCategoryId());
+        Label subjectText = new Label(service.getCategoryDisplayName());
         subjectText.getStyleClass().add("card-info-text");
         subjectRow.getChildren().addAll(subjectIcon, subjectText);
 
         infoBox.getChildren().addAll(locationRow, durationRow, subjectRow);
 
-        // ===== 5. DESCRIPTION =====
-        Label description = new Label(
-                service.getDescription() != null && !service.getDescription().isEmpty()
-                        ? service.getDescription()
-                        : "Aide personnalisée avec méthodes pédagogiques adaptées."
-        );
+        // ===== 5. DESCRIPTION (description complète du service) =====
+        String desc = service.getDescription() != null && !service.getDescription().isEmpty()
+                ? service.getDescription()
+                : "Aide personnalisée avec méthodes pédagogiques adaptées.";
+        Label description = new Label(desc);
         description.getStyleClass().add("card-description");
         description.setWrapText(true);
         description.setMaxWidth(360);
-        description.setMaxHeight(60);
+        description.setMaxHeight(90);
 
         // ===== 6. FOOTER: Price + Reserve Button =====
         HBox footer = new HBox(15);
@@ -238,7 +237,7 @@ public class Student_controller {
 
         Button reserveBtn = new Button("Réserver");
         reserveBtn.getStyleClass().add("btn-reserve");
-        reserveBtn.setOnAction(e -> goToCreateDemande(service));
+
 
         footer.getChildren().addAll(priceBox, footerSpacer, reserveBtn);
 
@@ -254,27 +253,6 @@ public class Student_controller {
         return card;
     }
 
-    private void goToCreateDemande(Services service) {
-        try {
-            System.out.println("Navigating to create demande for service: " + service.getTitle());
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Create_Demande.fxml"));
-            Scene scene = new Scene(loader.load());
-
-            CreateDemande_controller controller = loader.getController();
-            controller.setServiceData(service, currentStudentId);
-
-            Stage stage = (Stage) servicesGrid.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Créer une demande");
-
-        } catch (Exception e) {
-            System.err.println("Error navigating to create demande: " + e.getMessage());
-            e.printStackTrace();
-            showAlert("Erreur", "Impossible d'ouvrir le formulaire: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
-
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -282,6 +260,8 @@ public class Student_controller {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+
 
     /* ================= NAVIGATION ================= */
 
@@ -297,28 +277,6 @@ public class Student_controller {
 
         } catch (Exception e) {
             System.err.println("Error navigating to services: " + e.getMessage());
-            e.printStackTrace();
-            showAlert("Erreur", "Impossible de naviguer: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
-
-    @FXML
-    private void goToMesDemandes(MouseEvent event) {
-        try {
-            System.out.println("Navigating to mes demandes...");
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Demande.fxml"));
-            Scene scene = new Scene(loader.load());
-
-            Demande_controller controller = loader.getController();
-            controller.setStudentId(currentStudentId);
-
-            Stage stage = (Stage) servicesGrid.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Mes Demandes");
-
-        } catch (Exception e) {
-            System.err.println("Error navigating to mes demandes: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Impossible de naviguer: " + e.getMessage(), Alert.AlertType.ERROR);
         }

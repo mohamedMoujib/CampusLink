@@ -13,6 +13,7 @@
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <javafx.version>23</javafx.version>
     </properties>
 
@@ -38,6 +39,21 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- ✅ JavaMail COMPLET (API + implementation) — remplace javax.mail-api -->
+        <!-- javax.mail-api seul ne suffit pas, il faut l'implementation com.sun.mail -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <!-- ✅ Jackson JSON pour NotificationApiClient -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+
         <!-- JUnit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -45,6 +61,15 @@
             <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
+
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20240303</version>
+            <scope>compile</scope>
+        </dependency>
+
 
     </dependencies>
 

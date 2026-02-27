@@ -120,6 +120,11 @@
                           promptText="Type"
                           prefWidth="200"
                           style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+
+                <ComboBox fx:id="statusFilter"
+                          promptText="Statut"
+                          prefWidth="200"
+                          style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;"/>
             </HBox>
 
             <!--
@@ -137,7 +142,7 @@
                           hgap="20"
                           vgap="20"
                           prefWrapLength="1340"
-                          style="-fx-background-color: transparent; -fx-padding: 0 0 20 0;"/>
+                          style="-fx-background-color: transparent;-fx-text-fill:black ; -fx-padding: 0 0 20 0;"/>
 
             </ScrollPane>
 

@@ -226,17 +226,16 @@
     -fx-font-weight: bold;
     -fx-padding: 8 16;
     -fx-background-radius: 20;
+    -fx-text-fill: #1a202c; /* Texte foncé, toujours lisible */
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0, 0, 3);
 }
 
 .type-vente {
     -fx-background-color: #667eea;
-    -fx-text-fill: black;
 }
 
 .type-demande {
     -fx-background-color: #f5576c;
-    -fx-text-fill: black;
 }
 
 /* Status Badges */
@@ -245,27 +244,24 @@
     -fx-font-weight: bold;
     -fx-padding: 8 16;
     -fx-background-radius: 20;
+    -fx-text-fill: #1a202c; /* Texte foncé par défaut */
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
 }
 
 .status-active {
     -fx-background-color: #38ef7d;
-    -fx-text-fill: black;
 }
 
 .status-en_cours {
     -fx-background-color: #00f2fe;
-    -fx-text-fill: orange;
 }
 
 .status-terminee {
     -fx-background-color: #fed6e3;
-    -fx-text-fill: green;
 }
 
 .status-annulee {
     -fx-background-color: #fecfef;
-    -fx-text-fill: red;
 }
 
 /* Card Title */
