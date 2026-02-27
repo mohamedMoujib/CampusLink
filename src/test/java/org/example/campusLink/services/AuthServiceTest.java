@@ -1,10 +1,10 @@
 package org.example.campusLink.services;
 
+import org.example.campusLink.entities.Etudiant;
 import org.example.campusLink.entities.User;
-import org.example.campusLink.entities.Role;
 import org.junit.jupiter.api.*;
+
 import java.sql.SQLException;
-import java.sql.Timestamp;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,74 +12,169 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthServiceTest {
 
     static AuthService authService;
-    static User testUser;
-    static final String TEST_ROLE = "ETUDIANT";
+    static Etudiant testUser;
 
     @BeforeAll
-    static void setup() throws SQLException {
+    static void setup() {
         authService = new AuthService();
-
-        // Make sure the role exists
-        RoleService roleService = new RoleService();
-        Role role = roleService.getRoleByName(TEST_ROLE);
-
+        System.out.println("=== START AUTH TESTS ===\n");
     }
 
     @BeforeEach
     void initUser() {
-        testUser = new User();
-        testUser.setName("Test User");
-        testUser.setEmail("testuser@example.com");
+        testUser = new Etudiant();
+        testUser.setName("Auth Test");
+        testUser.setEmail("auth.test@example.com");
         testUser.setPassword("Password123");
-        testUser.setPhone("+21612345678");
-        testUser.setDateNaissance(Timestamp.valueOf("2000-01-01 00:00:00"));
+        testUser.setPhone("+21699111222");
         testUser.setGender("Male");
         testUser.setUniversite("ESPRIT");
         testUser.setFiliere("INFO");
         testUser.setSpecialization("GL");
         testUser.setAddress("Tunis");
-        testUser.setProfilePicture("profile.png");
     }
+
+    // ==================== SIGNUP ====================
 
     @Test
     @Order(1)
-    void testSignUp_success() throws SQLException {
-        authService.signUp(testUser, TEST_ROLE);
-        assertTrue(testUser.getId() > 0, "User ID should be generated");
+    void testSignup_success() throws SQLException {
+
+        authService.signupEtudiant(testUser);
+
+        assertTrue(testUser.getId() > 0);
+        assertEquals("INACTIVE", testUser.getStatus());
     }
 
     @Test
     @Order(2)
-    void testSignUp_duplicateEmail() {
-        SQLException exception = assertThrows(SQLException.class,
-                () -> authService.signUp(testUser, TEST_ROLE));
-        assertTrue(exception.getMessage().contains("Sign up failed"));
+    void testSignup_duplicateEmail() {
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.signupEtudiant(testUser)
+        );
+
+        assertTrue(ex.getMessage().contains("déjà utilisé"));
     }
 
-    @Test
+    // ==================== LOGIN ====================
+
     @Order(3)
-    void testLogin_success() throws SQLException {
-        User loggedInUser = authService.login(testUser.getEmail(), "Password123", TEST_ROLE);
-        assertNotNull(loggedInUser);
-        assertEquals(testUser.getEmail(), loggedInUser.getEmail());
+    void testLogin_inactiveAccount() {
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login(testUser.getEmail(), "Password123","ETUDIANT")
+        );
+
+        assertTrue(ex.getMessage().contains("inactif"));
     }
 
-    @Test
     @Order(4)
-    void testLogin_invalidPassword() {
-        SQLException exception = assertThrows(SQLException.class,
-                () -> authService.login(testUser.getEmail(), "WrongPassword", TEST_ROLE));
-        assertTrue(exception.getMessage().contains("Invalid password"));
+    void testLogin_success() throws SQLException {
+
+        // Activate first
+        authService.activateAccount(testUser);
+
+        User loggedUser = authService.login(
+                testUser.getEmail(),
+                "Password123","ETUDIANT"
+        );
+
+        assertNotNull(loggedUser);
+        assertEquals(testUser.getEmail(), loggedUser.getEmail());
     }
 
     @Test
     @Order(5)
-    void testLogin_invalidRole() {
-        SQLException exception = assertThrows(SQLException.class,
-                () -> authService.login(testUser.getEmail(), "Password123", "ADMIN"));
-        assertTrue(exception.getMessage().contains("User does not have role"));
+    void testLogin_wrongPassword() {
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login(testUser.getEmail(), "WrongPass","ETUDIANT")
+        );
+
+        assertTrue(ex.getMessage().contains("incorrect"));
+    }
+
+    @Test
+    @Order(6)
+    void testLogin_emailNotFound() {
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login("unknown@email.com", "Password123","ETUDIANT")
+        );
+
+        assertTrue(ex.getMessage().contains("Email non trouvé"));
+    }
+
+    // ==================== CHANGE PASSWORD ====================
+
+    @Order(7)
+    void testChangePassword_success() throws SQLException {
+
+
+
+        // 2️⃣ Activate
+        authService.activateAccount(testUser);
+
+        // 3️⃣ Change password
+        authService.changePassword(
+                testUser,
+                "Password123",
+                "NewPassword123"
+        );
+
+        // 4️⃣ Test login with new password
+        User logged = authService.login(
+                testUser.getEmail(),
+                "NewPassword123","ETUDIANT"
+        );
+
+        assertNotNull(logged);
     }
 
 
-}
+    @Order(8)
+    void testChangePassword_wrongCurrent() throws SQLException {
 
+        authService.activateAccount(testUser);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.changePassword(
+                        testUser,
+                        "WrongCurrent",
+                        "AnotherPass123"
+                )
+        );
+
+        assertTrue(ex.getMessage().contains("actuel incorrect"));
+    }
+
+
+    // ==================== BAN ACCOUNT ====================
+
+    @Order(9)
+    void testLogin_bannedUser() throws SQLException {
+
+        authService.activateAccount(testUser);
+
+        authService.banAccount(testUser);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login(testUser.getEmail(), "Password123","ETUDIANT")
+        );
+
+        assertTrue(ex.getMessage().contains("banni"));
+    }
+
+
+    @AfterAll
+    static void tearDown() {
+        System.out.println("\n🎉 AUTH TESTS FINISHED");
+    }
+}

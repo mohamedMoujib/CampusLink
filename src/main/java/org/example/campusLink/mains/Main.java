@@ -1,17 +1,52 @@
-package org.example.campusLink.mains;
+package org.example.campusLink;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import org.example.campusLink.entities.Admin;
+import org.example.campusLink.services.UserService;
+import org.example.campusLink.utils.MyDatabase;
+import org.example.campusLink.utils.PasswordUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
 public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+    public static void main(String[] args) {
+        Connection connection = null;
+
+        try {
+            // 1️⃣ Get database connection
+            connection = MyDatabase.getInstance().getConnection();
+
+            // 2️⃣ Initialize UserService
+            UserService userService = new UserService(connection);
+
+            // 3️⃣ Create new Admin
+            Admin admin = new Admin();
+            admin.setName("Admin");
+            admin.setEmail("admin@campuslink.tn");
+
+            // Hash the password
+            String hashedPassword = PasswordUtil.hashPassword("00000000"); // replace with your password
+            admin.setPassword(hashedPassword);
+
+            admin.setPhone("12345678");
+            admin.setAddress("Admin HQ");
+            admin.setGender("Male");
+            admin.setStatus("ACTIVE"); // Admin should be active by default
+
+            // 4️⃣ Save admin to DB
+            userService.ajouterAdmin(admin); // assuming UserService has ajouterAdmin(Admin a)
+            System.out.println("✅ Admin created successfully!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("❌ Error creating admin: " + e.getMessage());
+        } finally {
+            try {
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

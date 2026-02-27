@@ -7,18 +7,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.example.campusLink.entities.Etudiant;
+import org.example.campusLink.entities.Prestataire;
 import org.example.campusLink.entities.User;
 import org.example.campusLink.services.AuthService;
 import org.example.campusLink.services.UserService;
+import org.example.campusLink.services.VerificationService;
 import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 public class SignupController {
 
-    @FXML private StackPane rootPane; // IMPORTANT: Ajouter fx:id="rootPane" dans le FXML
+    @FXML private StackPane rootPane;
     @FXML private ToggleButton btnEtudiant;
     @FXML private ToggleButton btnTuteur;
 
@@ -54,6 +57,7 @@ public class SignupController {
 
     private AuthService authService;
     private UserService userService;
+    private VerificationService verificationService;
     private String selectedRole = "ETUDIANT";
 
     public SignupController() {
@@ -67,6 +71,7 @@ public class SignupController {
         try {
             authService = new AuthService();
             userService = new UserService();
+            verificationService = new VerificationService();
             System.out.println("✅ Services initialisés");
         } catch (Exception e) {
             System.err.println("⚠️ Erreur Services: " + e.getMessage());
@@ -131,32 +136,80 @@ public class SignupController {
         btnSignup.setText("Création en cours...");
 
         try {
-            User user = new User();
-            user.setName(txtPrenom.getText().trim() + " " + txtNom.getText().trim());
-            user.setEmail(txtEmail.getText().trim());
-            user.setPassword(txtPassword.getText());
-            user.setPhone(txtPhone.getText().trim());
-            user.setUniversite(txtUniversite.getText().trim());
-            user.setDateNaissance(new Timestamp(System.currentTimeMillis()));
-            user.setGender(cmbGender.getValue());
-            user.setFiliere(txtFiliere.getText().trim());
-            user.setSpecialization(txtSpecialization.getText().trim());
-            user.setAddress(txtAddress.getText().trim());
-            user.setProfilePicture("");
+            User user;
+            String email = txtEmail.getText().trim();
+            String userName = txtPrenom.getText().trim() + " " + txtNom.getText().trim();
 
-            authService.signUp(user, selectedRole);
+            if (selectedRole.equals("ETUDIANT")) {
+                Etudiant etu = new Etudiant();
+                etu.setUniversite(txtUniversite.getText().trim());
+                etu.setFiliere(txtFiliere.getText().trim());
+                etu.setSpecialization(txtSpecialization.getText().trim());
 
-            showSuccess("Compte créé avec succès!");
+                etu.setName(userName);
+                etu.setEmail(email);
+                etu.setPassword(txtPassword.getText());
+                etu.setPhone(txtPhone.getText().trim());
+                etu.setAddress(txtAddress.getText().trim());
+                etu.setGender(cmbGender.getValue());
+                etu.setProfilePicture("");
+                etu.setDateNaissance(LocalDate.now());
 
-            // Attendre un peu avant de rediriger
-            javafx.application.Platform.runLater(() -> {
-                try {
-                    Thread.sleep(1500);
-                    handleLogin();
-                } catch (InterruptedException e) {
-                    handleLogin();
-                }
-            });
+                // Créer le compte (status = INACTIVE)
+                user = authService.signupEtudiant(etu);
+
+            } else { // PRESTATAIRE
+                Prestataire prest = new Prestataire();
+                prest.setTrustPoints(0);
+
+                prest.setName(userName);
+                prest.setEmail(email);
+                prest.setPassword(txtPassword.getText());
+                prest.setPhone(txtPhone.getText().trim());
+                prest.setAddress(txtAddress.getText().trim());
+                prest.setGender(cmbGender.getValue());
+                prest.setUniversite(txtUniversite.getText().trim());
+                prest.setFiliere(txtFiliere.getText().trim());
+                prest.setSpecialization(txtSpecialization.getText().trim());
+                prest.setProfilePicture("");
+                prest.setDateNaissance(LocalDate.now());
+
+                // Créer le compte (status = INACTIVE)
+                user = authService.signupPrestataire(prest);
+            }
+
+            System.out.println("✅ Compte créé: " + email + " (INACTIVE)");
+
+            // Envoyer le code de vérification par email
+            btnSignup.setText("Envoi du code...");
+            boolean emailSent = verificationService.sendAccountVerificationCode(email, userName);
+
+            if (emailSent) {
+                showSuccess("Compte créé! Vérifiez votre email.");
+
+                // Rediriger vers la page de vérification après 1.5 secondes
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(1500);
+                        navigateToVerifyCode(email);
+                    } catch (InterruptedException e) {
+                        navigateToVerifyCode(email);
+                    }
+                });
+
+            } else {
+                showError("Erreur lors de l'envoi de l'email. Vérifiez votre configuration.");
+
+                // Rediriger vers login après 2 secondes
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        handleLogin();
+                    } catch (InterruptedException e) {
+                        handleLogin();
+                    }
+                });
+            }
 
         } catch (SQLException e) {
             if (e.getMessage().contains("Duplicate entry") || e.getMessage().contains("email existe")) {
@@ -166,9 +219,34 @@ public class SignupController {
                 showError("Erreur lors de la création du compte");
             }
             e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
         } finally {
             btnSignup.setDisable(false);
             btnSignup.setText("Créer mon compte");
+        }
+    }
+
+    /**
+     * Naviguer vers la page de vérification du code
+     */
+    private void navigateToVerifyCode(String email) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/VerifyCode.fxml"));
+            Parent root = loader.load();
+
+            VerifyCodeController controller = loader.getController();
+            controller.setEmail(email);
+            controller.setVerificationType("ACCOUNT_VERIFICATION");
+
+            Stage stage = (Stage) btnSignup.getScene().getWindow();
+            stage.setScene(new Scene(root));
+
+            System.out.println("✅ Navigation vers VerifyCode pour activation de compte");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Erreur lors du chargement de la page");
         }
     }
 
@@ -183,6 +261,8 @@ public class SignupController {
             e.printStackTrace();
         }
     }
+
+
 
     private boolean validateAllInputs() {
         boolean valid = true;
@@ -211,7 +291,7 @@ public class SignupController {
             valid = false;
         } else {
             try {
-                if (userService != null && userService.emailExists(txtEmail.getText().trim())) {
+                if (userService != null && userService.getUserByEmail(txtEmail.getText().trim()) != null) {
                     showFieldError(txtEmail, lblEmailError, "Cet email existe déjà");
                     valid = false;
                 }

@@ -12,7 +12,6 @@
            styleClass="root-pane"
            stylesheets="@/Styles/Login.css">
 
-
     <!-- Declare ToggleGroup -->
     <fx:define>
         <ToggleGroup fx:id="roleGroup"/>
@@ -93,7 +92,8 @@
 
                 <Hyperlink fx:id="linkForgotPassword"
                            text="Mot de passe oublié?"
-                           styleClass="link"/>
+                           styleClass="link"
+                           onAction="#handleForgotPassword"/>
             </HBox>
 
             <!-- Login Button -->
@@ -113,6 +113,27 @@
                            styleClass="link-primary"
                            onAction="#handleSignup"/>
             </HBox>
+
+            <!-- Divider -->
+            <HBox alignment="CENTER" spacing="10">
+                <Region HBox.hgrow="ALWAYS" styleClass="divider-line"/>
+                <Text text="ou" styleClass="divider-text"/>
+                <Region HBox.hgrow="ALWAYS" styleClass="divider-line"/>
+            </HBox>
+
+            <!-- Bouton Google -->
+            <Button fx:id="btnGoogleLogin"
+                    onAction="#handleGoogleSignup"
+                    styleClass="btn-google"
+                    maxWidth="Infinity"
+                    prefHeight="40">
+                <graphic>
+                    <HBox alignment="CENTER" spacing="10">
+                        <Text text="G" styleClass="google-letter"/>
+                        <Text text="Se connecter avec Google" styleClass="google-btn-text"/>
+                    </HBox>
+                </graphic>
+            </Button>
 
             <VBox.margin>
                 <Insets top="20" right="40" bottom="20" left="40"/>

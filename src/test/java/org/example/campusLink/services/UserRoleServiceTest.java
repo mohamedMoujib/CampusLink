@@ -1,6 +1,5 @@
 package org.example.campusLink.services;
 
-import org.example.campusLink.entities.Role;
 import org.example.campusLink.entities.User;
 import org.junit.jupiter.api.*;
 

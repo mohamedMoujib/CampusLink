@@ -10,36 +10,30 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.example.campusLink.entities.User;
+
+import org.example.campusLink.entities.*;
+import org.example.campusLink.services.AuthService;
 import org.example.campusLink.services.UserService;
 import org.example.campusLink.utils.AlertHelper;
-import org.example.campusLink.utils.PasswordUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.sql.SQLException;
 
 public class ProfileController {
 
-    // Root pane for alerts
-    @FXML private StackPane rootPane;  // IMPORTANT: Le BorderPane parent doit être dans un StackPane
+    @FXML private StackPane rootPane;
 
-    // Header labels
     @FXML private Label lblUserName;
     @FXML private Label lblUserEmail;
     @FXML private Label lblAccountType;
     @FXML private Label lblHeaderAvatar;
     @FXML private Label lblProfileAvatar;
 
-    // Profile images
     @FXML private ImageView imgHeaderProfile;
     @FXML private ImageView imgProfile;
 
-    // Profile fields
     @FXML private TextField txtPrenom;
     @FXML private TextField txtNom;
     @FXML private TextField txtEmail;
@@ -50,25 +44,22 @@ public class ProfileController {
     @FXML private TextField txtAddress;
     @FXML private ComboBox<String> cmbGender;
 
-    // Password fields
     @FXML private PasswordField txtCurrentPassword;
     @FXML private PasswordField txtNewPassword;
     @FXML private PasswordField txtConfirmPassword;
 
-    private UserService userService;
+    private final UserService userService = new UserService();
+    private final AuthService authService = new AuthService();
+
     private User currentUser;
     private String currentImagePath;
 
-    private static final String PROFILE_IMAGES_DIR = "src/main/resources/images/profiles/";
-
-    public ProfileController() {
-        userService = new UserService();
-    }
+    // ✅ dossier externe (production safe)
+    private static final String PROFILE_IMAGES_DIR =
+            System.getProperty("user.home") + "/campuslink/profiles/";
 
     @FXML
     public void initialize() {
-        System.out.println("🔧 Initialisation du ProfileController...");
-
         cmbGender.getItems().addAll("Femme", "Homme");
         createProfileImagesDirectory();
     }
@@ -79,168 +70,175 @@ public class ProfileController {
     }
 
     private void loadUserData() {
-        if (currentUser != null) {
-            lblUserName.setText(currentUser.getName());
-            lblUserEmail.setText(currentUser.getEmail());
+        if (currentUser == null) return;
 
-            String accountType = "Étudiant";
-            if (currentUser.getRoles() != null && !currentUser.getRoles().isEmpty()) {
-                String roleName = currentUser.getRoles().get(0).getName();
-                if (roleName.equals("PRESTATAIRE")) {
-                    accountType = "Prestataire";
-                } else if (roleName.equals("ADMIN")) {
-                    accountType = "Administrateur";
-                }
-            }
-            lblAccountType.setText("Type de compte: " + accountType);
+        lblUserName.setText(currentUser.getName());
+        lblUserEmail.setText(currentUser.getEmail());
 
-            String[] nameParts = currentUser.getName().split(" ", 2);
-            txtPrenom.setText(nameParts.length > 0 ? nameParts[0] : "");
-            txtNom.setText(nameParts.length > 1 ? nameParts[1] : "");
+        String accountType;
+        if (currentUser instanceof Etudiant) {
+            accountType = "Étudiant";
 
-            txtEmail.setText(currentUser.getEmail());
-            txtPhone.setText(currentUser.getPhone() != null ? currentUser.getPhone() : "");
-            txtUniversite.setText(currentUser.getUniversite() != null ? currentUser.getUniversite() : "");
-            txtFiliere.setText(currentUser.getFiliere() != null ? currentUser.getFiliere() : "");
-            txtSpecialization.setText(currentUser.getSpecialization() != null ? currentUser.getSpecialization() : "");
-            txtAddress.setText(currentUser.getAddress() != null ? currentUser.getAddress() : "");
+            // cast to Etudiant
+            Etudiant etu = (Etudiant) currentUser;
+            txtUniversite.setText(nullSafe(etu.getUniversite()));
+            txtFiliere.setText(nullSafe(etu.getFiliere()));
+            txtSpecialization.setText(nullSafe(etu.getSpecialization()));
 
-            if (currentUser.getGender() != null && !currentUser.getGender().isEmpty()) {
-                cmbGender.setValue(currentUser.getGender().equals("Male") ? "Homme" : "Femme");
-            }
+        } else if (currentUser instanceof Prestataire) {
+            accountType = "Prestataire";
 
-            loadProfilePicture();
+            // cast to Prestataire
+            Prestataire pres = (Prestataire) currentUser;
+            txtUniversite.setText(nullSafe(pres.getUniversite()));
+            txtFiliere.setText(nullSafe(pres.getFiliere()));
+            txtSpecialization.setText(nullSafe(pres.getSpecialization()));
+
+        } else if (currentUser instanceof Admin) {
+            accountType = "Administrateur";
+
+            // Admin has no universite/filiere/specialization
+            txtUniversite.setText("");
+            txtFiliere.setText("");
+            txtSpecialization.setText("");
+        } else {
+            accountType = "Utilisateur";
+
+            txtUniversite.setText("");
+            txtFiliere.setText("");
+            txtSpecialization.setText("");
         }
+
+        lblAccountType.setText("Type de compte: " + accountType);
+
+        // name split
+        String[] nameParts = currentUser.getName().split(" ", 2);
+        txtPrenom.setText(nameParts.length > 0 ? nameParts[0] : "");
+        txtNom.setText(nameParts.length > 1 ? nameParts[1] : "");
+
+        txtEmail.setText(currentUser.getEmail());
+        txtPhone.setText(nullSafe(currentUser.getPhone()));
+        txtAddress.setText(nullSafe(currentUser.getAddress()));
+
+        if (currentUser.getGender() != null) {
+            cmbGender.setValue(
+                    currentUser.getGender().equalsIgnoreCase("Male") ? "Homme" : "Femme"
+            );
+        }
+
+        loadProfilePicture();
     }
 
-    // ==================== IMAGE UPLOAD ====================
+    private String nullSafe(String value) {
+        return value == null ? "" : value;
+    }
+
+    // ==================== IMAGE ====================
 
     @FXML
     private void handleChangePhoto() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Choisir une photo de profil");
 
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"),
-                new FileChooser.ExtensionFilter("PNG", "*.png"),
-                new FileChooser.ExtensionFilter("JPG", "*.jpg", "*.jpeg")
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choisir une photo");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg")
         );
 
-        Stage stage = (Stage) txtPrenom.getScene().getWindow();
-        File selectedFile = fileChooser.showOpenDialog(stage);
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        File file = chooser.showOpenDialog(stage);
 
-        if (selectedFile != null) {
-            try {
-                long fileSize = selectedFile.length();
-                long maxSize = 5 * 1024 * 1024;
+        if (file == null) return;
 
-                if (fileSize > maxSize) {
-                    showError("Image trop volumineuse (max 5MB)");
-                    return;
-                }
-
-                String fileExtension = getFileExtension(selectedFile.getName());
-                String newFileName = "profile_" + currentUser.getId() + "_" + System.currentTimeMillis() + fileExtension;
-
-                Path sourcePath = selectedFile.toPath();
-                Path destinationPath = Paths.get(PROFILE_IMAGES_DIR + newFileName);
-
-                Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-
-                currentImagePath = newFileName;
-                displayProfileImage(destinationPath.toString());
-
-                if (currentUser != null) {
-                    currentUser.setProfilePicture(newFileName);
-                    userService.modifier(currentUser);
-                }
-
-                showSuccess("Photo mise à jour!");
-
-            } catch (IOException e) {
-                showError("Erreur lors du téléchargement");
-                e.printStackTrace();
-            } catch (SQLException e) {
-                showError("Erreur lors de la sauvegarde");
-                e.printStackTrace();
+        try {
+            if (file.length() > 5 * 1024 * 1024) {
+                showError("Image trop volumineuse (max 5MB)");
+                return;
             }
+
+            String mime = Files.probeContentType(file.toPath());
+            if (mime == null || !mime.startsWith("image/")) {
+                showError("Fichier invalide");
+                return;
+            }
+
+            String extension = file.getName().substring(file.getName().lastIndexOf("."));
+            String newName = "profile_" + currentUser.getId() + "_" +
+                    System.currentTimeMillis() + extension;
+
+            Path dest = Paths.get(PROFILE_IMAGES_DIR + newName);
+            Files.copy(file.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
+
+            // delete old
+            if (currentUser.getProfilePicture() != null) {
+                Files.deleteIfExists(Paths.get(PROFILE_IMAGES_DIR + currentUser.getProfilePicture()));
+            }
+
+            currentUser.setProfilePicture(newName);
+            userService.modifier(currentUser);
+
+            displayProfileImage(dest.toString());
+            showSuccess("Photo mise à jour");
+
+        } catch (Exception e) {
+            showError("Erreur image");
+            e.printStackTrace();
         }
     }
 
     private void loadProfilePicture() {
-        if (currentUser != null && currentUser.getProfilePicture() != null && !currentUser.getProfilePicture().isEmpty()) {
-            currentImagePath = currentUser.getProfilePicture();
-            String imagePath = PROFILE_IMAGES_DIR + currentImagePath;
+        String pic = currentUser.getProfilePicture();
+        if (pic == null || pic.isEmpty()) {
+            displayDefaultAvatar();
+            return;
+        }
 
-            File imageFile = new File(imagePath);
-            if (imageFile.exists()) {
-                displayProfileImage(imagePath);
-            } else {
+        if (pic.startsWith("http://") || pic.startsWith("https://")) {
+            // It's a remote URL (e.g. Google profile picture)
+            try {
+                Image image = new Image(pic, true); // true = background loading
+                imgProfile.setImage(image);
+                imgProfile.setVisible(true);
+                lblProfileAvatar.setVisible(false);
+                imgHeaderProfile.setImage(image);
+                imgHeaderProfile.setVisible(true);
+                lblHeaderAvatar.setVisible(false);
+            } catch (Exception e) {
                 displayDefaultAvatar();
             }
         } else {
-            displayDefaultAvatar();
+            // It's a local filename
+            Path path = Paths.get(PROFILE_IMAGES_DIR + pic);
+            if (Files.exists(path)) {
+                displayProfileImage(path.toString());
+            } else {
+                displayDefaultAvatar();
+            }
         }
     }
+    private void displayProfileImage(String path) {
+        Image image = new Image("file:" + path);
 
-    private void displayProfileImage(String imagePath) {
-        try {
-            Image image = new Image("file:" + imagePath);
+        imgProfile.setImage(image);
+        imgProfile.setVisible(true);
+        lblProfileAvatar.setVisible(false);
 
-            if (imgProfile != null) {
-                imgProfile.setImage(image);
-                imgProfile.setVisible(true);
-                if (lblProfileAvatar != null) {
-                    lblProfileAvatar.setVisible(false);
-                }
-            }
-
-            if (imgHeaderProfile != null) {
-                imgHeaderProfile.setImage(image);
-                imgHeaderProfile.setVisible(true);
-                if (lblHeaderAvatar != null) {
-                    lblHeaderAvatar.setVisible(false);
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println("Erreur chargement image: " + e.getMessage());
-            displayDefaultAvatar();
-        }
+        imgHeaderProfile.setImage(image);
+        imgHeaderProfile.setVisible(true);
+        lblHeaderAvatar.setVisible(false);
     }
 
     private void displayDefaultAvatar() {
-        if (imgProfile != null) {
-            imgProfile.setVisible(false);
-        }
-        if (imgHeaderProfile != null) {
-            imgHeaderProfile.setVisible(false);
-        }
-        if (lblProfileAvatar != null) {
-            lblProfileAvatar.setVisible(true);
-        }
-        if (lblHeaderAvatar != null) {
-            lblHeaderAvatar.setVisible(true);
-        }
-    }
-
-    private String getFileExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            return fileName.substring(lastDotIndex);
-        }
-        return "";
+        imgProfile.setVisible(false);
+        imgHeaderProfile.setVisible(false);
+        lblProfileAvatar.setVisible(true);
+        lblHeaderAvatar.setVisible(true);
     }
 
     private void createProfileImagesDirectory() {
         try {
-            Path dirPath = Paths.get(PROFILE_IMAGES_DIR);
-            if (!Files.exists(dirPath)) {
-                Files.createDirectories(dirPath);
-                System.out.println("✅ Dossier créé: " + PROFILE_IMAGES_DIR);
-            }
+            Files.createDirectories(Paths.get(PROFILE_IMAGES_DIR));
         } catch (IOException e) {
-            System.err.println("❌ Erreur création dossier: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -248,39 +246,53 @@ public class ProfileController {
 
     @FXML
     private void handleSaveProfile() {
-        if (!validateProfileFields()) {
-            return;
-        }
 
-        if (currentUser == null) {
-            showError("Utilisateur non connecté");
-            return;
-        }
+        if (!validateProfileFields()) return;
 
         try {
+            // Check unique email
+            User existing = userService.getUserByEmail(txtEmail.getText().trim());
+            if (existing != null && existing.getId() != currentUser.getId()) {
+                showError("Email déjà utilisé");
+                return;
+            }
+
+            // Update common fields
             currentUser.setName(txtPrenom.getText().trim() + " " + txtNom.getText().trim());
             currentUser.setEmail(txtEmail.getText().trim());
             currentUser.setPhone(txtPhone.getText().trim());
-            currentUser.setUniversite(txtUniversite.getText().trim());
-            currentUser.setFiliere(txtFiliere.getText().trim());
-            currentUser.setSpecialization(txtSpecialization.getText().trim());
             currentUser.setAddress(txtAddress.getText().trim());
 
-            String gender = cmbGender.getValue();
-            if (gender != null) {
-                currentUser.setGender(gender.equals("Homme") ? "Male" : "Female");
+            if (cmbGender.getValue() != null) {
+                currentUser.setGender(
+                        cmbGender.getValue().equals("Homme") ? "Male" : "Female"
+                );
             }
 
+            // Update subclass-specific fields
+            if (currentUser instanceof Etudiant) {
+                Etudiant etu = (Etudiant) currentUser;
+                etu.setUniversite(txtUniversite.getText().trim());
+                etu.setFiliere(txtFiliere.getText().trim());
+                etu.setSpecialization(txtSpecialization.getText().trim());
+            } else if (currentUser instanceof Prestataire) {
+                Prestataire pres = (Prestataire) currentUser;
+                pres.setUniversite(txtUniversite.getText().trim());
+                pres.setFiliere(txtFiliere.getText().trim());
+                pres.setSpecialization(txtSpecialization.getText().trim());
+            }
+
+            // Save changes
             userService.modifier(currentUser);
 
             lblUserName.setText(currentUser.getName());
             lblUserEmail.setText(currentUser.getEmail());
 
-            showSuccess("Profil mis à jour!");
+            showSuccess("Profil mis à jour");
 
         } catch (SQLException e) {
-            showError("Erreur lors de la sauvegarde");
             e.printStackTrace();
+            showError("Erreur sauvegarde");
         }
     }
 
@@ -288,57 +300,24 @@ public class ProfileController {
 
     @FXML
     private void handleChangePassword() {
-        String current = txtCurrentPassword.getText();
-        String newPass = txtNewPassword.getText();
-        String confirm = txtConfirmPassword.getText();
-
-        if (current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
-            showError("Veuillez remplir tous les champs");
-            return;
-        }
-
-        if (newPass.length() < 6) {
-            showError("Minimum 6 caractères");
-            return;
-        }
-
-        if (!newPass.equals(confirm)) {
-            showError("Les mots de passe ne correspondent pas");
-            return;
-        }
-
-        if (currentUser == null) {
-            showError("Utilisateur non connecté");
-            return;
-        }
 
         try {
-            // Vérifier le mot de passe actuel
-            if (!PasswordUtil.checkPassword(current, currentUser.getPassword())) {
-                showError("Mot de passe actuel incorrect");
-                txtCurrentPassword.clear();
-                return;
-            }
-
-            // Hasher le nouveau mot de passe
-            String hashedPassword = PasswordUtil.hashPassword(newPass);
-            currentUser.setPassword(hashedPassword);
-
-            // Sauvegarder
-            userService.modifier(currentUser);
+            authService.changePassword(
+                    currentUser,
+                    txtCurrentPassword.getText(),
+                    txtNewPassword.getText()
+            );
 
             txtCurrentPassword.clear();
             txtNewPassword.clear();
             txtConfirmPassword.clear();
 
-            showSuccess("Mot de passe changé!");
+            showSuccess("Mot de passe changé");
 
-        } catch (SQLException e) {
-            showError("Erreur lors du changement");
-            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
         } catch (Exception e) {
-            showError("Erreur inattendue");
-            e.printStackTrace();
+            showError("Erreur changement mot de passe");
         }
     }
 
@@ -346,94 +325,49 @@ public class ProfileController {
 
     @FXML
     private void handleLogout() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Déconnexion");
-        alert.setHeaderText("Êtes-vous sûr de vouloir vous déconnecter?");
-        alert.setContentText("Vous serez redirigé vers la page de connexion.");
 
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Login.fxml"));
-                    Parent root = loader.load();
+        try {
+            FXMLLoader loader =
+                    new FXMLLoader(getClass().getResource("/Views/Login.fxml"));
 
-                    Stage stage = (Stage) txtPrenom.getScene().getWindow();
-                    Scene scene = new Scene(root);
+            Parent root = loader.load();
 
-                    stage.setWidth(1000);
-                    stage.setHeight(700);
-                    stage.centerOnScreen();
+            Stage stage = (Stage) rootPane.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.centerOnScreen();
 
-                    stage.setScene(scene);
-
-                    System.out.println("✅ Déconnexion réussie");
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showError("Erreur lors de la déconnexion");
-                }
-            }
-        });
+        } catch (IOException e) {
+            showError("Erreur déconnexion");
+        }
     }
 
     // ==================== VALIDATION ====================
 
     private boolean validateProfileFields() {
+
         if (txtPrenom.getText().trim().isEmpty()) {
-            showError("Le prénom est requis");
+            showError("Prénom requis");
             return false;
         }
 
         if (txtNom.getText().trim().isEmpty()) {
-            showError("Le nom est requis");
+            showError("Nom requis");
             return false;
         }
 
-        if (txtEmail.getText().trim().isEmpty()) {
-            showError("L'email est requis");
-            return false;
-        }
-
-        if (!isValidEmail(txtEmail.getText())) {
+        if (!txtEmail.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             showError("Email invalide");
-            return false;
-        }
-
-        if (txtPhone.getText().trim().isEmpty()) {
-            showError("Le téléphone est requis");
             return false;
         }
 
         return true;
     }
 
-    private boolean isValidEmail(String email) {
-        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private void showSuccess(String msg) {
+        AlertHelper.showAlert(rootPane, msg, AlertHelper.AlertType.SUCCESS);
     }
 
-    // ==================== CUSTOM ALERTS ====================
-
-    private void showSuccess(String message) {
-        if (rootPane != null) {
-            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.SUCCESS);
-        }
-    }
-
-    private void showError(String message) {
-        if (rootPane != null) {
-            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.ERROR);
-        }
-    }
-
-    private void showWarning(String message) {
-        if (rootPane != null) {
-            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.WARNING);
-        }
-    }
-
-    private void showInfo(String message) {
-        if (rootPane != null) {
-            AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.INFO);
-        }
+    private void showError(String msg) {
+        AlertHelper.showAlert(rootPane, msg, AlertHelper.AlertType.ERROR);
     }
 }

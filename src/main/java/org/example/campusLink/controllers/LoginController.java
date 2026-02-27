@@ -8,12 +8,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.example.campusLink.entities.User;
+import org.example.campusLink.entities.*;
 import org.example.campusLink.services.AuthService;
+import org.example.campusLink.services.GoogleAuthServices;
+import org.example.campusLink.services.UserService;
 import org.example.campusLink.utils.AlertHelper;
+import org.example.campusLink.utils.PasswordUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.UUID;
 
 public class LoginController {
 
@@ -29,6 +34,7 @@ public class LoginController {
     @FXML private Hyperlink linkForgotPassword;
     @FXML private Hyperlink linkSignup;
     @FXML private Button btnLogin;
+    @FXML private Button btnGoogleLogin;
 
     // Error Labels
     @FXML private Label lblEmailError;
@@ -107,11 +113,12 @@ public class LoginController {
         clearAllErrors();
 
         if (!validateAllInputs()) {
+            showError("Veuillez corriger les erreurs dans le formulaire");
             return;
         }
 
         if (authService == null) {
-            showError("Service non disponible. Vérifiez la connexion à la base de données.");
+            AlertHelper.showAlert(rootPane, "Service non disponible. Vérifiez la connexion à la base de données.", AlertHelper.AlertType.ERROR);
             return;
         }
 
@@ -122,40 +129,75 @@ public class LoginController {
             String email = txtEmail.getText().trim();
             String password = txtPassword.getText();
 
+            // ✅ Pass the selectedRole to login
             User user = authService.login(email, password, selectedRole);
 
-            System.out.println("✅ Connexion réussie: " + user.getName());
-            showSuccess("Bienvenue " + user.getName() + "!");
+            // Success message
+            AlertHelper.showAlert(rootPane, "Bienvenue " + user.getName() + "!", AlertHelper.AlertType.SUCCESS);
 
-            // ✅ NAVIGATION VERS LE PROFIL
+            // Navigate to profile
             Platform.runLater(() -> {
                 try {
-                    Thread.sleep(1000); // Attendre 1 seconde pour voir le message
-                    navigateToProfile(user);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    navigateToProfile(user);
+                    e.printStackTrace();
+                }
+
+                // ✅ Utilisation de instanceof pour la redirection
+                if (user instanceof Admin) {
+                    navigateToAdminDashboard((Admin) user);
+                } else if (user instanceof Etudiant) {
+                    navigateToProfile((Etudiant) user);
+                } else if (user instanceof Prestataire) {
+                    navigateToProfile((Prestataire) user);
                 }
             });
+        } catch (IllegalArgumentException e) {
+            String msg = e.getMessage();
 
-        } catch (SQLException e) {
-            String errorMessage = e.getMessage();
-
-            if (errorMessage.contains("User not found") || errorMessage.contains("Invalid password")) {
+            if (msg.contains("not found") || msg.contains("Incorrect password")) {
+                // Highlight the fields in red
                 showFieldError(txtEmail, lblEmailError, "Email ou mot de passe incorrect");
                 showFieldError(txtPassword, lblPasswordError, "Email ou mot de passe incorrect");
-                showError("Email ou mot de passe incorrect");
-            } else if (errorMessage.contains("does not have role")) {
-                showError("Vous n'avez pas accès avec le rôle " + selectedRole);
-            } else {
-                showError("Erreur de connexion");
-            }
 
+                // Cute alert popup
+                AlertHelper.showAlert(rootPane, "Email ou mot de passe incorrect", AlertHelper.AlertType.ERROR);
+
+            } else if (msg.contains("does not have role")) {
+                AlertHelper.showAlert(rootPane, "Vous n'avez pas accès avec le rôle " + selectedRole, AlertHelper.AlertType.ERROR);
+            } else {
+                AlertHelper.showAlert(rootPane, msg, AlertHelper.AlertType.ERROR);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
+            AlertHelper.showAlert(rootPane, "Erreur de connexion à la base de données", AlertHelper.AlertType.ERROR);
         } finally {
             btnLogin.setDisable(false);
             btnLogin.setText("Se connecter");
         }
     }
+    private void navigateToAdminDashboard(Admin admin) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/AdminDashboard.fxml"));
+            Parent root = loader.load();
+
+            AdminDashboardController controller = loader.getController();
+            controller.setAdmin(admin);
+
+            Stage stage = (Stage) btnLogin.getScene().getWindow();
+            stage.setWidth(1400);
+            stage.setHeight(900);
+            stage.centerOnScreen();
+            stage.setScene(new Scene(root));
+
+            System.out.println("✅ Navigation vers Admin Dashboard");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Erreur lors du chargement du dashboard admin");
+        }
+    }
+
 
     @FXML
     private void handleSignup() {
@@ -201,8 +243,142 @@ public class LoginController {
         }
     }
 
-    // ==================== VALIDATION ====================
+    @FXML
+    private void handleForgotPassword() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/ForgotPassword.fxml"));
+            Parent root = loader.load();
 
+            Stage stage = (Stage) btnLogin.getScene().getWindow();
+            stage.setScene(new Scene(root));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Erreur lors du chargement de la page");
+        }
+    }
+
+
+    @FXML
+    private void handleGoogleSignup() {
+        System.out.println("🔐 Début authentification Google...");
+
+        btnGoogleLogin.setDisable(true);
+        btnGoogleLogin.setText("Connexion en cours...");
+
+        // Lancer dans un thread séparé pour ne pas bloquer l'UI
+        new Thread(() -> {
+            final String role = selectedRole; // capture before thread starts
+
+            try {
+                // 1. Authentifier avec Google
+                GoogleAuthServices googleAuth = new GoogleAuthServices();
+                GoogleUser googleUser = googleAuth.authenticate();
+
+                if (googleUser == null) {
+                    Platform.runLater(() -> {
+                        showError("Échec de l'authentification Google");
+                        resetGoogleButton();
+                    });
+                    return;
+                }
+
+                System.out.println("✅ Google Auth réussie: " + googleUser.getEmail());
+
+                // 2. Vérifier si l'utilisateur existe déjà
+                UserService userService = new UserService();
+                User existingUser = userService.findByEmail(googleUser.getEmail());
+
+                if (existingUser != null) {
+                    // Utilisateur existe → Login
+                    System.out.println("✅ Utilisateur existant trouvé");
+
+                    Platform.runLater(() -> {
+                        showSuccess("Connexion réussie!");
+                        handleLogin();
+                        navigateToProfile(existingUser);
+                    });
+
+                } else {
+                    // Nouvel utilisateur → Créer le compte
+                    System.out.println("📝 Création nouveau compte Google");
+
+                    User createdUser;
+
+                    if ("PRESTATAIRE".equals(selectedRole)) {
+                        Prestataire newUser = new Prestataire();
+                        newUser.setName(googleUser.getName());
+                        newUser.setEmail(googleUser.getEmail());
+                        newUser.setPassword(PasswordUtil.hashPassword(UUID.randomUUID().toString()));
+                        newUser.setStatus("ACTIVE");
+                        newUser.setPhone("");
+                        newUser.setAddress("");
+                        newUser.setGender("Male");
+                        newUser.setProfilePicture(googleUser.getPictureUrl() != null ? googleUser.getPictureUrl() : "");
+                        newUser.setUniversite("");
+                        newUser.setFiliere("");
+                        newUser.setSpecialization("");
+                        newUser.setTrustPoints(0);
+                        createdUser = authService.signupPrestataire(newUser);
+                    } else {
+                        // Default → ETUDIANT
+                        Etudiant newUser = new Etudiant();
+                        newUser.setName(googleUser.getName());
+                        newUser.setEmail(googleUser.getEmail());
+                        newUser.setPassword(PasswordUtil.hashPassword(UUID.randomUUID().toString()));
+                        newUser.setStatus("ACTIVE");
+                        newUser.setPhone("");
+                        newUser.setAddress("");
+                        newUser.setGender("Male");
+                        newUser.setProfilePicture(googleUser.getPictureUrl() != null ? googleUser.getPictureUrl() : "");
+                        newUser.setDateNaissance(LocalDate.now());
+                        newUser.setUniversite("");
+                        newUser.setFiliere("");
+                        newUser.setSpecialization("");
+                        createdUser = authService.signupEtudiant(newUser);
+                    }
+
+                    final User finalUser = createdUser;
+                    System.out.println("✅ Nouveau compte créé (" + selectedRole + ")");
+
+                    Platform.runLater(() -> {
+                        showSuccess("Compte créé avec succès! Bienvenue " + googleUser.getName());
+                        navigateToProfile(finalUser);
+                    });
+                }
+
+            } catch (SQLException e) {
+                System.err.println("❌ Erreur BD: " + e.getMessage());
+                e.printStackTrace();
+
+                Platform.runLater(() -> {
+                    if (e.getMessage().contains("Duplicate entry")) {
+                        showError("Cet email est déjà utilisé");
+                    } else {
+                        showError("Erreur de base de données");
+                    }
+                    resetGoogleButton();
+                });
+
+            } catch (Exception e) {
+                System.err.println("❌ Erreur Google Auth: " + e.getMessage());
+                e.printStackTrace();
+
+                Platform.runLater(() -> {
+                    showError("Erreur lors de l'authentification Google.\nVeuillez réessayer.");
+                    resetGoogleButton();
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Réinitialiser le bouton Google
+     */
+    private void resetGoogleButton() {
+        btnGoogleLogin.setDisable(false);
+        btnGoogleLogin.setText("Se connecter avec Google");
+    }
     private boolean validateAllInputs() {
         boolean valid = true;
 
@@ -220,6 +396,19 @@ public class LoginController {
         }
 
         return valid;
+    }
+    private void fillCommonFields(User user, GoogleUser googleUser) {
+
+        user.setName(googleUser.getName());
+        user.setEmail(googleUser.getEmail());
+        user.setProfilePicture(googleUser.getPictureUrl());
+
+        // Default values to avoid validation errors
+        user.setPhone("00000000");
+        user.setGender("HOMME");
+        user.setAddress("Non spécifié");
+
+        user.setPassword("GoogleAuth123!");
     }
 
     private boolean validateEmail() {

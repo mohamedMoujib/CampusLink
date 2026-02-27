@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 
 public class UserValidator {
 
-    // Regex patterns
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
@@ -15,7 +14,7 @@ public class UserValidator {
     );
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "^.{8,}$" // Au moins 6 caractères
+            "^.{8,}$"
     );
 
     /**
@@ -32,11 +31,10 @@ public class UserValidator {
      * Valider un numéro de téléphone
      */
     public static boolean isValidPhone(String phone) {
-        if (phone == null || phone.trim().isEmpty()) {
-            return false;
-        }
-        String cleanPhone = phone.replaceAll("\\s+", "");
-        return PHONE_PATTERN.matcher(cleanPhone).matches();
+        if (phone == null || phone.trim().isEmpty()) return false;
+        // Accept +216 format or 8-digit local numbers
+        return phone.matches("^\\+216\\s?\\d{2}\\s?\\d{3}\\s?\\d{3}$")
+                || phone.matches("^\\d{8}$");
     }
 
     /**
