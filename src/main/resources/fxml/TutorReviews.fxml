@@ -95,6 +95,13 @@
                 <Button text="⭐⭐⭐⭐ 4" styleClass="filter-button" onAction="#filter4Stars"/>
                 <Button text="⭐⭐⭐ 3" styleClass="filter-button" onAction="#filter3Stars"/>
                 <Button text="⭐⭐ 2-" styleClass="filter-button" onAction="#filterLow"/>
+
+                <!-- 🔥 SÉPARATEUR -->
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- 🔥 SÉLECTEUR DE LANGUE -->
+                <Label text="Traduire en :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                <ComboBox fx:id="languageSelector" prefWidth="150" styleClass="filter-combo"/>
             </HBox>
 
             <!-- Liste des avis -->

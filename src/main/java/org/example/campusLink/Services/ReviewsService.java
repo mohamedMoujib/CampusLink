@@ -22,19 +22,12 @@ public class ReviewsService {
     // ===================== CREATE =====================
 
     public void addReview(Reviews r) {
-
-        if (reviewsDAO.existsByStudentAndService(
-                r.getStudentId(), r.getReservationId())) {
+        if (reviewsDAO.existsByStudentAndService(r.getStudentId(), r.getReservationId())) {
             throw new IllegalStateException("Avis déjà existant");
         }
-
         reviewsDAO.save(r);
-
         try {
-            trustService.applyPoints(
-                    r.getPrestataireId(),
-                    r.getRating()
-            );
+            trustService.applyPoints(r.getPrestataireId(), r.getRating());
         } catch (Exception e) {
             System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
         }
@@ -75,23 +68,16 @@ public class ReviewsService {
     // ===================== UPDATE =====================
 
     public void updateReview(int id, int newRating, String newComment) {
-
         Reviews old = reviewsDAO.findById(id);
-        if (old == null) {
-            throw new IllegalStateException("Avis introuvable");
-        }
+        if (old == null) throw new IllegalStateException("Avis introuvable");
 
         int diff = newRating - old.getRating();
-
         old.setRating(newRating);
         old.setComment(newComment);
         reviewsDAO.update(old);
 
         try {
-            trustService.applyPoints(
-                    old.getPrestataireId(),
-                    diff
-            );
+            trustService.applyPoints(old.getPrestataireId(), diff);
         } catch (Exception e) {
             System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
         }
@@ -100,19 +86,13 @@ public class ReviewsService {
     // ===================== DELETE =====================
 
     public void deleteReview(int id) {
-
         Reviews r = reviewsDAO.findById(id);
-        if (r == null) {
-            throw new IllegalStateException("Avis introuvable");
-        }
+        if (r == null) throw new IllegalStateException("Avis introuvable");
 
         reviewsDAO.delete(id);
 
         try {
-            trustService.applyPoints(
-                    r.getPrestataireId(),
-                    -r.getRating()
-            );
+            trustService.applyPoints(r.getPrestataireId(), -r.getRating());
         } catch (Exception e) {
             System.out.println("⚠️ Erreur TrustPoints ignorée: " + e.getMessage());
         }
@@ -124,30 +104,27 @@ public class ReviewsService {
         return reviewsDAO.getTrustPointsByUserId(userId);
     }
 
-    // ===================== 🔥 EXPORT TO CSV =====================
+    // ===================== EXPORT TO CSV =====================
 
     public String exportToCSV(List<Reviews> reviews) {
         try {
             StringWriter stringWriter = new StringWriter();
             CSVWriter csvWriter = new CSVWriter(stringWriter);
 
-            // En-têtes
+            // ✅ Sans ID ni Réservation ID
             String[] headers = {
-                    "ID", "Étudiant", "Prestataire", "Service", "Note",
-                    "Commentaire", "Réservation ID", "Signalé", "Raison", "Date signalement"
+                    "Étudiant", "Prestataire", "Service", "Note",
+                    "Commentaire", "Signalé", "Raison", "Date signalement"
             };
             csvWriter.writeNext(headers);
 
-            // Données
             for (Reviews review : reviews) {
                 String[] data = {
-                        String.valueOf(review.getId()),
                         review.getStudentName() != null ? review.getStudentName() : "N/A",
                         review.getPrestataireName() != null ? review.getPrestataireName() : "N/A",
                         review.getServiceTitle() != null ? review.getServiceTitle() : "N/A",
                         String.valueOf(review.getRating()),
                         review.getComment(),
-                        String.valueOf(review.getReservationId()),
                         review.isReported() ? "Oui" : "Non",
                         review.getReportReason() != null ? review.getReportReason() : "",
                         review.getReportedAt() != null ?
@@ -165,15 +142,14 @@ public class ReviewsService {
         }
     }
 
-    // ===================== 🔥 EXPORT TO EXCEL =====================
+    // ===================== EXPORT TO EXCEL =====================
 
     public byte[] exportToExcel(List<Reviews> reviews) {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Avis");
 
-            // 🔥 Style pour l'en-tête
             CellStyle headerStyle = workbook.createCellStyle();
-            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont(); // 🔥 Utiliser explicitement Apache POI Font
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerFont.setColor(IndexedColors.WHITE.getIndex());
             headerStyle.setFont(headerFont);
@@ -181,16 +157,15 @@ public class ReviewsService {
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            // 🔥 Style pour les cellules signalées
             CellStyle reportedStyle = workbook.createCellStyle();
             reportedStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
             reportedStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-            // En-têtes
+            // ✅ Sans ID ni Réservation ID
             Row headerRow = sheet.createRow(0);
             String[] headers = {
-                    "ID", "Étudiant", "Prestataire", "Service", "Note",
-                    "Commentaire", "Réservation ID", "Signalé", "Raison", "Date signalement"
+                    "Étudiant", "Prestataire", "Service", "Note",
+                    "Commentaire", "Signalé", "Raison", "Date signalement"
             };
 
             for (int i = 0; i < headers.length; i++) {
@@ -199,31 +174,26 @@ public class ReviewsService {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Données
             int rowNum = 1;
             for (Reviews review : reviews) {
                 Row row = sheet.createRow(rowNum++);
                 CellStyle rowStyle = review.isReported() ? reportedStyle : null;
 
-                createCell(row, 0, review.getId(), rowStyle);
-                createCell(row, 1, review.getStudentName() != null ? review.getStudentName() : "N/A", rowStyle);
-                createCell(row, 2, review.getPrestataireName() != null ? review.getPrestataireName() : "N/A", rowStyle);
-                createCell(row, 3, review.getServiceTitle() != null ? review.getServiceTitle() : "N/A", rowStyle);
-                createCell(row, 4, review.getRating(), rowStyle);
-                createCell(row, 5, review.getComment(), rowStyle);
-                createCell(row, 6, review.getReservationId(), rowStyle);
-                createCell(row, 7, review.isReported() ? "Oui" : "Non", rowStyle);
-                createCell(row, 8, review.getReportReason() != null ? review.getReportReason() : "", rowStyle);
-                createCell(row, 9, review.getReportedAt() != null ?
+                createCell(row, 0, review.getStudentName() != null ? review.getStudentName() : "N/A", rowStyle);
+                createCell(row, 1, review.getPrestataireName() != null ? review.getPrestataireName() : "N/A", rowStyle);
+                createCell(row, 2, review.getServiceTitle() != null ? review.getServiceTitle() : "N/A", rowStyle);
+                createCell(row, 3, review.getRating(), rowStyle);
+                createCell(row, 4, review.getComment(), rowStyle);
+                createCell(row, 5, review.isReported() ? "Oui" : "Non", rowStyle);
+                createCell(row, 6, review.getReportReason() != null ? review.getReportReason() : "", rowStyle);
+                createCell(row, 7, review.getReportedAt() != null ?
                         review.getReportedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "", rowStyle);
             }
 
-            // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 
-            // Convertir en bytes
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
@@ -236,7 +206,6 @@ public class ReviewsService {
 
     private void createCell(Row row, int column, Object value, CellStyle style) {
         Cell cell = row.createCell(column);
-
         if (value instanceof Integer) {
             cell.setCellValue((Integer) value);
         } else if (value instanceof String) {
@@ -244,13 +213,10 @@ public class ReviewsService {
         } else {
             cell.setCellValue(value != null ? value.toString() : "");
         }
-
-        if (style != null) {
-            cell.setCellStyle(style);
-        }
+        if (style != null) cell.setCellStyle(style);
     }
 
-    // ===================== 🔥 EXPORT TO PDF =====================
+    // ===================== EXPORT TO PDF =====================
 
     public byte[] exportToPDF(List<Reviews> reviews) {
         try {
@@ -260,14 +226,12 @@ public class ReviewsService {
 
             document.open();
 
-            // 🔥 Titre - Utiliser explicitement iText Font
             com.itextpdf.text.Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY);
             Paragraph title = new Paragraph("Rapport des Avis - CampusLink", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             title.setSpacingAfter(20);
             document.add(title);
 
-            // 🔥 Date
             com.itextpdf.text.Font dateFont = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.GRAY);
             Paragraph date = new Paragraph("Généré le : " +
                     java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")), dateFont);
@@ -275,21 +239,19 @@ public class ReviewsService {
             date.setSpacingAfter(20);
             document.add(date);
 
-            // Tableau
-            PdfPTable table = new PdfPTable(10);
+            // ✅ 8 colonnes sans ID ni Réservation ID
+            PdfPTable table = new PdfPTable(8);
             table.setWidthPercentage(100);
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
 
-            // Largeurs des colonnes
-            float[] columnWidths = {5f, 12f, 12f, 15f, 7f, 25f, 8f, 7f, 15f, 12f};
+            float[] columnWidths = {14f, 14f, 16f, 7f, 28f, 7f, 16f, 14f};
             table.setWidths(columnWidths);
 
-            // 🔥 En-têtes
             com.itextpdf.text.Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, BaseColor.WHITE);
             String[] headers = {
-                    "ID", "Étudiant", "Prestataire", "Service", "Note",
-                    "Commentaire", "Rés. ID", "Signalé", "Raison", "Date signal."
+                    "Étudiant", "Prestataire", "Service", "Note",
+                    "Commentaire", "Signalé", "Raison", "Date signal."
             };
 
             for (String header : headers) {
@@ -300,19 +262,16 @@ public class ReviewsService {
                 table.addCell(cell);
             }
 
-            // 🔥 Données
             com.itextpdf.text.Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 8);
             for (Reviews review : reviews) {
                 BaseColor bgColor = review.isReported() ?
                         new BaseColor(254, 243, 199) : BaseColor.WHITE;
 
-                addTableCell(table, String.valueOf(review.getId()), cellFont, bgColor);
                 addTableCell(table, review.getStudentName() != null ? review.getStudentName() : "N/A", cellFont, bgColor);
                 addTableCell(table, review.getPrestataireName() != null ? review.getPrestataireName() : "N/A", cellFont, bgColor);
                 addTableCell(table, review.getServiceTitle() != null ? review.getServiceTitle() : "N/A", cellFont, bgColor);
                 addTableCell(table, String.valueOf(review.getRating()), cellFont, bgColor);
                 addTableCell(table, truncate(review.getComment(), 100), cellFont, bgColor);
-                addTableCell(table, String.valueOf(review.getReservationId()), cellFont, bgColor);
                 addTableCell(table, review.isReported() ? "Oui" : "Non", cellFont, bgColor);
                 addTableCell(table, review.getReportReason() != null ? truncate(review.getReportReason(), 50) : "", cellFont, bgColor);
                 addTableCell(table, review.getReportedAt() != null ?
@@ -321,7 +280,6 @@ public class ReviewsService {
 
             document.add(table);
 
-            // Statistiques
             Paragraph stats = new Paragraph("\n\nStatistiques :",
                     FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12));
             document.add(stats);

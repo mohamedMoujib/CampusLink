@@ -618,3 +618,21 @@
 .custom-alert .button:pressed {
     -fx-background-color: #065f46;
 }
+/* ============= LANGUAGE SELECTOR ============= */
+.filter-combo {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+
+.filter-combo:hover {
+    -fx-border-color: #059669;
+}
+
+.filter-combo .list-cell {
+    -fx-text-fill: #374151;
+}

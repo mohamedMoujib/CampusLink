@@ -1,64 +1,86 @@
 package org.example.campusLink.controllers;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.example.campusLink.Services.ReviewsService;
+import org.example.campusLink.Services.TranslationService;
 import org.example.campusLink.entities.Reviews;
+import org.example.campusLink.units.MyDatabase;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.geometry.Pos;
 
 public class TutorReviewsController {
 
-    @FXML
-    private VBox reviewsContainer;
-
-    @FXML
-    private Label averageRatingLabel;
-
-    @FXML
-    private Label totalReviewsLabel;
-
-    @FXML
-    private Label trustPointsLabel;
-
-    @FXML
-    private Label monthReviewsLabel;
-
-    @FXML
-    private Label tutorName;
-
-    @FXML
-    private Label tutorEmail;
+    @FXML private VBox reviewsContainer;
+    @FXML private Label tutorName;
+    @FXML private Label tutorEmail;
+    @FXML private Label averageRatingLabel;
+    @FXML private Label totalReviewsLabel;
+    @FXML private Label trustPointsLabel;
+    @FXML private Label monthReviewsLabel;
+    @FXML private ComboBox<String> languageSelector;
 
     private ReviewsService reviewsService;
+    private TranslationService translationService;
 
     private final int tutorId = 2;
-
     private List<Reviews> allReviews;
     private List<Reviews> filteredReviews;
+    private String currentLanguage = "fr";
 
     @FXML
     public void initialize() {
         reviewsService = new ReviewsService();
-
-        tutorName.setText("Jean Martin");
-        tutorEmail.setText("jean.martin@service.fr");
-
+        translationService = new TranslationService();
+        setupLanguageSelector();
+        loadUserInfo();
         loadReviews();
         updateStatistics();
+    }
+
+    private void setupLanguageSelector() {
+        languageSelector.setItems(FXCollections.observableArrayList(
+                "🇫🇷 Français", "🇹🇳 العربية", "🇬🇧 English"
+        ));
+        languageSelector.setValue("🇫🇷 Français");
+        languageSelector.setOnAction(e -> {
+            String selected = languageSelector.getValue();
+            if (selected.contains("Français"))   currentLanguage = "fr";
+            else if (selected.contains("العربية")) currentLanguage = "ar";
+            else if (selected.contains("English")) currentLanguage = "en";
+            displayReviews(filteredReviews);
+        });
+    }
+
+    private void loadUserInfo() {
+        String sql = "SELECT name, email FROM users WHERE id = ?";
+        try (Connection conn = MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tutorId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    tutorName.setText(rs.getString("name"));
+                    tutorEmail.setText(rs.getString("email"));
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
     private void loadReviews() {
@@ -69,34 +91,29 @@ public class TutorReviewsController {
 
     private void displayReviews(List<Reviews> reviews) {
         reviewsContainer.getChildren().clear();
-
         if (reviews.isEmpty()) {
-            Label emptyLabel = new Label("Aucun avis pour le moment");
-            emptyLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
-            reviewsContainer.getChildren().add(emptyLabel);
+            Label empty = new Label("Aucun avis pour le moment");
+            empty.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+            reviewsContainer.getChildren().add(empty);
             return;
         }
-
-        for (Reviews r : reviews) {
-            VBox card = createReviewCard(r);
-            reviewsContainer.getChildren().add(card);
-        }
+        for (Reviews r : reviews)
+            reviewsContainer.getChildren().add(createReviewCard(r));
     }
 
     private VBox createReviewCard(Reviews review) {
         VBox card = new VBox(12);
         card.getStyleClass().add("review-card");
 
+        // === HEADER ===
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox titleSection = new VBox(3);
         Label title = new Label(review.getServiceTitle());
         title.getStyleClass().add("review-title");
-
         Label subtitle = new Label("par " + review.getStudentName());
         subtitle.getStyleClass().add("review-subtitle");
-
         titleSection.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
@@ -104,210 +121,134 @@ public class TutorReviewsController {
 
         Label date = new Label(LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")));
         date.getStyleClass().add("review-date");
-
         header.getChildren().addAll(titleSection, spacer, date);
 
-        HBox starsDisplay = createStarsDisplay(review.getRating());
+        // === STARS ===
+        int absRating   = Math.abs(review.getRating());
+        int clamped     = Math.min(absRating, 5);
+        String stars    = "★".repeat(clamped) + "☆".repeat(5 - clamped);
+        String starColor = review.getRating() < 0 ? "#ef4444" : "#fbbf24";
+        Label starsLabel = new Label(stars);
+        starsLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: " + starColor + "; -fx-padding: 5 0 5 0;");
 
-        Label comment = new Label(review.getComment());
-        comment.setWrapText(true);
-        comment.getStyleClass().add("review-comment");
+        // === COMMENTAIRE + BOUTON TRADUIRE ===
+        VBox commentSection = new VBox(8);
 
-        // 🔥 FOOTER avec bouton de signalement
+        // Commentaire original
+        Label originalComment = new Label(review.getComment());
+        originalComment.setWrapText(true);
+        originalComment.getStyleClass().add("review-comment");
+
+        // Zone traduction (cachée par défaut)
+        VBox translationBox = new VBox(4);
+        translationBox.setVisible(false);
+        translationBox.setManaged(false);
+        translationBox.setStyle("-fx-background-color: #f5f3ff; -fx-padding: 10; -fx-background-radius: 8;");
+
+        Label sepLabel = new Label(TranslationService.getLanguageFlag(currentLanguage)
+                + "  Traduction en " + TranslationService.getLanguageName(currentLanguage));
+        sepLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #7c3aed; -fx-font-weight: bold;");
+
+        Label translatedLabel = new Label();
+        translatedLabel.setWrapText(true);
+        translatedLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #1f2937;");
+
+        translationBox.getChildren().addAll(sepLabel, translatedLabel);
+
+        // Bouton traduire — inline à droite du commentaire
+        HBox commentRow = new HBox(10);
+        commentRow.setAlignment(Pos.TOP_LEFT);
+
+        originalComment.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(originalComment, Priority.ALWAYS);
+
+        Button translateBtn = new Button();
+        translateBtn.setStyle(styleBtnTranslate());
+        translateBtn.setText(TranslationService.getLanguageFlag(currentLanguage) + " Traduire");
+
+        // Cacher le bouton si langue = fr
+        boolean isFr = currentLanguage.equals("fr");
+        translateBtn.setVisible(!isFr);
+        translateBtn.setManaged(!isFr);
+
+        commentRow.getChildren().addAll(originalComment, translateBtn);
+
+        // État local du bouton
+        final boolean[] translated = {false};
+        final boolean[] loading    = {false};
+
+        translateBtn.setOnAction(e -> {
+            if (loading[0]) return;
+
+            if (translated[0]) {
+                // Masquer
+                translationBox.setVisible(false);
+                translationBox.setManaged(false);
+                translated[0] = false;
+                translateBtn.setText(TranslationService.getLanguageFlag(currentLanguage) + " Traduire");
+                translateBtn.setStyle(styleBtnTranslate());
+            } else {
+                // Traduire
+                loading[0] = true;
+                translateBtn.setText("⏳");
+                translateBtn.setDisable(true);
+
+                new Thread(() -> {
+                    String result = translationService.translate(review.getComment(), currentLanguage);
+                    javafx.application.Platform.runLater(() -> {
+                        translatedLabel.setText(result);
+
+                        // ✅ RTL pour l'arabe
+                        if (currentLanguage.equals("ar")) {
+                            translatedLabel.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+                            sepLabel.setText("🇹🇳  ترجمة إلى العربية");
+                        } else {
+                            translatedLabel.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
+                            sepLabel.setText(TranslationService.getLanguageFlag(currentLanguage)
+                                    + "  Traduction en " + TranslationService.getLanguageName(currentLanguage));
+                        }
+
+                        translationBox.setVisible(true);
+                        translationBox.setManaged(true);
+                        translated[0] = true;
+                        loading[0]    = false;
+                        translateBtn.setDisable(false);
+                        translateBtn.setText("✕ Masquer");
+                        translateBtn.setStyle(styleBtnHide());
+                    });
+                }).start();
+            }
+        });
+
+        commentSection.getChildren().addAll(commentRow, translationBox);
+
+        // === BADGE ===
         HBox footer = new HBox(15);
         footer.setAlignment(Pos.CENTER_LEFT);
-        footer.setStyle("-fx-padding: 10 0 0 0; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;");
+        footer.getChildren().add(buildBadge(review.getRating()));
 
-        // Badge si déjà signalé
-        if (review.isReported()) {
-            Label reportedBadge = new Label("⚠️ Signalé à l'admin");
-            reportedBadge.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; " +
-                    "-fx-padding: 5 10; -fx-background-radius: 4; -fx-font-size: 11px; " +
-                    "-fx-font-weight: bold;");
-            footer.getChildren().add(reportedBadge);
-        }
-
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
-
-        // Bouton signaler (désactivé si déjà signalé)
-        Button btnReport = new Button(review.isReported() ? "✓ Déjà signalé" : "🚩 Signaler");
-        btnReport.setDisable(review.isReported());
-
-        if (review.isReported()) {
-            btnReport.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #6b7280; " +
-                    "-fx-font-size: 12px; -fx-padding: 6 12; -fx-background-radius: 6;");
-        } else {
-            btnReport.getStyleClass().add("link-button-danger");
-            btnReport.setStyle("-fx-font-size: 12px; -fx-padding: 6 12;");
-        }
-
-        btnReport.setOnAction(e -> reportReview(review));
-
-        footer.getChildren().addAll(footerSpacer, btnReport);
-
-        card.getChildren().addAll(header, starsDisplay, comment, footer);
+        card.getChildren().addAll(header, starsLabel, commentSection, footer);
         return card;
     }
 
-    private HBox createStarsDisplay(int rating) {
-        HBox container = new HBox(8);
-        container.setAlignment(Pos.CENTER_LEFT);
-        container.setStyle("-fx-padding: 5 0 5 0;");
-
-        String starsText;
-        String color;
-        String badge;
-
-        if (rating < 0) {
-            int absRating = Math.abs(rating);
-            starsText = "★".repeat(absRating) + "☆".repeat(5 - absRating);
-            color = "#ef4444";
-            badge = "(" + rating + ")";
-        } else if (rating > 0) {
-            starsText = "★".repeat(rating) + "☆".repeat(5 - rating);
-            color = "#fbbf24";
-            badge = "(+" + rating + ")";
-        } else {
-            starsText = "☆☆☆☆☆";
-            color = "#d1d5db";
-            badge = "(Neutre)";
-        }
-
-        Label stars = new Label(starsText);
-        stars.setStyle("-fx-font-size: 22px; -fx-text-fill: " + color + ";");
-
-        Label badgeLabel = new Label(badge);
-        badgeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
-
-        container.getChildren().addAll(stars, badgeLabel);
-        return container;
+    private Label buildBadge(int rating) {
+        Label badge = new Label();
+        if      (rating == 5) { badge.setText("⭐ Excellent");    badge.setStyle("-fx-background-color:#dcfce7;-fx-text-fill:#16a34a;-fx-padding:4 12;-fx-background-radius:12;-fx-font-size:12px;-fx-font-weight:bold;"); }
+        else if (rating == 4) { badge.setText("👍 Très bien");    badge.setStyle("-fx-background-color:#dbeafe;-fx-text-fill:#2563eb;-fx-padding:4 12;-fx-background-radius:12;-fx-font-size:12px;-fx-font-weight:bold;"); }
+        else if (rating == 3) { badge.setText("😊 Bien");         badge.setStyle("-fx-background-color:#fef3c7;-fx-text-fill:#d97706;-fx-padding:4 12;-fx-background-radius:12;-fx-font-size:12px;-fx-font-weight:bold;"); }
+        else if (rating <  0) { badge.setText("👎 Avis négatif"); badge.setStyle("-fx-background-color:#fee2e2;-fx-text-fill:#dc2626;-fx-padding:4 12;-fx-background-radius:12;-fx-font-size:12px;-fx-font-weight:bold;"); }
+        else                  { badge.setText("⚠️ À améliorer");  badge.setStyle("-fx-background-color:#fee2e2;-fx-text-fill:#dc2626;-fx-padding:4 12;-fx-background-radius:12;-fx-font-size:12px;-fx-font-weight:bold;"); }
+        return badge;
     }
 
-    // 🔥 SIGNALER UN AVIS AVEC CONTRÔLE DE SAISIE
-    private void reportReview(Reviews review) {
-        // Dialog pour choisir la raison du signalement
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Signaler cet avis");
-        dialog.setHeaderText("Pourquoi souhaitez-vous signaler cet avis ?");
+    private String styleBtnTranslate() {
+        return "-fx-background-color:#ede9fe;-fx-text-fill:#7c3aed;" +
+                "-fx-font-size:11px;-fx-padding:4 10;-fx-background-radius:6;-fx-cursor:hand;";
+    }
 
-        ButtonType reportButtonType = new ButtonType("Signaler", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(reportButtonType, ButtonType.CANCEL);
-
-        VBox content = new VBox(10);
-
-        Label instruction = new Label("Sélectionnez une raison :");
-        instruction.setStyle("-fx-font-weight: bold;");
-
-        ToggleGroup reasonGroup = new ToggleGroup();
-
-        RadioButton reason1 = new RadioButton("Contenu inapproprié ou offensant");
-        reason1.setToggleGroup(reasonGroup);
-        reason1.setSelected(true);
-
-        RadioButton reason2 = new RadioButton("Faux avis / spam");
-        reason2.setToggleGroup(reasonGroup);
-
-        RadioButton reason3 = new RadioButton("Harcèlement ou menaces");
-        reason3.setToggleGroup(reasonGroup);
-
-        RadioButton reason4 = new RadioButton("Informations fausses ou trompeuses");
-        reason4.setToggleGroup(reasonGroup);
-
-        RadioButton reason5 = new RadioButton("Autre");
-        reason5.setToggleGroup(reasonGroup);
-
-        TextArea otherReason = new TextArea();
-        otherReason.setPromptText("Précisez la raison...");
-        otherReason.setPrefRowCount(3);
-        otherReason.setDisable(true);
-
-        // 🔥 Activer/désactiver le champ texte selon la sélection
-        reason5.setOnAction(e -> otherReason.setDisable(!reason5.isSelected()));
-
-        content.getChildren().addAll(
-                instruction,
-                reason1, reason2, reason3, reason4, reason5,
-                otherReason
-        );
-
-        dialog.getDialogPane().setContent(content);
-
-        // 🔥 VALIDATION : Désactiver le bouton "Signaler" si "Autre" est vide
-        Button signalButton = (Button) dialog.getDialogPane().lookupButton(reportButtonType);
-
-        // Validation initiale
-        signalButton.setDisable(false);
-
-        // Écouter les changements de sélection
-        reasonGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            if (newToggle == reason5) {
-                // Si "Autre" est sélectionné, vérifier que le champ n'est pas vide
-                signalButton.setDisable(otherReason.getText().trim().isEmpty());
-            } else {
-                // Si une autre option est sélectionnée, activer le bouton
-                signalButton.setDisable(false);
-            }
-        });
-
-        // 🔥 Écouter les changements dans le TextArea si "Autre" est sélectionné
-        otherReason.textProperty().addListener((obs, oldText, newText) -> {
-            if (reason5.isSelected()) {
-                signalButton.setDisable(newText.trim().isEmpty());
-            }
-        });
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == reportButtonType) {
-                RadioButton selected = (RadioButton) reasonGroup.getSelectedToggle();
-                if (selected == reason5) {
-                    String customReason = otherReason.getText().trim();
-                    // 🔥 Double vérification avant de retourner
-                    if (customReason.isEmpty()) {
-                        return null; // Annuler si vide (normalement le bouton devrait être désactivé)
-                    }
-                    return customReason;
-                }
-                return selected.getText();
-            }
-            return null;
-        });
-
-        Optional<String> result = dialog.showAndWait();
-
-        result.ifPresent(reason -> {
-            // 🔥 Vérification finale avant d'envoyer
-            if (reason == null || reason.trim().isEmpty()) {
-                Alert warningAlert = new Alert(Alert.AlertType.WARNING);
-                warningAlert.setTitle("Raison manquante");
-                warningAlert.setHeaderText("Veuillez préciser la raison du signalement");
-                warningAlert.setContentText("Vous devez indiquer une raison pour signaler cet avis.");
-                warningAlert.showAndWait();
-                return;
-            }
-
-            try {
-                reviewsService.reportReview(review.getId(), reason);
-
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Signalement envoyé");
-                successAlert.setHeaderText("✓ Avis signalé avec succès");
-                successAlert.setContentText(
-                        "Votre signalement a été transmis à l'équipe d'administration.\n\n" +
-                                "Ils examineront cet avis dans les plus brefs délais."
-                );
-                successAlert.showAndWait();
-
-                loadReviews();
-
-            } catch (Exception e) {
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                errorAlert.setTitle("Erreur");
-                errorAlert.setHeaderText("Erreur lors du signalement");
-                errorAlert.setContentText("Une erreur est survenue : " + e.getMessage());
-                errorAlert.showAndWait();
-            }
-        });
+    private String styleBtnHide() {
+        return "-fx-background-color:#f3f4f6;-fx-text-fill:#6b7280;" +
+                "-fx-font-size:11px;-fx-padding:4 10;-fx-background-radius:6;-fx-cursor:hand;";
     }
 
     private void updateStatistics() {
@@ -316,70 +257,30 @@ public class TutorReviewsController {
             totalReviewsLabel.setText("0");
             monthReviewsLabel.setText("0");
         } else {
-            double average = allReviews.stream()
-                    .mapToInt(Reviews::getRating)
-                    .average()
-                    .orElse(0.0);
-            averageRatingLabel.setText(String.format("%.1f", average));
-
+            double avg = allReviews.stream().mapToInt(Reviews::getRating).average().orElse(0.0);
+            averageRatingLabel.setText(String.format("%.1f", avg));
             totalReviewsLabel.setText(String.valueOf(allReviews.size()));
             monthReviewsLabel.setText("5");
         }
-
-        int trustPoints = reviewsService.getTrustPoints(tutorId);
-        trustPointsLabel.setText(String.valueOf(trustPoints));
+        trustPointsLabel.setText(String.valueOf(reviewsService.getTrustPoints(tutorId)));
     }
 
-    @FXML
-    private void filterAll() {
-        filteredReviews = allReviews;
+    @FXML private void filterAll()     { filteredReviews = allReviews; displayReviews(filteredReviews); }
+    @FXML private void filter5Stars()  { filter(r -> r.getRating() == 5); }
+    @FXML private void filter4Stars()  { filter(r -> r.getRating() == 4); }
+    @FXML private void filter3Stars()  { filter(r -> r.getRating() == 3); }
+    @FXML private void filterLow()     { filter(r -> r.getRating() <= 2); }
+
+    private void filter(java.util.function.Predicate<Reviews> pred) {
+        filteredReviews = allReviews.stream().filter(pred).collect(Collectors.toList());
         displayReviews(filteredReviews);
     }
 
-    @FXML
-    private void filter5Stars() {
-        filteredReviews = allReviews.stream()
-                .filter(r -> r.getRating() == 5)
-                .collect(Collectors.toList());
-        displayReviews(filteredReviews);
-    }
-
-    @FXML
-    private void filter4Stars() {
-        filteredReviews = allReviews.stream()
-                .filter(r -> r.getRating() == 4)
-                .collect(Collectors.toList());
-        displayReviews(filteredReviews);
-    }
-
-    @FXML
-    private void filter3Stars() {
-        filteredReviews = allReviews.stream()
-                .filter(r -> r.getRating() == 3)
-                .collect(Collectors.toList());
-        displayReviews(filteredReviews);
-    }
-
-    @FXML
-    private void filterLow() {
-        filteredReviews = allReviews.stream()
-                .filter(r -> r.getRating() <= 2)
-                .collect(Collectors.toList());
-        displayReviews(filteredReviews);
-    }
     @FXML
     private void goToDashboard() {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/TutorDashboardView.fxml"));
-            Scene scene = reviewsContainer.getScene();
-            scene.setRoot(root);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Erreur");
-            alert.setHeaderText("Erreur de navigation");
-            alert.setContentText("Impossible d'ouvrir le tableau de bord.");
-            alert.showAndWait();
-        }
+            reviewsContainer.getScene().setRoot(root);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }
