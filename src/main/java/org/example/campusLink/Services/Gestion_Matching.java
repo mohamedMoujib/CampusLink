@@ -83,7 +83,7 @@ public class Gestion_Matching {
                 p.category_id
             FROM publications p
             WHERE p.type_publication = 'DEMANDE_SERVICE'
-              AND p.status = 'ACTIVE'
+              AND p.status = 'EN_ATTENTE'
               AND p.created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
             ORDER BY p.created_at DESC
         """;

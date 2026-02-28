@@ -242,7 +242,7 @@ public class CreatePublication_controller implements Initializable {
                     pub.setPrixVente(java.math.BigDecimal.valueOf(prix));
                     pub.setLocalisation(localisation.isEmpty() ? null : localisation);
                     pub.setImageUrl(imagePathToSave);
-                    pub.setStatus(Publications.StatusPublication.ACTIVE);
+                    pub.setStatus(Publications.StatusPublication.EN_COURS);
                     gestionPublication.ajouterPublication(pub);
                     int pubId = pub.getId();
                     Platform.runLater(() -> {

@@ -241,19 +241,10 @@ public class Publication_controller {
         VBox card = new VBox(12);
         card.getStyleClass().add("publication-card");
 
-        // ===== 1. HEADER (sans type visible — demande/vente masqué pour l'utilisateur) =====
+        // ===== 1. HEADER (status masqué pour l'utilisateur) =====
         HBox header = new HBox(10);
         header.getStyleClass().add("card-header");
         header.setAlignment(Pos.CENTER_LEFT);
-
-        Region spacer1 = new Region();
-        HBox.setHgrow(spacer1, Priority.ALWAYS);
-
-        Label statusBadge = new Label(pub.getStatusIcon() + " " + pub.getStatus().getLabel());
-        statusBadge.getStyleClass().add("status-badge");
-        statusBadge.getStyleClass().add("status-" + pub.getStatus().name().toLowerCase());
-
-        header.getChildren().addAll(spacer1, statusBadge);
 
         // ===== 2. TITLE =====
         Label title = new Label(pub.getTitre());
@@ -439,8 +430,7 @@ public class Publication_controller {
 
             StringBuilder content = new StringBuilder();
             content.append("Type: ").append(pub.getTypePublication().getLabel()).append("\n");
-            content.append("Prix: ").append(pub.getFormattedPrice()).append("\n");
-            content.append("Statut: ").append(pub.getStatus().getLabel()).append("\n\n");
+            content.append("Prix: ").append(pub.getFormattedPrice()).append("\n\n");
             content.append("Description:\n").append(pub.getMessage()).append("\n\n");
             if (pub.getLocalisation() != null)
                 content.append("Localisation: ").append(pub.getLocalisation()).append("\n");

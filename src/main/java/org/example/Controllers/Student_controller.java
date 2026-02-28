@@ -18,7 +18,9 @@ import org.example.campusLink.Services.Gestion_Service;
 import org.example.campusLink.entities.Services;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class Student_controller {
 
@@ -77,6 +79,7 @@ public class Student_controller {
             System.out.println("Loading services...");
 
             List<Services> services = gestionService.afficherServices();
+            List<Services> filtered = applyFilters(services);
             servicesGrid.getChildren().clear();
 
             if (services == null || services.isEmpty()) {
@@ -86,10 +89,17 @@ public class Student_controller {
                 return;
             }
 
+            if (filtered.isEmpty()) {
+                Label emptyLabel = new Label("Aucun service ne correspond aux filtres sélectionnés.");
+                emptyLabel.getStyleClass().add("empty-state");
+                servicesGrid.add(emptyLabel, 0, 0, 3, 1);
+                return;
+            }
+
             int row = 0;
             int col = 0;
 
-            for (Services service : services) {
+            for (Services service : filtered) {
                 VBox serviceCard = createServiceCard(service);
                 servicesGrid.add(serviceCard, col, row);
 
@@ -100,13 +110,91 @@ public class Student_controller {
                 }
             }
 
-            System.out.println("Loaded " + services.size() + " services");
+            System.out.println("Loaded " + filtered.size() + " services (filtered)");
 
         } catch (Exception e) {
             System.err.println("Error loading services: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger les services: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    private List<Services> applyFilters(List<Services> services) {
+        if (services == null || services.isEmpty()) {
+            return List.of();
+        }
+
+        var stream = services.stream();
+
+        // Catégorie (approximation par nom de catégorie affiché)
+        if (categorieCombo != null) {
+            String val = categorieCombo.getValue();
+            if (val != null && !"Tous".equalsIgnoreCase(val)) {
+                String needle = val.toLowerCase(Locale.ROOT);
+                stream = stream.filter(s -> {
+                    String cat = s.getCategoryDisplayName();
+                    return cat != null && cat.toLowerCase(Locale.ROOT).contains(needle);
+                });
+            }
+        }
+
+        // Tarif
+        if (tarifCombo != null) {
+            String val = tarifCombo.getValue();
+            if (val != null && !val.startsWith("Tous")) {
+                stream = stream.filter(s -> {
+                    double p = s.getPrice();
+                    return switch (val) {
+                        case "Moins de 15€" -> p < 15;
+                        case "15€ - 25€" -> p >= 15 && p <= 25;
+                        case "25€ - 35€" -> p >= 25 && p <= 35;
+                        case "Plus de 35€" -> p > 35;
+                        default -> true;
+                    };
+                });
+            }
+        }
+
+        // Recherche texte
+        String keyword = (searchField != null && searchField.getText() != null)
+                ? searchField.getText().trim()
+                : null;
+        if (keyword != null && !keyword.isEmpty()) {
+            String needle = keyword.toLowerCase(Locale.ROOT);
+            stream = stream.filter(s -> {
+                String title = s.getTitle();
+                String desc = s.getDescription();
+                String cat = s.getCategoryDisplayName();
+                String prestataire = s.getPrestataireDisplayName();
+                String priceStr = s.getFormattedPrice();
+
+                return (title != null && title.toLowerCase(Locale.ROOT).contains(needle)) ||
+                        (desc != null && desc.toLowerCase(Locale.ROOT).contains(needle)) ||
+                        (cat != null && cat.toLowerCase(Locale.ROOT).contains(needle)) ||
+                        (prestataire != null && prestataire.toLowerCase(Locale.ROOT).contains(needle)) ||
+                        (priceStr != null && priceStr.toLowerCase(Locale.ROOT).contains(needle));
+            });
+        }
+
+        List<Services> out = stream.toList();
+
+        // Tri
+        if (trierCombo != null) {
+            String val = trierCombo.getValue();
+            if (val != null) {
+                Comparator<Services> comparator = switch (val) {
+                    case "Prix croissant" -> Comparator.comparingDouble(Services::getPrice);
+                    case "Prix décroissant" -> Comparator.comparingDouble(Services::getPrice).reversed();
+                    case "Plus récent" -> Comparator.comparingInt(Services::getId).reversed();
+                    default -> null; // "Meilleure note" ou autre -> garder l'ordre par défaut
+                };
+                if (comparator != null) {
+                    out = out.stream().sorted(comparator).toList();
+                }
+            }
+        }
+
+        return out;
     }
 
     /**

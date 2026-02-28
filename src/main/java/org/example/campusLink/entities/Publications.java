@@ -92,7 +92,7 @@ public class Publications {
     // ==================== CONSTRUCTEURS ====================
 
     public Publications() {
-        this.status = StatusPublication.ACTIVE;
+        this.status = StatusPublication.EN_COURS; // valeur par défaut remplacée ensuite par EN_ATTENTE lors de la création explicite
         this.vues = 0;
         this.createdAt = new Timestamp(System.currentTimeMillis());
     }

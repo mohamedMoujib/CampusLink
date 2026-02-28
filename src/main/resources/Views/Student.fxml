@@ -93,7 +93,8 @@
 
             <!-- Filtres -->
             <HBox spacing="20" alignment="CENTER_LEFT">
-                <VBox spacing="8" styleClass="filter-group">
+                <!-- Catégorie masquée (non utilisée) -->
+                <VBox spacing="8" styleClass="filter-group" visible="false" managed="false">
                     <Label text="Catégorie" styleClass="filter-label"/>
                     <ComboBox fx:id="categorieCombo"
                               promptText="Tous"

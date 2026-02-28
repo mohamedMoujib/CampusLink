@@ -88,7 +88,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO publications (student_id, type_publication, titre, message, image_url, localisation, service_id, requested_date, proposed_price, prix_vente, status) VALUES ({{ $json.student_id }}, '{{ $json.type_publication }}', '{{ $json.titre.replace(/'/g, \"''\") }}', '{{ $json.message.replace(/'/g, \"''\") }}', {{ $json.image_url ? (\"'\" + $json.image_url.replace(/'/g, \"''\") + \"'\") : 'NULL' }}, {{ $json.localisation ? (\"'\" + $json.localisation.replace(/'/g, \"''\") + \"'\") : 'NULL' }}, NULL, NULL, NULL, {{ $json.prix_vente }}, 'ACTIVE');\nSELECT LAST_INSERT_ID() AS publication_id;",
+        "query": "INSERT INTO publications (student_id, type_publication, titre, message, image_url, localisation, service_id, requested_date, proposed_price, prix_vente, status) VALUES ({{ $json.student_id }}, '{{ $json.type_publication }}', '{{ $json.titre.replace(/'/g, \"''\") }}', '{{ $json.message.replace(/'/g, \"''\") }}', {{ $json.image_url ? (\"'\" + $json.image_url.replace(/'/g, \"''\") + \"'\") : 'NULL' }}, {{ $json.localisation ? (\"'\" + $json.localisation.replace(/'/g, \"''\") + \"'\") : 'NULL' }}, NULL, NULL, NULL, {{ $json.prix_vente }}, 'EN_ATTENTE');\nSELECT LAST_INSERT_ID() AS publication_id;",
         "additionalFields": {}
       },
       "id": "node-006",
