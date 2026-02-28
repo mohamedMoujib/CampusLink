@@ -12,8 +12,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.campusLink.entities.User;
-import org.example.campusLink.services.UserService;
-import org.example.campusLink.services.VerificationService;
+import org.example.campusLink.Services.UserService;
+import org.example.campusLink.Services.VerificationService;
 import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.campusLink.controllers.reviews.TutorReviewsController"
+            styleClass="root"
+           stylesheets="@/Styles/reviews.css">
+
+    <!-- TOP NAVBAR -->
+    <top>
+        <VBox>
+            <!-- Header avec logo et user -->
+            <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📚" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2">
+                        <Label text="CampusLink" styleClass="logo-tutor"/>
+                        <Label text="Espace Tuteur" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="20" alignment="CENTER_RIGHT">
+                    <Label text="🔔" style="-fx-font-size: 20px;"/>
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label fx:id="tutorName" text="Sami Prestataire" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                        <Label fx:id="tutorEmail" text="sami@pro.tn" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                    <Label text="👤" style="-fx-font-size: 24px;"/>
+                </HBox>
+            </HBox>
+
+            <!-- Navigation tabs -->
+            <HBox spacing="0" styleClass="nav-tabs">
+                <Button text="📊 Tableau de bord" styleClass="nav-tab-tutor" onAction="#goToDashboard"/>
+                <Button text="🛠️ Mes services" styleClass="nav-tab-tutor"/>
+                <Button text="📅 Réservations" styleClass="nav-tab-tutor"/>
+                <Button text="⭐ Avis reçus" styleClass="nav-tab-active-tutor"/>
+                <Button text="💰 Revenus" styleClass="nav-tab-tutor"/>
+                <Button text="👤 Mon profil" styleClass="nav-tab-tutor"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox spacing="20" style="-fx-padding: 40 60 40 60;">
+
+            <!-- Page Header avec statistiques -->
+            <VBox spacing="15">
+                <Label text="Avis reçus" styleClass="page-title"/>
+
+                <!-- Statistiques -->
+                <HBox spacing="20" alignment="CENTER">
+                    <!-- Note moyenne -->
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
+                        <Label text="Note moyenne" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER">
+                            <Label fx:id="averageRatingLabel" text="4.5" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                            <Label text="★" style="-fx-font-size:32px; -fx-text-fill:#fbbf24;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Total avis -->
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
+                        <Label text="Total d'avis" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <Label fx:id="totalReviewsLabel" text="28" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                    </VBox>
+
+                    <!-- Points de confiance -->
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
+                        <Label text="Points de confiance" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER">
+                            <Label fx:id="trustPointsLabel" text="16" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#059669;"/>
+                            <Label text="🏆" style="-fx-font-size:28px;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Avis récents -->
+                    <VBox spacing="8" styleClass="stats-card" alignment="CENTER">
+                        <Label text="Ce mois-ci" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <Label fx:id="monthReviewsLabel" text="5" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#059669;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Filtres -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="Filtrer par note :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                <Button text="Tous" styleClass="filter-button-active-tutor" onAction="#filterAll"/>
+                <Button text="⭐⭐⭐⭐⭐ 5" styleClass="filter-button" onAction="#filter5Stars"/>
+                <Button text="⭐⭐⭐⭐ 4" styleClass="filter-button" onAction="#filter4Stars"/>
+                <Button text="⭐⭐⭐ 3" styleClass="filter-button" onAction="#filter3Stars"/>
+                <Button text="⭐⭐ 2-" styleClass="filter-button" onAction="#filterLow"/>
+
+                <!-- 🔥 SÉPARATEUR -->
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- 🔥 SÉLECTEUR DE LANGUE -->
+                <Label text="Traduire en :" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                <ComboBox fx:id="languageSelector" prefWidth="150" styleClass="filter-combo"/>
+            </HBox>
+
+            <!-- Liste des avis -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <VBox fx:id="reviewsContainer" spacing="20"/>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

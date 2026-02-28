@@ -9,9 +9,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.campusLink.entities.*;
-import org.example.campusLink.services.AuthService;
-import org.example.campusLink.services.GoogleAuthServices;
-import org.example.campusLink.services.UserService;
+import org.example.campusLink.Services.AuthService;
+import org.example.campusLink.Services.GoogleAuthServices;
+import org.example.campusLink.Services.UserService;
 import org.example.campusLink.utils.AlertHelper;
 import org.example.campusLink.utils.PasswordUtil;
 

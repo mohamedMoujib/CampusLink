@@ -1,4 +1,4 @@
-package org.example.campusLink.services;
+package org.example.campusLink.Services;
 
 import org.example.campusLink.entities.*;
 import org.example.campusLink.utils.MyDatabase;
@@ -8,17 +8,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class UserService implements Iservice<User> {
-    private Connection conn;
 
-    public UserService() {
-        conn = MyDatabase.getInstance().getConnection();
+    // ✅ Méthode centralisée pour obtenir une connexion
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
     }
 
-    public UserService(Connection connection) {
-        this.conn = connection;
-    }
     // ==================== CREATE ====================
 
     @Override
@@ -37,14 +33,13 @@ public class UserService implements Iservice<User> {
         }
     }
 
-
     public void ajouterEtudiant(Etudiant etudiant) throws SQLException {
         String sql = "INSERT INTO users (user_type, name, email, password, phone, " +
                 "gender, address, universite, filiere, specialization, status) " +
                 "VALUES ('ETUDIANT', ?, ? , ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, etudiant.getName());
             ps.setString(2, etudiant.getEmail());
@@ -59,9 +54,10 @@ public class UserService implements Iservice<User> {
 
             ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                etudiant.setId(rs.getInt(1));
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    etudiant.setId(rs.getInt(1));
+                }
             }
         }
     }
@@ -71,8 +67,8 @@ public class UserService implements Iservice<User> {
                 "gender,address, universite, filiere, specialization, trust_points, status) " +
                 "VALUES ('PRESTATAIRE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, prestataire.getName());
             ps.setString(2, prestataire.getEmail());
@@ -88,9 +84,10 @@ public class UserService implements Iservice<User> {
 
             ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                prestataire.setId(rs.getInt(1));
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    prestataire.setId(rs.getInt(1));
+                }
             }
         }
     }
@@ -100,8 +97,8 @@ public class UserService implements Iservice<User> {
                 "gender,address,  status) " +
                 "VALUES ('ADMIN', ? ,? , ?, ?, ?, ?, ?)";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, admin.getName());
             ps.setString(2, admin.getEmail());
@@ -113,9 +110,10 @@ public class UserService implements Iservice<User> {
 
             ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                admin.setId(rs.getInt(1));
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    admin.setId(rs.getInt(1));
+                }
             }
         }
     }
@@ -126,8 +124,8 @@ public class UserService implements Iservice<User> {
     public User getById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -144,9 +142,9 @@ public class UserService implements Iservice<User> {
         String sql = "SELECT * FROM users";
         List<User> users = new ArrayList<>();
 
-        try (
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 users.add(createUserFromResultSet(rs));
@@ -158,8 +156,8 @@ public class UserService implements Iservice<User> {
     public User getUserByEmail(String email) throws SQLException {
         String sql = "SELECT * FROM users WHERE email = ?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -171,43 +169,12 @@ public class UserService implements Iservice<User> {
         return null;
     }
 
-
-    public List<Etudiant> getAllEtudiants() throws SQLException {
-        String sql = "SELECT * FROM users WHERE user_type = 'ETUDIANT'";
-        List<Etudiant> etudiants = new ArrayList<>();
-
-        try (
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                etudiants.add(createEtudiant(rs));
-            }
-        }
-        return etudiants;
-    }
-
-    public List<Prestataire> getAllPrestataires() throws SQLException {
-        String sql = "SELECT * FROM users WHERE user_type = 'PRESTATAIRE'";
-        List<Prestataire> prestataires = new ArrayList<>();
-
-        try (
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                prestataires.add(createPrestataire(rs));
-            }
-        }
-        return prestataires;
-    }
-
     // ==================== UPDATE ====================
 
     @Override
     public void modifier(User user) throws SQLException {
 
-        validateUser(user);   // ✅ Validation avant update
+        validateUser(user);
 
         if (user instanceof Etudiant) {
             modifierEtudiant((Etudiant) user);
@@ -218,14 +185,13 @@ public class UserService implements Iservice<User> {
         }
     }
 
-
     private void modifierEtudiant(Etudiant etudiant) throws SQLException {
         String sql = "UPDATE users SET name=?, email=?, password=?, phone=?, " +
                 "gender=?, universite=?, filiere=?, specialization=?, " +
                 "profile_picture=?, address=?, status=? WHERE id=?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, etudiant.getName());
             ps.setString(2, etudiant.getEmail());
@@ -249,8 +215,8 @@ public class UserService implements Iservice<User> {
                 "gender=?, universite=?, specialization=?, filiere=? , " +
                 "trust_points=?, profile_picture=?, address=?, status=? WHERE id=?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, prestataire.getName());
             ps.setString(2, prestataire.getEmail());
@@ -274,8 +240,8 @@ public class UserService implements Iservice<User> {
         String sql = "UPDATE users SET name=?, email=?, password=?, phone=?, " +
                 "gender=?,  profile_picture=?, address=?, status=? WHERE id=?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, admin.getName());
             ps.setString(2, admin.getEmail());
@@ -297,15 +263,15 @@ public class UserService implements Iservice<User> {
     public void supprimer(User user) throws SQLException {
         String sql = "DELETE FROM users WHERE id = ?";
 
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, user.getId());
             ps.executeUpdate();
         }
     }
 
-    // ==================== HELPER METHODS ====================
+    // ==================== HELPERS ====================
 
     private User createUserFromResultSet(ResultSet rs) throws SQLException {
         String userType = rs.getString("user_type");
@@ -405,15 +371,18 @@ public class UserService implements Iservice<User> {
 
     public User findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
-        try {
-            PreparedStatement pst = conn.prepareStatement(sql);
+        try (Connection conn = getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+
             pst.setString(1, email);
             ResultSet rs = pst.executeQuery();
+
             if (rs.next()) {
-                return createUserFromResultSet(rs); // ✅ loads ALL fields
+                return createUserFromResultSet(rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }}
+    }
+}

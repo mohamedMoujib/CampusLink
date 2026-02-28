@@ -56,7 +56,7 @@
                     <Button text="🔍 Rechercher des services" styleClass="nav-tab"/>
                     <Button text="📅 Mes réservations" styleClass="nav-tab"/>
                     <Button text="💳 Paiements" styleClass="nav-tab"/>
-                    <Button text="⭐ Mes avis" styleClass="nav-tab"/>
+                    <Button text="⭐ Mes avis" styleClass="nav-tab" onAction="#handleNavigateToReviews"/>
                     <Button text="👤 Mon profil" styleClass="nav-tab-active"/>
                 </HBox>
             </VBox>

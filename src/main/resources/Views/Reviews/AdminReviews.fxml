@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.campusLink.controllers.reviews.AdminReviewsController"
+            styleClass="root"
+            stylesheets="@/Styles/reviews.css">
+
+    <!-- TOP NAVBAR -->
+    <top>
+        <VBox>
+            <!-- Header avec logo et user -->
+            <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📚" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2">
+                        <Label text="CampusLink" styleClass="logo"/>
+                        <Label text="Panneau Administrateur" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="20" alignment="CENTER_RIGHT">
+                    <Label text="🔔" style="-fx-font-size: 20px;"/>
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label text="Admin" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                        <Label text="admin@campuslink.fr" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                    <Label text="👤" style="-fx-font-size: 24px;"/>
+                </HBox>
+            </HBox>
+
+            <!-- Navigation tabs -->
+            <HBox spacing="0" styleClass="nav-tabs">
+                <Button text="📊 Tableau de bord" styleClass="nav-tab"/>
+                <Button text="👥 Utilisateurs" styleClass="nav-tab"/>
+                <Button text="🛠️ Services" styleClass="nav-tab"/>
+                <Button text="⭐ Gestion des avis" styleClass="nav-tab-active"/>
+                <Button text="📅 Réservations" styleClass="nav-tab"/>
+                <Button text="⚙️ Paramètres" styleClass="nav-tab"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox spacing="20" style="-fx-padding: 40 60 40 60;">
+
+            <!-- Page Header avec statistiques -->
+            <VBox spacing="15">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Gestion des avis" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="📥 Exporter" styleClass="secondary-button" onAction="#exportReviews"/>
+                </HBox>
+
+                <!-- Statistiques -->
+                <HBox spacing="20">
+                    <!-- Total avis -->
+                    <VBox spacing="8" styleClass="stats-card">
+                        <Label text="Total des avis" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label fx:id="totalReviewsLabel" text="0" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                            <Label text="📝" style="-fx-font-size:28px;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Avis positifs -->
+                    <VBox spacing="8" styleClass="stats-card">
+                        <Label text="Avis positifs" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label fx:id="positiveReviewsLabel" text="0" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#10b981;"/>
+                            <Label text="👍" style="-fx-font-size:28px;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Avis négatifs -->
+                    <VBox spacing="8" styleClass="stats-card">
+                        <Label text="Avis négatifs" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label fx:id="negativeReviewsLabel" text="0" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#ef4444;"/>
+                            <Label text="👎" style="-fx-font-size:28px;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Avis signalés -->
+                    <VBox spacing="8" styleClass="stats-card">
+                        <Label text="Signalés" style="-fx-font-size:13px; -fx-text-fill:#6b7280;"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label fx:id="reportedReviewsLabel" text="0" style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#f59e0b;"/>
+                            <Label text="⚠️" style="-fx-font-size:28px;"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Filtres -->
+            <VBox spacing="15" styleClass="filter-section">
+                <Label text="Filtres" style="-fx-font-weight:bold; -fx-font-size:16px;"/>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <!-- Filtre par prestataire -->
+                    <VBox spacing="5">
+                        <Label text="Prestataire :" style="-fx-font-size:13px; -fx-font-weight:bold;"/>
+                        <ComboBox fx:id="prestataireFilter" prefWidth="200" styleClass="filter-combo"/>
+                    </VBox>
+
+                    <!-- Filtre par note -->
+                    <VBox spacing="5">
+                        <Label text="Note :" style="-fx-font-size:13px; -fx-font-weight:bold;"/>
+                        <ComboBox fx:id="ratingFilter" prefWidth="200" styleClass="filter-combo"/>
+                    </VBox>
+
+                    <!-- Recherche -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Recherche :" style="-fx-font-size:13px; -fx-font-weight:bold;"/>
+                        <TextField fx:id="searchField" 
+                                 promptText="Rechercher dans les commentaires, services, noms..."
+                                 styleClass="search-field"/>
+                    </VBox>
+
+                    <!-- Bouton reset -->
+                    <VBox spacing="5">
+                        <Label text=" " style="-fx-font-size:13px;"/>
+                        <Button text="🔄 Réinitialiser" 
+                                styleClass="secondary-button"
+                                onAction="#resetFilters"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Liste des avis -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                <VBox fx:id="reviewsContainer" spacing="20"/>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

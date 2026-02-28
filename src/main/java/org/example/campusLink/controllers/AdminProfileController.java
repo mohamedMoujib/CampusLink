@@ -11,10 +11,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.example.campusLink.entities.Admin;
-import org.example.campusLink.services.AuthService;
-import org.example.campusLink.services.UserService;
+import org.example.campusLink.Services.AuthService;
+import org.example.campusLink.Services.UserService;
 import org.example.campusLink.utils.AlertHelper;
-import org.example.campusLink.utils.PasswordUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -334,4 +333,6 @@ public class AdminProfileController {
             AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.ERROR);
         }
     }
+
+
 }

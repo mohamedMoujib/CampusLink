@@ -1,52 +1,44 @@
-package org.example.campusLink;
+package org.example.campusLink.mains;
 
-import org.example.campusLink.entities.Admin;
-import org.example.campusLink.services.UserService;
-import org.example.campusLink.utils.MyDatabase;
-import org.example.campusLink.utils.PasswordUtil;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import org.example.campusLink.entities.Reviews;
+import org.example.campusLink.Services.reviews.ReviewsService;
+
 
 public class Main {
 
     public static void main(String[] args) {
-        Connection connection = null;
 
-        try {
-            // 1️⃣ Get database connection
-            connection = MyDatabase.getInstance().getConnection();
+        ReviewsService reviewsService = new ReviewsService();
 
-            // 2️⃣ Initialize UserService
-            UserService userService = new UserService(connection);
+        // 1️⃣ AJOUT AVIS
+        Reviews review = new Reviews(
+                1, // studentId
+                2, // prestataireId
+                7, // reservationId
+                1, // rating (+3)
+                "Médicore service"
+        );
 
-            // 3️⃣ Create new Admin
-            Admin admin = new Admin();
-            admin.setName("Admin");
-            admin.setEmail("admin@campuslink.tn");
+        reviewsService.addReview(review);
+        System.out.println("Avis ajouté");
 
-            // Hash the password
-            String hashedPassword = PasswordUtil.hashPassword("00000000"); // replace with your password
-            admin.setPassword(hashedPassword);
+        // 2️⃣ MODIFICATION AVIS
+        reviewsService.updateReview(
+                34, // reviewId
+                1,
+                "Excellent service"
+        );
+        System.out.println("Avis modifié");
 
-            admin.setPhone("12345678");
-            admin.setAddress("Admin HQ");
-            admin.setGender("Male");
-            admin.setStatus("ACTIVE"); // Admin should be active by default
+        // 3️⃣ AFFICHER AVIS
+        Reviews r = reviewsService.getReview(34);
+        System.out.println(
+                "Note: " + r.getRating() + " | " + r.getComment()
+        );
 
-            // 4️⃣ Save admin to DB
-            userService.ajouterAdmin(admin); // assuming UserService has ajouterAdmin(Admin a)
-            System.out.println("✅ Admin created successfully!");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("❌ Error creating admin: " + e.getMessage());
-        } finally {
-            try {
-                if (connection != null) connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        // 4️⃣ SUPPRESSION AVIS (-5)
+        reviewsService.deleteReview(33);
+        System.out.println("Avis supprimé");
     }
 }

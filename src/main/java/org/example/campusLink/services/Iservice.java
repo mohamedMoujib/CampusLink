@@ -1,4 +1,4 @@
-package org.example.campusLink.services;
+package org.example.campusLink.Services;
 
 import java.sql.SQLException;
 import java.util.List;

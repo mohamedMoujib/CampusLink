@@ -10,9 +10,9 @@ import javafx.stage.Stage;
 import org.example.campusLink.entities.Etudiant;
 import org.example.campusLink.entities.Prestataire;
 import org.example.campusLink.entities.User;
-import org.example.campusLink.services.AuthService;
-import org.example.campusLink.services.UserService;
-import org.example.campusLink.services.VerificationService;
+import org.example.campusLink.Services.AuthService;
+import org.example.campusLink.Services.UserService;
+import org.example.campusLink.Services.VerificationService;
 import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;

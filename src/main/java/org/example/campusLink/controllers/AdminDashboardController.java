@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -13,14 +14,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.campusLink.entities.*;
-import org.example.campusLink.services.AuthService;
-import org.example.campusLink.services.UserService;
+import org.example.campusLink.Services.AuthService;
+import org.example.campusLink.Services.UserService;
 import org.example.campusLink.utils.AlertHelper;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 /**
  * Controller pour le dashboard admin
@@ -446,6 +448,27 @@ public class AdminDashboardController {
     private void showWarning(String message) {
         if (rootPane != null) {
             AlertHelper.showAlert(rootPane, message, AlertHelper.AlertType.WARNING);
+        }
+    }
+    @FXML
+    private void handleNavigateToAdminReviews(javafx.event.ActionEvent event) {
+        try {
+            FXMLLoader loader =
+                    new FXMLLoader(getClass().getResource("/Views/Reviews/AdminReviews.fxml"));
+
+            Parent rootView = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(rootView));
+            stage.centerOnScreen();
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Navigation error");
+            alert.setContentText("Impossible d'ouvrir AdminReviews.fxml");
+            alert.showAndWait();
         }
     }
 }

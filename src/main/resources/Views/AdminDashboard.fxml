@@ -51,6 +51,7 @@
                     <Button text="👥 Gestion Utilisateurs" styleClass="nav-tab-active" onAction="#handleNavigateToDashboard"/>
                     <Button text="📊 Statistiques" styleClass="nav-tab"/>
                     <Button text="👤 Mon Profil" styleClass="nav-tab" onAction="#handleNavigateToProfile"/>
+                    <Button text="⭐ Gestion des avis" styleClass="nav-tab-active" onAction="#handleNavigateToAdminReviews"/>
                     <Button text="🚪 Déconnexion" styleClass="nav-tab" onAction="#handleLogout"/>
                 </HBox>
             </VBox>
