@@ -15,14 +15,12 @@
     </properties>
 
     <dependencies>
-        <!-- MySQL Connector/J -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
 
-        <!-- JavaFX  -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -34,7 +32,14 @@
             <version>23</version>
         </dependency>
 
-        <!-- JUnit for testing -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>23</version>
+            <classifier>win</classifier>
+        </dependency>
+
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -63,6 +68,12 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>org.example.campusLink.mains.MainFX</mainClass>
+                    <options>
+                        <option>--module-path</option>
+                        <option>${project.basedir}/lib/javafx-sdk-23.0.2/lib</option>
+                        <option>--add-modules</option>
+                        <option>javafx.controls,javafx.fxml,javafx.web,jdk.jsobject</option>
+                    </options>
                 </configuration>
             </plugin>
 

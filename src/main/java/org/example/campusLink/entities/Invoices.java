@@ -56,4 +56,7 @@ public class Invoices {
                 ", details='" + details + '\'' +
                 '}';
     }
+
+    public void setDate(Timestamp timestamp) {
+    }
 }

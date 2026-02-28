@@ -2,7 +2,6 @@ package org.example.campusLink.services;
 
 import org.example.campusLink.entities.Payments;
 import org.example.campusLink.enumeration.Method;
-import org.example.campusLink.enumeration.Status;
 import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
@@ -14,19 +13,18 @@ class ServicesPaymentsTest {
 
     private ServicesPayments paymentService;
     private Payments testPayment;
-
     private final int validReservationId = 1;
 
     @BeforeEach
     void setUp() throws SQLException {
         paymentService = new ServicesPayments();
-        testPayment = new Payments(
-                0,
-                validReservationId,
-                150.0f,
-                Method.PHYSICAL,
-                Status.PAID
-        );
+        testPayment = new Payments();
+        testPayment.setReservationId(validReservationId);
+        testPayment.setAmount(150.0f);
+        testPayment.setMethod(Method.PHYSICAL);
+        testPayment.setMeetingLat(48.8566);
+        testPayment.setMeetingLng(2.3522);
+        testPayment.setMeetingAddress("Paris, France");
 
         paymentService.ajouter(testPayment);
         testPayment.setId(paymentService.getLastInsertedPaymentId());
@@ -38,11 +36,13 @@ class ServicesPaymentsTest {
         List<Payments> payments = paymentService.recuperer();
 
         boolean found = payments.stream().anyMatch(p ->
-                p.getId() == testPayment.getId()
-                        && p.getReservationId() == testPayment.getReservationId()
-                        && p.getAmount() == testPayment.getAmount()
-                        && p.getMethod() == testPayment.getMethod()
-                        && p.getStatus() == testPayment.getStatus()
+                p.getId() == testPayment.getId() &&
+                        p.getReservationId() == testPayment.getReservationId() &&
+                        p.getAmount() == testPayment.getAmount() &&
+                        p.getMethod() == testPayment.getMethod() &&
+                        (p.getMeetingLat() != null && p.getMeetingLat().equals(testPayment.getMeetingLat())) &&
+                        (p.getMeetingLng() != null && p.getMeetingLng().equals(testPayment.getMeetingLng())) &&
+                        (p.getMeetingAddress() != null && p.getMeetingAddress().equals(testPayment.getMeetingAddress()))
         );
         assertTrue(found, "Payment should be inserted in the database");
         System.out.println("Test Ajouter passed for payment ID " + testPayment.getId());
@@ -59,7 +59,6 @@ class ServicesPaymentsTest {
 
     @Test
     void testSupprimer() throws SQLException {
-        paymentService.deleteInvoicesForPayment(testPayment.getId());
         paymentService.supprimer(testPayment);
 
         List<Payments> payments = paymentService.recuperer();
@@ -72,15 +71,15 @@ class ServicesPaymentsTest {
     @Test
     void testModifier() throws SQLException {
         testPayment.setAmount(200.0f);
-        testPayment.setStatus(Status.CANCELLED);
+        testPayment.setMeetingAddress("Lyon, France");
 
         paymentService.modifier(testPayment);
 
         List<Payments> payments = paymentService.recuperer();
         boolean updated = payments.stream().anyMatch(p ->
-                p.getId() == testPayment.getId()
-                        && p.getAmount() == 200.0f
-                        && p.getStatus() == Status.CANCELLED
+                p.getId() == testPayment.getId() &&
+                        p.getAmount() == 200.0f &&
+                        p.getMeetingAddress().equals("Lyon, France")
         );
 
         assertTrue(updated, "Payment should be updated");
@@ -90,7 +89,6 @@ class ServicesPaymentsTest {
     @AfterEach
     void cleanUp() throws SQLException {
         if (testPayment != null) {
-            paymentService.deleteInvoicesForPayment(testPayment.getId());
             paymentService.supprimer(testPayment);
             System.out.println("CleanUp: Payment deleted for ID " + testPayment.getId());
         }

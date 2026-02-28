@@ -25,8 +25,6 @@ public class ViewInvoice{
     @FXML
     private TableView<Invoices> invoiceTable;
 
-    @FXML
-    private TableColumn<Invoices, Integer> idColumn;
 
     @FXML
     private TableColumn<Invoices, Integer> paymentIdColumn;
@@ -45,8 +43,6 @@ public class ViewInvoice{
     @FXML
     public void initialize() {
         invoiceService = new ServiceInvoices();
-
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         paymentIdColumn.setCellValueFactory(new PropertyValueFactory<>("paymentId"));
         dateColumn.setCellValueFactory(new PropertyValueFactory<>("invoiceDate"));
         detailsColumn.setCellValueFactory(new PropertyValueFactory<>("details"));

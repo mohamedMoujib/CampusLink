@@ -3,7 +3,6 @@ package org.example.campusLink.services;
 import org.example.campusLink.entities.Invoices;
 import org.example.campusLink.entities.Payments;
 import org.example.campusLink.enumeration.Method;
-import org.example.campusLink.enumeration.Status;
 import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
@@ -24,21 +23,21 @@ class ServiceInvoicesTest {
         invoiceService = new ServiceInvoices();
         paymentService = new ServicesPayments();
 
-        testPayment = new Payments(
-                0,
-                1, // reservation_id MUST exist in DB
-                150.0f,
-                Method.PHYSICAL,
-                Status.PAID
-        );
+        testPayment = new Payments();
+        testPayment.setReservationId(1); // must exist in DB
+        testPayment.setAmount(150.0f);
+        testPayment.setMethod(Method.PHYSICAL);
+        testPayment.setMeetingLat(null);
+        testPayment.setMeetingLng(null);
+        testPayment.setMeetingAddress(null);
+
         paymentService.ajouter(testPayment);
         testPayment.setId(paymentService.getLastInsertedPaymentId());
-        testInvoice = new Invoices(
-                0,
-                testPayment.getId(), // use the real payment id
-                new Timestamp(System.currentTimeMillis()),
-                "JUnit test invoice"
-        );
+
+        testInvoice = new Invoices();
+        testInvoice.setPaymentId(testPayment.getId());
+        testInvoice.setDate(new Timestamp(System.currentTimeMillis()));
+        testInvoice.setDetails("JUnit test invoice");
     }
 
     @Test

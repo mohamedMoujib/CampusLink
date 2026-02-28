@@ -1,10 +1,8 @@
-/* ============= ROOT ============= */
 .root {
     -fx-font-family: "Segoe UI", "Inter", sans-serif;
     -fx-background-color: #f8f9fa;
 }
 
-/* ============= TOP HEADER ============= */
 .top-header {
     -fx-background-color: white;
     -fx-padding: 15 60 15 60;
@@ -18,7 +16,6 @@
     -fx-text-fill: #4f46e5;
 }
 
-/* ============= NAV TABS ============= */
 .nav-tabs {
     -fx-background-color: white;
     -fx-padding: 0 60 0 60;
@@ -50,7 +47,6 @@
     -fx-font-size: 14px;
 }
 
-/* ============= PAGE ============= */
 .page-title {
     -fx-font-size: 28px;
     -fx-font-weight: bold;
@@ -66,7 +62,6 @@
     -fx-background-color: transparent;
 }
 
-/* ============= BUTTONS ============= */
 .primary-button {
     -fx-background-color: #4f46e5;
     -fx-text-fill: white;
@@ -123,7 +118,6 @@
     -fx-underline: true;
 }
 
-/* ============= FORM ============= */
 .form-card {
     -fx-background-color: white;
     -fx-padding: 30;
@@ -151,7 +145,6 @@
     -fx-border-width: 2;
 }
 
-/* ============= REVIEW CARDS ============= */
 .review-card {
     -fx-background-color: white;
     -fx-padding: 24;
@@ -193,7 +186,6 @@
     -fx-text-fill: #6b7280;
 }
 
-/* ============= SPINNER ============= */
 .spinner {
     -fx-background-radius: 6;
 }
@@ -202,7 +194,7 @@
     -fx-background-radius: 6;
     -fx-border-color: #d1d5db;
 }
-/* ============= STATS CARDS ============= */
+
 .stats-card {
     -fx-background-color: white;
     -fx-padding: 20;
@@ -213,7 +205,6 @@
     -fx-min-width: 180px;
 }
 
-/* ============= FILTER BUTTONS ============= */
 .filter-button {
     -fx-background-color: white;
     -fx-text-fill: #6b7280;

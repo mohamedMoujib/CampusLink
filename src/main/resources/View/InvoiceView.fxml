@@ -56,7 +56,6 @@
 
             <TableView fx:id="invoiceTable" prefHeight="420">
                 <columns>
-                    <TableColumn fx:id="idColumn" text="ID"/>
                     <TableColumn fx:id="paymentIdColumn" text="Payment ID"/>
                     <TableColumn fx:id="dateColumn" text="Date"/>
                     <TableColumn fx:id="detailsColumn" text="Détails"/>

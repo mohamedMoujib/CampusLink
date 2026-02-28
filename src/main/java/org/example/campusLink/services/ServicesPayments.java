@@ -1,95 +1,91 @@
 package org.example.campusLink.services;
 
-
-import org.example.campusLink.enumeration.Method;
-import org.example.campusLink.enumeration.Status;
-import org.example.campusLink.utils.MyDatabase;
 import org.example.campusLink.entities.Payments;
+import org.example.campusLink.enumeration.Method;
+import org.example.campusLink.utils.MyDatabase;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ServicesPayments implements IServices<Payments> {
+
     private Connection connection;
+
     public ServicesPayments() {
-        connection= MyDatabase.getInstance().getConnection();
+        connection = MyDatabase.getInstance().getConnection();
     }
 
     @Override
     public void ajouter(Payments payments) throws SQLException {
-
-        String sql = "INSERT INTO payments (reservation_id, amount, method, status) VALUES (?, ?, ?, ?)";
-
+        String sql = "INSERT INTO payments (reservation_id, amount, method, meeting_lat, meeting_lng, meeting_address) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = connection.prepareStatement(sql);
+
         ps.setInt(1, payments.getReservationId());
         ps.setFloat(2, payments.getAmount());
         ps.setString(3, payments.getMethod().toString());
-        ps.setString(4, payments.getStatus().toString());
+        ps.setObject(4, payments.getMeetingLat());
+        ps.setObject(5, payments.getMeetingLng());
+        ps.setString(6, payments.getMeetingAddress());
 
         ps.executeUpdate();
     }
 
     @Override
     public void modifier(Payments payments) throws SQLException {
-        String req = "UPDATE payments SET reservation_id=?, amount=?, method=?, status=? WHERE id=?";
-        PreparedStatement ps = connection.prepareStatement(req);
+        String sql = "UPDATE payments SET reservation_id=?, amount=?, method=?, meeting_lat=?, meeting_lng=?, meeting_address=? WHERE id=?";
+        PreparedStatement ps = connection.prepareStatement(sql);
+
         ps.setInt(1, payments.getReservationId());
         ps.setFloat(2, payments.getAmount());
         ps.setString(3, payments.getMethod().toString());
-        ps.setString(4, payments.getStatus().toString());
-        ps.setInt(5, payments.getId()); // use the payment ID as the WHERE condition
-        ps.executeUpdate();
-        System.out.println("Payment modified successfully for ID " + payments.getId());
-    }
+        ps.setObject(4, payments.getMeetingLat());
+        ps.setObject(5, payments.getMeetingLng());
+        ps.setString(6, payments.getMeetingAddress());
+        ps.setInt(7, payments.getId());
 
+        ps.executeUpdate();
+    }
 
     @Override
     public void supprimer(Payments payments) throws SQLException {
-        String req = "DELETE  FROM payments WHERE reservation_id=?";
-        PreparedStatement ps = connection.prepareStatement(req);
-        ps.setInt(1, payments.getReservationId());
+        String sql = "DELETE FROM payments WHERE id=?";
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, payments.getId());
         ps.executeUpdate();
     }
 
     @Override
     public List<Payments> recuperer() throws SQLException {
-        List<Payments> payments = new ArrayList<>();
-        String req = "select * from payments ";
+        List<Payments> paymentsList = new ArrayList<>();
+        String sql = "SELECT * FROM payments";
         Statement st = connection.createStatement();
-        ResultSet rs = st.executeQuery(req);
-        while (rs.next()) {
-            int payId = rs.getInt(1);
-            int resId = rs.getInt(2);
-            Float amount = rs.getFloat(3);
-            Method method = Method.valueOf(rs.getString(4));
-            Status status = Status.valueOf(rs.getString(5));
-            Payments payment = new Payments(payId, resId, amount, method,status);
-            payments.add(payment);
+        ResultSet rs = st.executeQuery(sql);
 
+        while (rs.next()) {
+            Payments payment = new Payments(
+                    rs.getInt("id"),
+                    rs.getInt("reservation_id"),
+                    rs.getFloat("amount"),
+                    Method.valueOf(rs.getString("method")),
+                    rs.getObject("meeting_lat", Double.class),
+                    rs.getObject("meeting_lng", Double.class),
+                    rs.getString("meeting_address")
+            );
+            paymentsList.add(payment);
         }
 
-        return payments;
+        return paymentsList;
     }
 
-    public void deleteInvoicesForPayment(int paymentId) throws SQLException {
-        String sql = "DELETE FROM invoices WHERE payment_id = ?";
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, paymentId);
-        ps.executeUpdate();
-    }
     public int getLastInsertedPaymentId() throws SQLException {
         String sql = "SELECT id FROM payments ORDER BY id DESC LIMIT 1";
-        try (Statement st = connection.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt("id");
-            } else {
-                throw new SQLException("No payment found");
-            }
+        Statement st = connection.createStatement();
+        ResultSet rs = st.executeQuery(sql);
+
+        if (rs.next()) {
+            return rs.getInt("id");
         }
+        throw new SQLException("No payment found");
     }
-
-
 }
