@@ -11,8 +11,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import org.example.campusLink.Services.Gestion_Categorie;
 import org.example.campusLink.Services.Gestion_Service;
+import org.example.campusLink.entities.Categorie;
 import org.example.campusLink.entities.Services;
+
+import javafx.collections.FXCollections;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -25,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,6 +42,7 @@ public class CreateService_controller {
     @FXML private TextField titleField;
     @FXML private TextArea descriptionField;
     @FXML private TextField priceField;
+    @FXML private ComboBox<String> categoryCombo;
     @FXML private Label charCountLabel;
 
     @FXML private Button uploadImageButton;
@@ -54,9 +60,12 @@ public class CreateService_controller {
     @FXML private Label aiGeneratedDesc;
     @FXML private Label aiErrorLabel;
 
-    private static final String N8N_SERVICE_URL = "http://localhost:5678/webhook/creer-service";
+    private static final String N8N_BASE = System.getenv().getOrDefault("CAMPUSLINK_N8N_URL", "http://localhost:5678");
+    private static final String N8N_SERVICE_URL = N8N_BASE.replaceAll("/$", "") + "/webhook/creer-service";
 
     private Gestion_Service gestionService;
+    private Gestion_Categorie categoryManager;
+    private List<Categorie> categories;
     private int currentPrestataireId = 1; // TODO: Replace with session
 
     private File selectedImageFile;
@@ -70,6 +79,9 @@ public class CreateService_controller {
 
         try {
             gestionService = new Gestion_Service();
+            categoryManager = new Gestion_Categorie();
+            categories = categoryManager.afficherCategories();
+            setupCategoryCombo();
             setupCharacterCounter();
             setupPriceField();
             setupImageUpload();
@@ -80,6 +92,27 @@ public class CreateService_controller {
             e.printStackTrace();
             showAlert("Erreur", "Impossible d'initialiser: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    private void setupCategoryCombo() {
+        if (categoryCombo != null && categories != null) {
+            java.util.ArrayList<String> names = new java.util.ArrayList<>();
+            names.add("Non catégorisé");
+            for (Categorie c : categories) {
+                if (c.getName() != null) names.add(c.getName());
+            }
+            categoryCombo.setItems(FXCollections.observableArrayList(names));
+            categoryCombo.getSelectionModel().selectFirst();
+        }
+    }
+
+    private int getSelectedCategoryId() {
+        if (categoryCombo == null || categories == null) return 0;
+        int idx = categoryCombo.getSelectionModel().getSelectedIndex();
+        if (idx <= 0) return 0; // "Non catégorisé"
+        idx--;
+        if (idx >= 0 && idx < categories.size()) return categories.get(idx).getId();
+        return 0;
     }
 
     private void setupImageUpload() {
@@ -195,7 +228,7 @@ public class CreateService_controller {
                 service.setDescription(desc != null && !desc.trim().isEmpty() ? desc.trim() : null);
 
                 service.setImage(uploadedImagePath);
-                service.setCategoryId(0);
+                service.setCategoryId(getSelectedCategoryId());
 
                 gestionService.ajouterService(service);
 
@@ -280,7 +313,7 @@ public class CreateService_controller {
             svc.setPrice(priceVal);
             svc.setPrestataireId(currentPrestataireId);
             svc.setImage(imgPath);
-            svc.setCategoryId(0);
+            svc.setCategoryId(getSelectedCategoryId());
 
             gestionService.ajouterService(svc);
             int id = svc.getId();
@@ -316,21 +349,30 @@ public class CreateService_controller {
         hideAiPanels();
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // FIX 1 — UTF-8 : utiliser org.json correctement avec unicode
+    // ═══════════════════════════════════════════════════════════════
     private JSONObject envoyerAn8n(JSONObject payload) throws Exception {
+        // FIX UTF-8 : convertir en String AVANT getBytes pour garder les accents
         String payloadStr = payload.toString();
         System.out.println("→ Envoi payload service : " + payloadStr);
 
         URL url = new URL(N8N_SERVICE_URL);
+        System.out.println("→ URL n8n service : " + N8N_SERVICE_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("User-Agent", "CampusLink/1.0");
         conn.setConnectTimeout(10_000);
-        conn.setReadTimeout(30_000);
+        conn.setReadTimeout(60_000);
         conn.setDoOutput(true);
 
+        // FIX UTF-8 : écrire les bytes UTF-8 explicitement
+        byte[] bytes = payloadStr.getBytes(StandardCharsets.UTF_8);
         try (OutputStream os = conn.getOutputStream()) {
-            os.write(payloadStr.getBytes(StandardCharsets.UTF_8));
+            os.write(bytes);
+            os.flush();
         }
 
         int statusCode = conn.getResponseCode();
@@ -343,10 +385,16 @@ public class CreateService_controller {
                     StandardCharsets.UTF_8);
         }
 
+        System.out.println("← HTTP " + statusCode + " | body(" + responseBody.length() + " chars): " + responseBody);
+
         if (responseBody.isEmpty()) {
             if (statusCode >= 200 && statusCode < 300)
-                return new JSONObject().put("success", true).put("message", "Service créé").put("_httpStatus", statusCode);
-            return new JSONObject().put("success", false).put("message", "Erreur HTTP " + statusCode).put("_httpStatus", statusCode);
+                return new JSONObject().put("success", false)
+                        .put("message", "n8n a répondu sans corps (réponse vide). Vérifiez que le workflow est actif et que MySQL est configuré.")
+                        .put("_httpStatus", statusCode);
+            return new JSONObject().put("success", false)
+                    .put("message", "Erreur HTTP " + statusCode)
+                    .put("_httpStatus", statusCode);
         }
         try {
             JSONObject json = new JSONObject(responseBody);
@@ -360,6 +408,10 @@ public class CreateService_controller {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // FIX 2 — Prix : extraire le prix depuis la description si priceField vide
+    // FIX 3 — category_id : envoyer null si 0 pour éviter erreur MySQL
+    // ═══════════════════════════════════════════════════════════════
     @FXML
     private void generateAndCreateService() {
         String idea = aiIdeaField != null ? aiIdeaField.getText().trim() : "";
@@ -374,6 +426,7 @@ public class CreateService_controller {
             return;
         }
 
+        // FIX 2 — Prix : lire depuis priceField, sinon extraire depuis la description
         double prix = 0;
         try {
             if (priceField != null && priceField.getText() != null && !priceField.getText().trim().isEmpty()) {
@@ -381,6 +434,18 @@ public class CreateService_controller {
                 if (prix < 0) prix = 0;
             }
         } catch (NumberFormatException ignored) {}
+
+        // FIX 2 — Si prix toujours 0, essayer d'extraire depuis la description (ex: "25€", "25 €", "25.00€")
+        if (prix == 0) {
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("(\\d+(?:[.,]\\d{1,2})?)\\s*€")
+                    .matcher(idea);
+            if (m.find()) {
+                try {
+                    prix = Double.parseDouble(m.group(1).replace(",", "."));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
 
         String imageUrl = null;
         if (selectedImageFile != null) {
@@ -396,12 +461,18 @@ public class CreateService_controller {
         final double finalPrix = prix;
         final String finalImageUrl = imageUrl;
 
+        // FIX 3 — category_id : envoyer null si 0
+        int categoryId = getSelectedCategoryId();
+
         JSONObject payload = new JSONObject();
         payload.put("prestataire_id", currentPrestataireId);
-        payload.put("prompt", idea);
+        payload.put("prompt", idea);          // UTF-8 géré par JSONObject
         payload.put("prix", prix);
         if (imageUrl != null) payload.put("image_url", imageUrl);
-        payload.put("category_id", 0);
+        if (categoryId > 0) {
+            payload.put("category_id", categoryId);
+        }
+        // Ne pas mettre category_id si 0 — n8n mettra NULL en DB
 
         generateAiBtn.setDisable(true);
         if (aiLoadingLabel != null) aiLoadingLabel.setVisible(true);
@@ -416,7 +487,6 @@ public class CreateService_controller {
                     generateAiBtn.setDisable(false);
                     if (aiLoadingLabel != null) aiLoadingLabel.setVisible(false);
 
-                    // Fallback: webhook non enregistré (404) ou erreur n8n → création locale
                     boolean webhookUnavailable = (statusCode == 404) ||
                             (statusCode >= 500) ||
                             (response.optString("message", "").toLowerCase().contains("not registered")) ||
@@ -433,6 +503,13 @@ public class CreateService_controller {
 
                     if (response.optBoolean("success", false)) {
                         int serviceId = response.optInt("service_id", 0);
+                        if (serviceId <= 0) {
+                            String err = "n8n n'a pas retourné l'ID du service. Vérifiez le workflow n8n et la connexion MySQL.";
+                            if (aiErrorLabel != null) aiErrorLabel.setText("❌ " + err);
+                            if (aiErrorPanel != null) { aiErrorPanel.setVisible(true); aiErrorPanel.setManaged(true); }
+                            showAlert("Erreur", err, Alert.AlertType.ERROR);
+                            return;
+                        }
                         JSONObject svc = response.optJSONObject("service");
 
                         if (aiStatusLabel != null) aiStatusLabel.setText("✅ Service créé avec succès ! (ID #" + serviceId + ")");
@@ -476,7 +553,7 @@ public class CreateService_controller {
                             aiErrorPanel.setVisible(true);
                             aiErrorPanel.setManaged(true);
                         }
-                        showAlert("Erreur", msg + "\n\nCréez le service manuellement à gauche ou configurez le workflow n8n 'creer-service'.", Alert.AlertType.ERROR);
+                        showAlert("Erreur", msg, Alert.AlertType.ERROR);
                     }
                 });
             }

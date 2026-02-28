@@ -31,8 +31,9 @@ import java.util.ResourceBundle;
  */
 public class CreatePublication_controller implements Initializable {
 
-    // ── URL n8n ──────────────────────────────────────────────────
-    private static final String N8N_URL = "http://localhost:5678/webhook/creer-publication";
+    // ── URL n8n (override via CAMPUSLINK_N8N_URL, ex: http://localhost:5678) ──
+    private static final String N8N_BASE = System.getenv().getOrDefault("CAMPUSLINK_N8N_URL", "http://localhost:5678");
+    private static final String N8N_URL = N8N_BASE.replaceAll("/$", "") + "/webhook/creer-publication";
 
     // ── Form fields (LEFT) ───────────────────────────────────────
     @FXML private RadioButton typeVenteRadio;
@@ -104,6 +105,20 @@ public class CreatePublication_controller implements Initializable {
             else messageCounter.setText(len + "/1000");
         });
 
+        // Auto-sélection du type si l'utilisateur tape "je vends", "vente", "à vendre" dans l'idée IA
+        if (aiIdeaField != null) {
+            aiIdeaField.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && !newVal.isBlank()) {
+                    String lower = newVal.toLowerCase();
+                    if (lower.contains("je vends") || lower.contains("vente") || lower.contains("à vendre")
+                            || lower.contains("a vendre") || lower.contains("vendre mon")) {
+                        if (typeVenteRadio != null && !typeVenteRadio.isSelected())
+                            typeVenteRadio.setSelected(true);
+                    }
+                }
+            });
+        }
+
         submitButton.disableProperty().bind(termsCheckBox.selectedProperty().not());
         removeImageButton.setVisible(false);
         if (imagePreview != null) imagePreview.setVisible(false);
@@ -124,13 +139,14 @@ public class CreatePublication_controller implements Initializable {
         System.out.println("→ Envoi payload : " + payloadStr);
 
         URL url = new URL(N8N_URL);
+        System.out.println("→ URL n8n : " + N8N_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
-        // FIX UTF-8 : forcer l'encodage dans le Content-Type
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("User-Agent", "CampusLink/1.0");
         conn.setConnectTimeout(10_000);
-        conn.setReadTimeout(30_000);
+        conn.setReadTimeout(60_000); // OpenRouter peut prendre 30-45 s
         conn.setDoOutput(true);
 
         // FIX UTF-8 : écrire en UTF-8 explicitement
@@ -160,12 +176,16 @@ public class CreatePublication_controller implements Initializable {
             );
         }
 
-        System.out.println("← Réponse brute (" + responseBody.length() + " chars) : " + responseBody);
-
+        System.out.println("← Réponse brute (" + responseBody.length() + " chars) : " + (responseBody.length() > 200 ? responseBody.substring(0, 200) + "..." : responseBody));
+        if (responseBody.isEmpty() && statusCode >= 200 && statusCode < 300) {
+            String cl = conn.getHeaderField("Content-Length");
+            System.out.println("⚠ Body vide ! Content-Length=" + cl + " | Vérifiez que curl utilise la MÊME URL : " + N8N_URL);
+        }
         if (responseBody.isEmpty()) {
-            // n8n a répondu sans body — construire une réponse générique succès
+            // Réponse vide = n8n n'a pas retourné de corps (workflow incomplet, timeout, etc.)
             if (statusCode >= 200 && statusCode < 300) {
-                return new JSONObject().put("success", true).put("message", "Publication créée");
+                return new JSONObject().put("success", false)
+                        .put("message", "n8n a répondu HTTP 200 sans corps (0 chars). Vérifiez : 1) workflow actif, 2) OpenRouter API key, 3) MySQL campusLink, 4) onglet Executions dans n8n pour les erreurs.");
             } else {
                 return new JSONObject().put("success", false)
                         .put("message", "Erreur HTTP " + statusCode + " sans détails");
@@ -273,9 +293,21 @@ public class CreatePublication_controller implements Initializable {
         // mais on impose au moins un prix cohérent pour une VENTE_OBJET.
         if (!validatePriceOnlyForAi()) return;
 
-        // FIX MAPPING TYPE
-        String typePublication = typeVenteRadio.isSelected() ? "VENTE_OBJET" : "DEMANDE_SERVICE";
-        double prix            = parsePrix();
+        // Type : auto-détecter "vente" si description contient "je vends", "vente", etc.
+        String ideaLower = idea.toLowerCase();
+        boolean looksLikeSale = ideaLower.contains("je vends") || ideaLower.contains("vente")
+                || ideaLower.contains("à vendre") || ideaLower.contains("a vendre")
+                || ideaLower.contains("vendre mon") || ideaLower.contains("prix :");
+        String typePublication = (typeVenteRadio.isSelected() || looksLikeSale)
+                ? "VENTE_OBJET" : "DEMANDE_SERVICE";
+
+        double prix = parsePrix();
+        if (prix <= 0) {
+            // Extraire le prix de la description (ex: "350€", "Prix : 350€", "350, négociable")
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile("(?:prix\\s*[:=]?\\s*)?(\\d+)(?:\\s*[€e]|\\s*,)");
+            java.util.regex.Matcher m = p.matcher(idea);
+            if (m.find()) prix = Double.parseDouble(m.group(1));
+        }
         String localisation    = localisationField.getText().trim();
 
         JSONObject payload = new JSONObject();
@@ -285,12 +317,6 @@ public class CreatePublication_controller implements Initializable {
         payload.put("prix_vente",       prix);
         if (!localisation.isEmpty())  payload.put("localisation", localisation);
         if (selectedImageUrl != null) payload.put("image_url", selectedImageUrl);
-
-        final String finalIdea = idea;
-        final String finalTypePublication = typePublication;
-        final double finalPrix = prix;
-        final String finalLocalisation = localisation.isEmpty() ? null : localisation;
-        final String finalImageUrl = selectedImageUrl != null ? selectedImageUrl.replace('\\', '/') : null;
 
         generateAiBtn.setDisable(true);
         aiLoadingLabel.setVisible(true);
@@ -306,6 +332,14 @@ public class CreatePublication_controller implements Initializable {
 
                     if (response.optBoolean("success", false)) {
                         int pubId = response.optInt("publication_id", 0);
+                        if (pubId <= 0) {
+                            String err = "n8n n'a pas retourné publication_id. Vérifiez le workflow et l'onglet Executions dans n8n.";
+                            aiErrorLabel.setText("❌ " + err);
+                            aiErrorPanel.setVisible(true);
+                            aiErrorPanel.setManaged(true);
+                            showAlert(Alert.AlertType.ERROR, "Erreur", err + "\n\nUtilisez le formulaire manuel (bouton Publier) pour créer la publication.");
+                            return;
+                        }
                         JSONObject pub = response.optJSONObject("publication");
                         String titreGenere   = pub != null ? pub.optString("titre",   "") : "";
                         String messageGenere = pub != null ? pub.optString("message", "") : "";
@@ -317,42 +351,11 @@ public class CreatePublication_controller implements Initializable {
                         aiResultsPanel.setManaged(true);
                         aiIdeaField.clear();
 
-                        // Lancer le matching après une création via IA/n8n
                         runMatchingAsync();
                         return;
                     }
 
-                    // Fallback IA : n8n échoue → créer localement avec l'idée
-                    if (gestionPublication != null) {
-                        try {
-                            String titreFallback = finalIdea.length() > 100 ? finalIdea.substring(0, 97) + "..." : finalIdea;
-                            Publications pub = new Publications();
-                            pub.setStudentId(currentStudentId);
-                            pub.setTypePublicationFromString(finalTypePublication);
-                            pub.setTitre(titreFallback);
-                            pub.setMessage(finalIdea);
-                            pub.setPrixVente(java.math.BigDecimal.valueOf(finalPrix > 0 ? finalPrix : 10));
-                            pub.setLocalisation(finalLocalisation);
-                            pub.setImageUrl(finalImageUrl);
-                            pub.setStatus(Publications.StatusPublication.ACTIVE);
-                            gestionPublication.ajouterPublication(pub);
-                            int pubId = pub.getId();
-
-                            aiStatusLabel.setText("✅ Publication créée (sans IA) ! ID #" + pubId);
-                            aiGeneratedTitre.setText("📌 " + titreFallback);
-                            aiGeneratedMessage.setText(finalIdea);
-                            aiResultsPanel.setVisible(true);
-                            aiResultsPanel.setManaged(true);
-                            aiIdeaField.clear();
-
-                            // Matching aussi dans le fallback local
-                            runMatchingAsync();
-                            return;
-                        } catch (Exception localEx) {
-                            localEx.printStackTrace();
-                        }
-                    }
-
+                    // n8n a répondu mais erreur : pas de fallback local (tâches indépendantes)
                     String err = response.optString("message", "Erreur inconnue");
                     aiErrorLabel.setText("❌ " + err);
                     aiErrorPanel.setVisible(true);
@@ -364,39 +367,8 @@ public class CreatePublication_controller implements Initializable {
                 Platform.runLater(() -> {
                     generateAiBtn.setDisable(false);
                     aiLoadingLabel.setVisible(false);
-
-                    // Fallback IA : n8n injoignable → créer localement
-                    if (gestionPublication != null) {
-                        try {
-                            String titreFallback = finalIdea.length() > 100 ? finalIdea.substring(0, 97) + "..." : finalIdea;
-                            Publications pub = new Publications();
-                            pub.setStudentId(currentStudentId);
-                            pub.setTypePublicationFromString(finalTypePublication);
-                            pub.setTitre(titreFallback);
-                            pub.setMessage(finalIdea);
-                            pub.setPrixVente(java.math.BigDecimal.valueOf(finalPrix > 0 ? finalPrix : 10));
-                            pub.setLocalisation(finalLocalisation);
-                            pub.setImageUrl(finalImageUrl);
-                            pub.setStatus(Publications.StatusPublication.ACTIVE);
-                            gestionPublication.ajouterPublication(pub);
-                            int pubId = pub.getId();
-
-                            aiStatusLabel.setText("✅ Publication créée (n8n indisponible) ! ID #" + pubId);
-                            aiGeneratedTitre.setText("📌 " + titreFallback);
-                            aiGeneratedMessage.setText(finalIdea);
-                            aiResultsPanel.setVisible(true);
-                            aiResultsPanel.setManaged(true);
-                            aiIdeaField.clear();
-
-                            // Matching après fallback réseau
-                            runMatchingAsync();
-                            return;
-                        } catch (Exception localEx) {
-                            localEx.printStackTrace();
-                        }
-                    }
-
-                    aiErrorLabel.setText("❌ Impossible de contacter n8n : " + ex.getMessage());
+                    // n8n injoignable : pas de fallback local (tâches indépendantes)
+                    aiErrorLabel.setText("❌ n8n indisponible. Lancez n8n ou utilisez le formulaire manuel (bouton Publier) pour créer une publication.");
                     aiErrorPanel.setVisible(true);
                     aiErrorPanel.setManaged(true);
                 });

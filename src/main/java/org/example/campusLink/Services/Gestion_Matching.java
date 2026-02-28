@@ -9,12 +9,12 @@ public class Gestion_Matching {
 
     private final Connection connection;
     private final Gestion_Notification notificationService;
-    private final EmailService_publication emailService;
+    private final EmailService emailService;
 
     public Gestion_Matching() throws SQLException {
         connection = MyDatabase.getInstance().getConnection();
         notificationService = new Gestion_Notification();
-        emailService = new EmailService_publication();
+        emailService = new EmailService();
     }
     /**
      * Analyser les nouvelles publications et notifier les tuteurs compatibles.

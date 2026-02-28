@@ -181,13 +181,7 @@ public class Student_controller {
         // ===== 4. INFO ROWS =====
         VBox infoBox = new VBox(6);
 
-        HBox locationRow = new HBox(8);
-        locationRow.getStyleClass().add("card-info-row");
-        Label locationIcon = new Label("📍");
-        locationIcon.getStyleClass().add("card-info-icon");
-        Label locationText = new Label("École Polytechnique");
-        locationText.getStyleClass().add("card-info-text");
-        locationRow.getChildren().addAll(locationIcon, locationText);
+        // Ligne localisation masquée (École Polytechnique retirée)
 
         HBox durationRow = new HBox(8);
         durationRow.getStyleClass().add("card-info-row");
@@ -205,7 +199,7 @@ public class Student_controller {
         subjectText.getStyleClass().add("card-info-text");
         subjectRow.getChildren().addAll(subjectIcon, subjectText);
 
-        infoBox.getChildren().addAll(locationRow, durationRow, subjectRow);
+        infoBox.getChildren().addAll(durationRow, subjectRow);
 
         // ===== 5. DESCRIPTION (description complète du service) =====
         String desc = service.getDescription() != null && !service.getDescription().isEmpty()

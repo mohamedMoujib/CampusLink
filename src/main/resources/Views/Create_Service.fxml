@@ -116,6 +116,16 @@
                         <Label fx:id="charCountLabel" text="0/1000 caractères" styleClass="form-hint"/>
                     </VBox>
 
+                    <!-- Catégorie -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Catégorie" styleClass="form-label"/>
+                        <ComboBox fx:id="categoryCombo"
+                                  promptText="Choisir une catégorie"
+                                  prefWidth="280"
+                                  styleClass="form-input"/>
+                        <Label text="Sélectionnez la catégorie de votre service" styleClass="form-hint"/>
+                    </VBox>
+
                     <!-- Prix -->
                     <VBox spacing="8" styleClass="form-group">
                         <Label text="Prix (€) *" styleClass="form-label"/>
