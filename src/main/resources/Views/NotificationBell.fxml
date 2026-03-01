@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="bellContainer"
+           xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.NotificationBellController"
+           prefWidth="40" prefHeight="40">
+
+    <!-- Bouton cloche -->
+    <Button fx:id="bellButton"
+            onAction="#togglePanel"
+            style="-fx-background-color: transparent; -fx-cursor: hand;"
+            prefWidth="32" prefHeight="32">
+        <graphic>
+            <Label text="🔔" style="-fx-font-size: 18px;"/>
+        </graphic>
+    </Button>
+
+    <!-- Badge rouge (compteur) -->
+    <Label fx:id="badgeLabel"
+           text="0"
+           visible="false" managed="false"
+           StackPane.alignment="TOP_RIGHT"
+           style="-fx-background-color: #ef4444; -fx-text-fill: white;
+                  -fx-font-size: 10px; -fx-font-weight: bold;
+                  -fx-padding: 1 4; -fx-background-radius: 999px;
+                  -fx-translate-x: -2; -fx-translate-y: 2;"/>
+
+    <!-- Panneau de notifications (popup) -->
+    <VBox fx:id="notificationPanel"
+          visible="false" managed="false"
+          prefWidth="340" prefHeight="420"
+          StackPane.alignment="TOP_RIGHT"
+          style="-fx-background-color: white; -fx-background-radius: 12;
+                 -fx-border-color: #e5e7eb; -fx-border-radius: 12;
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 4);
+                 -fx-translate-y: 40; -fx-translate-x: 0;">
+
+        <!-- En-tête -->
+        <HBox spacing="8" alignment="CENTER_LEFT"
+              style="-fx-padding: 10 12; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+            <Label text="Notifications"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Tout lire"
+                    onAction="#markAllAsRead"
+                    style="-fx-background-color: transparent; -fx-text-fill: #4f46e5;
+                           -fx-font-size: 11px; -fx-cursor: hand;"/>
+            <Button text="Fermer"
+                    onAction="#closePanel"
+                    style="-fx-background-color: transparent; -fx-text-fill: #6b7280;
+                           -fx-font-size: 11px; -fx-cursor: hand;"/>
+        </HBox>
+
+        <!-- Liste des notifications -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-padding: 0;">
+            <content>
+                <VBox fx:id="notificationList"
+                      spacing="4"
+                      style="-fx-padding: 8 10;"/>
+            </content>
+        </ScrollPane>
+
+        <!-- État vide -->
+        <VBox fx:id="emptyState"
+              alignment="CENTER"
+              spacing="6"
+              style="-fx-padding: 20;"
+              visible="true" managed="true">
+            <Label text="Aucune notification"
+                   style="-fx-text-fill: #6b7280; -fx-font-size: 12px;"/>
+            <Label text="Les nouvelles demandes compatibles apparaîtront ici."
+                   wrapText="true"
+                   style="-fx-text-fill: #9ca3af; -fx-font-size: 11px; -fx-text-alignment: center;"
+                   maxWidth="260"/>
+        </VBox>
+
+    </VBox>
+
+</StackPane>
+

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.image.ImageView?>
+<?import java.lang.String?>
+
+<StackPane fx:id="rootPane"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.users.AdminProfileController">
+
+    <BorderPane styleClass="root" stylesheets="@/Styles/AdminDashboard.css">
+
+        <!-- TOP NAVBAR (Identique au Dashboard) -->
+        <top>
+            <VBox>
+                <!-- Header avec logo et admin info -->
+                <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📚" style="-fx-font-size: 24px;"/>
+                        <VBox spacing="2">
+                            <Label text="CampusLink" styleClass="logo"/>
+                            <Label text="Panel Admin" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <HBox spacing="20" alignment="CENTER_RIGHT">
+                        <Label text="🔔" style="-fx-font-size: 20px; -fx-cursor: hand;"/>
+                        <VBox alignment="CENTER_RIGHT" spacing="2">
+                            <Label fx:id="lblAdminName" text="Admin Principal" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                            <Label fx:id="lblAdminEmail" text="admin@campuslink.tn" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+
+                        <StackPane style="-fx-pref-width: 35; -fx-pref-height: 35;">
+                            <ImageView fx:id="imgHeaderProfile"
+                                       fitWidth="35"
+                                       fitHeight="35"
+                                       preserveRatio="false"
+                                       visible="false">
+                                <clip>
+                                    <Circle centerX="17.5" centerY="17.5" radius="17.5"/>
+                                </clip>
+                            </ImageView>
+                            <Label fx:id="lblHeaderAvatar" text="👨‍💼" style="-fx-font-size: 24px;"/>
+                        </StackPane>
+                    </HBox>
+                </HBox>
+
+                <!-- Navigation tabs ADMIN -->
+                <HBox spacing="0" styleClass="nav-tabs">
+                    <Button text="👥 Gestion Utilisateurs" styleClass="nav-tab" onAction="#handleNavigateToDashboard"/>
+                    <Button text="📊 Statistiques" styleClass="nav-tab"/>
+                    <Button text="👤 Mon Profil" styleClass="nav-tab-active" onAction="#handleNavigateToProfile"/>
+                    <Button text="🚪 Déconnexion" styleClass="nav-tab" onAction="#handleLogout"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <!-- MAIN CONTENT - ADMIN PROFILE -->
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <VBox spacing="30" style="-fx-padding: 40 60 40 60;">
+
+                    <Label text="Mon Profil Admin" styleClass="page-title"/>
+
+                    <VBox spacing="30" styleClass="profile-card">
+
+                        <HBox spacing="20" alignment="CENTER_LEFT">
+                            <StackPane styleClass="avatar-circle">
+                                <ImageView fx:id="imgProfile"
+                                           fitWidth="120"
+                                           fitHeight="120"
+                                           preserveRatio="false"
+                                           visible="false">
+                                    <clip>
+                                        <Circle centerX="60" centerY="60" radius="60"/>
+                                    </clip>
+                                </ImageView>
+                                <Label fx:id="lblProfileAvatar" text="👨‍💼" style="-fx-font-size: 48px;"/>
+                            </StackPane>
+
+                            <VBox spacing="8">
+                                <Button text="Changer la photo" styleClass="secondary-button" onAction="#handleChangePhoto"/>
+                                <Label fx:id="lblAccountType" text="Type de compte: Administrateur" styleClass="account-type-label"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="20">
+                            <Label text="Informations personnelles" styleClass="section-title"/>
+
+                            <HBox spacing="20">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Nom complet" styleClass="field-label"/>
+                                    <TextField fx:id="txtName" styleClass="profile-field"/>
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Email" styleClass="field-label"/>
+                                    <TextField fx:id="txtEmail" styleClass="profile-field"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="20">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Téléphone" styleClass="field-label"/>
+                                    <TextField fx:id="txtPhone" styleClass="profile-field"/>
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Département" styleClass="field-label"/>
+                                    <TextField fx:id="txtDepartment" styleClass="profile-field"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="20">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Genre" styleClass="field-label"/>
+                                    <ComboBox fx:id="cmbGender"
+                                              promptText="Sélectionnez votre genre"
+                                              styleClass="profile-field"
+                                              maxWidth="Infinity"/>
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label text="Adresse" styleClass="field-label"/>
+                                    <TextField fx:id="txtAddress" styleClass="profile-field"/>
+                                </VBox>
+                            </HBox>
+
+                            <Button text="Enregistrer les modifications" styleClass="primary-button"
+                                    onAction="#handleSaveProfile" maxWidth="300"/>
+                        </VBox>
+
+                        <Separator/>
+
+                        <VBox spacing="20">
+                            <Label text="Sécurité" styleClass="section-title"/>
+
+                            <VBox spacing="8">
+                                <Label text="Mot de passe actuel" styleClass="field-label"/>
+                                <PasswordField fx:id="txtCurrentPassword" promptText="••••••••" styleClass="profile-field" maxWidth="400"/>
+                            </VBox>
+
+                            <HBox spacing="20">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS" maxWidth="400">
+                                    <Label text="Nouveau mot de passe" styleClass="field-label"/>
+                                    <PasswordField fx:id="txtNewPassword" promptText="••••••••" styleClass="profile-field"/>
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS" maxWidth="400">
+                                    <Label text="Confirmer le mot de passe" styleClass="field-label"/>
+                                    <PasswordField fx:id="txtConfirmPassword" promptText="••••••••" styleClass="profile-field"/>
+                                </VBox>
+                            </HBox>
+
+                            <Button text="Changer le mot de passe" styleClass="secondary-button"
+                                    onAction="#handleChangePassword" maxWidth="300"/>
+                        </VBox>
+
+                        <Separator/>
+
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Button text="🚪 Se déconnecter" styleClass="danger-button" onAction="#handleLogout"/>
+                            <Label text="Vous serez redirigé vers la page de connexion"
+                                   style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+                        </HBox>
+
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+        </center>
+
+    </BorderPane>
+
+</StackPane>
