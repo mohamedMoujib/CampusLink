@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.campusLink.controllers.CreateService_controller"
+            fitToWidth="true" fitToHeight="false"
+            style="-fx-background-color: #f9fafb; -fx-background: #f9fafb; -fx-border-width: 0;"
+            stylesheets="/Styles/Create_Service.css">
+
+    <HBox spacing="25" alignment="TOP_CENTER">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
+
+                <!-- ═══ COLONNE GAUCHE — Formulaire manuel ═══ -->
+                <VBox spacing="25" prefWidth="540"
+                      style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📋" style="-fx-font-size: 22px;"/>
+                        <VBox>
+                            <Label text="Créer un nouveau service" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
+                            <Label text="Remplissez le formulaire ou utilisez l'IA à droite" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
+                        </VBox>
+                    </HBox>
+                    <Separator/>
+
+                    <!-- Titre du service -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Titre du service *" styleClass="form-label"/>
+                        <TextField fx:id="titleField"
+                                   promptText="Ex: Cours de mathématiques niveau lycée"
+                                   styleClass="form-input"/>
+                        <Label text="Donnez un titre clair et descriptif (max 100 caractères)" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Description -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Description" styleClass="form-label"/>
+                        <TextArea fx:id="descriptionField"
+                                  promptText="Décrivez votre service en détail: contenu, méthode, objectifs..."
+                                  wrapText="true"
+                                  prefRowCount="6"
+                                  styleClass="form-textarea"/>
+                        <Label fx:id="charCountLabel" text="0/1000 caractères" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Catégorie -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Catégorie" styleClass="form-label"/>
+                        <ComboBox fx:id="categoryCombo"
+                                  promptText="Choisir une catégorie"
+                                  prefWidth="280"
+                                  styleClass="form-input"/>
+                        <Label text="Sélectionnez la catégorie de votre service" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Prix -->
+                    <VBox spacing="8" styleClass="form-group">
+                        <Label text="Prix (€) *" styleClass="form-label"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <TextField fx:id="priceField"
+                                       promptText="25.00"
+                                       styleClass="form-input"
+                                       prefWidth="200"/>
+                            <Label text="€" styleClass="form-label"/>
+                        </HBox>
+                        <Label text="Prix par session" styleClass="form-hint"/>
+                    </VBox>
+
+                    <!-- Image avec upload (style Publication) -->
+                    <VBox spacing="15" styleClass="form-group">
+                        <Label text="Image (optionnel)" styleClass="form-label"/>
+                        <Label text="Ajoutez une photo pour rendre votre service plus attractif" style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+
+                        <!-- Zone d'upload centrée -->
+                        <VBox spacing="15"
+                              alignment="CENTER"
+                              style="-fx-background-color: #f9fafb; -fx-padding: 30; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-border-width: 2; -fx-border-radius: 12; -fx-border-style: dashed;">
+
+                            <!-- Preview de l'image -->
+                            <ImageView fx:id="imagePreview"
+                                       fitWidth="400"
+                                       fitHeight="300"
+                                       preserveRatio="true"
+                                       visible="false"
+                                       style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0, 0, 5);"/>
+
+                            <!-- Nom du fichier -->
+                            <Label fx:id="imageFileLabel"
+                                   text=""
+                                   visible="false"
+                                   style="-fx-text-fill: #374151; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                            <!-- Boutons -->
+                            <HBox spacing="15" alignment="CENTER">
+                                <Button fx:id="uploadImageButton"
+                                        text="📷 Ajouter une image (optionnel)"
+                                        onAction="#onUploadImage"
+                                        style="-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold; -fx-border-width: 0;">
+                                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                                </Button>
+
+                                <Button fx:id="removeImageButton"
+                                        text="🗑️ Supprimer"
+                                        onAction="#onRemoveImage"
+                                        visible="false"
+                                        style="-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold; -fx-border-width: 0;">
+                                    <cursor><javafx.scene.Cursor fx:constant="HAND"/></cursor>
+                                </Button>
+                            </HBox>
+
+                            <Label text="Formats acceptés: JPG, PNG, GIF • Taille max: 5 MB"
+                                   style="-fx-text-fill: #9ca3af; -fx-font-size: 12px;"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Note d'information -->
+                    <HBox spacing="12" styleClass="info-box">
+                        <Label text="ℹ️" styleClass="info-icon"/>
+                        <VBox spacing="5">
+                            <Label text="Informations importantes" styleClass="info-title"/>
+                            <Label text="Votre service sera créé avec le statut 'EN_ATTENTE' et sera visible après validation." styleClass="info-text"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Champs obligatoires -->
+                    <Label text="* Champs obligatoires" styleClass="required-note"/>
+
+                    <!-- Boutons d'action -->
+                    <HBox spacing="15" alignment="CENTER" styleClass="action-buttons">
+                        <Button text="← Retour"
+                                onAction="#goBack"
+                                style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 11 22; -fx-font-size: 14px; -fx-cursor: hand;"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="📋 Créer le service"
+                                fx:id="submitManualButton"
+                                onAction="#saveService"
+                                style="-fx-background-color: #5D5FEF; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 11 28; -fx-font-size: 14px; -fx-cursor: hand;"/>
+                    </HBox>
+
+                </VBox>
+
+                <!-- ═══ COLONNE DROITE — Assistant IA (même fonctionnement que Publication) ═══ -->
+                <VBox spacing="16" prefWidth="480"
+                      style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+                    <padding>
+                        <Insets top="28" right="28" bottom="28" left="28"/>
+                    </padding>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT"
+                          style="-fx-background-color: linear-gradient(to right, #ECFDF5, #D1FAE5); -fx-background-radius: 10; -fx-padding: 14 16;">
+                        <Label text="✨" style="-fx-font-size: 22px;"/>
+                        <VBox>
+                            <Label text="Assistant IA" style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #047857;"/>
+                            <Label text="Décrivez votre service, l'IA le créera automatiquement" style="-fx-font-size: 12px; -fx-text-fill: #059669;"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="6">
+                        <Label text="Décrivez votre service en quelques mots" style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                        <Label text="L'IA génèrera le titre, la description et créera le service." style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
+                        <TextArea fx:id="aiIdeaField"
+                                  promptText="Ex: Cours de mathématiques pour lycéens, préparation au bac..."
+                                  prefRowCount="4"
+                                  wrapText="true"
+                                  style="-fx-background-color: #fafafa; -fx-border-color: #a7f3d0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 14; -fx-font-size: 14px;"/>
+                    </VBox>
+
+                    <Button fx:id="generateAiBtn"
+                            text="✨ Créer le service avec l'IA"
+                            onAction="#generateAndCreateService"
+                            maxWidth="Infinity"
+                            style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12 20; -fx-font-size: 14px; -fx-cursor: hand;"/>
+
+                    <Label fx:id="aiLoadingLabel"
+                           text="⏳ Création en cours..."
+                           visible="false"
+                           style="-fx-font-size: 13px; -fx-text-fill: #059669;"/>
+
+                    <VBox fx:id="aiResultsPanel" spacing="10" visible="false" managed="false"
+                          style="-fx-background-color: #F0FDF4; -fx-border-color: #86efac; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 16;">
+                        <Label fx:id="aiStatusLabel" text="" style="-fx-font-weight: bold; -fx-text-fill: #15803d; -fx-font-size: 14px;" wrapText="true"/>
+                        <Label fx:id="aiGeneratedTitre" text="" style="-fx-font-weight: bold; -fx-text-fill: #166534; -fx-font-size: 13px;" wrapText="true"/>
+                        <Label fx:id="aiGeneratedDesc" text="" style="-fx-text-fill: #374151; -fx-font-size: 12px;" wrapText="true" maxWidth="420"/>
+                    </VBox>
+
+                    <VBox fx:id="aiErrorPanel" spacing="8" visible="false" managed="false"
+                          style="-fx-background-color: #FEF2F2; -fx-border-color: #fca5a5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14;">
+                        <Label fx:id="aiErrorLabel" text="" style="-fx-font-weight: bold; -fx-text-fill: #dc2626; -fx-font-size: 13px;" wrapText="true"/>
+                    </VBox>
+
+                    <Separator/>
+
+                    <Label text="💡 Ou remplissez le formulaire manuellement à gauche." style="-fx-font-size: 12px; -fx-text-fill: #9ca3af;" wrapText="true"/>
+
+                </VBox>
+
+            </HBox>
+        </ScrollPane>
+

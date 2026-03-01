@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.image.ImageView?>
+
+<StackPane fx:id="rootPane"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.users.MainLayoutController"
+           stylesheets="@/Styles/Profile.css">
+
+    <BorderPane styleClass="root">
+        <top>
+            <VBox>
+                <!-- HEADER -->
+                <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📚" style="-fx-font-size: 24px;"/>
+                        <VBox spacing="2">
+                            <Label text="CampusLink" styleClass="logo"/>
+                            <Label fx:id="lblRoleSpace" text="Espace Étudiant"
+                                   style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <HBox spacing="20" alignment="CENTER_RIGHT">
+                        <fx:include source="/Views/NotificationBell.fxml" fx:id="notificationBell"/>                        <VBox alignment="CENTER_RIGHT" spacing="2">
+                            <Label fx:id="lblUserName" text=""
+                                   style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                            <Label fx:id="lblUserEmail" text=""
+                                   style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+
+                        <StackPane style="-fx-pref-width:35; -fx-pref-height:35;
+                                          -fx-min-width:35; -fx-min-height:35;
+                                          -fx-max-width:35; -fx-max-height:35;">
+                            <ImageView fx:id="imgHeaderProfile"
+                                       fitWidth="35" fitHeight="35"
+                                       preserveRatio="false" visible="false">
+                                <clip><Circle centerX="17.5" centerY="17.5" radius="17.5"/></clip>
+                            </ImageView>
+                            <Label fx:id="lblHeaderAvatar" text="👤"
+                                   style="-fx-font-size: 24px;"/>
+                        </StackPane>
+
+                        <!-- Role badge -->
+                        <Label fx:id="lblRoleBadge" text="Étudiant" styleClass="role-badge-etudiant"/>
+
+                        <Button text="🚪" styleClass="danger-button"
+                                onAction="#handleLogout"
+                                style="-fx-padding: 6 12;"/>
+                    </HBox>
+                </HBox>
+
+                <!-- NAV BAR — built dynamically -->
+                <HBox fx:id="navBar" spacing="0" styleClass="nav-tabs"/>
+            </VBox>
+        </top>
+
+        <!-- CONTENT AREA -->
+        <center>
+            <StackPane fx:id="contentArea"
+                       style="-fx-background-color: #f8f9fa;"/>
+        </center>
+    </BorderPane>
+</StackPane>

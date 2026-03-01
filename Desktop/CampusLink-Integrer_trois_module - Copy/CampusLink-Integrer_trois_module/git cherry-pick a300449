@@ -1,0 +1,27 @@
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{0}: rebase (finish): returning to refs/heads/Module_User
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{1}: rebase (start): checkout HEAD~4
+[33m8eb8511[m HEAD@{2}: rebase (finish): returning to refs/heads/Module_User
+[33m8eb8511[m HEAD@{3}: rebase (continue): forgetPassword , mailConfirmation ,conexiongoogle
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{4}: rebase (start): checkout HEAD~4
+[33m72e650d[m HEAD@{5}: rebase (abort): returning to refs/heads/Module_User
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{6}: rebase (start): checkout HEAD~4
+[33m72e650d[m HEAD@{7}: rebase (abort): returning to refs/heads/Module_User
+[33m72e650d[m HEAD@{8}: rebase (abort): returning to refs/heads/Module_User
+[33m72e650d[m HEAD@{9}: commit: forgetPassword , mailConfirmation ,conexiongoogle
+[33ma812703[m HEAD@{10}: rebase (abort): returning to refs/heads/Module_User
+[33m1e23ae1[m HEAD@{11}: commit: forgetPassword , mailConfirmation ,conexiongoogle
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{12}: rebase (start): checkout HEAD~3
+[33ma812703[m HEAD@{13}: commit: Remove hardcoded Google OAuth secrets
+[33m3672c6c[m HEAD@{14}: commit: forgetPassword , mailConfirmation , connextionGoogle
+[33ma300449[m HEAD@{15}: commit: forgetPassword , mailConfirmation , connextionGoogle
+[33mfcda65e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m, [m[1;31morigin/Module_User[m[33m)[m HEAD@{16}: commit: interface profile fixed
+[33mb773bca[m HEAD@{17}: commit: Remove unwanted files
+[33m79902b0[m HEAD@{18}: cherry-pick: interface profil
+[33m8eef206[m HEAD@{19}: cherry-pick: alert added
+[33m6a7db95[m[33m ([m[1;32mbackup-safe[m[33m)[m HEAD@{20}: reset: moving to HEAD
+[33m6a7db95[m[33m ([m[1;32mbackup-safe[m[33m)[m HEAD@{21}: commit: interface login + interface signup
+[33me057924[m HEAD@{22}: commit: crud with test
+[33me9c51ff[m[33m ([m[1;31mother/main[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{23}: checkout: moving from main to Module_User
+[33me9c51ff[m[33m ([m[1;31mother/main[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{24}: commit: Singleton added
+[33m15411a3[m HEAD@{25}: Branch: renamed refs/heads/master to refs/heads/main
+[33m15411a3[m HEAD@{27}: commit (initial): project creation

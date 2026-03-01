@@ -1,0 +1,225 @@
+/* ===============================================
+   MODERN SERVICE.CSS - Style EduMarket
+   Based on the provided UI design
+   =============================================== */
+
+/* ===== ROOT VARIABLES ===== */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ===== COLORS ===== */
+/*
+Primary Green: #10b981
+Background: #f5f7fa
+White: #ffffff
+Text Dark: #111827
+Text Medium: #374151
+Text Light: #6b7280
+Border: #e5e7eb
+*/
+
+/* ===== SCROLLBAR ===== */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: #f3f4f6;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #d1d5db;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9ca3af;
+}
+
+/* ===== BUTTONS ===== */
+.button {
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-opacity: 0.9;
+}
+
+/* Create Button Style */
+.create-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.create-button:hover {
+    -fx-background-color: #059669;
+}
+
+/* ===== SERVICE CARDS ===== */
+.service-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);
+}
+
+.service-card:hover {
+    -fx-border-color: #10b981;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.15), 15, 0, 0, 4);
+    -fx-cursor: hand;
+}
+
+/* Card Title */
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+/* Card Category */
+.card-category {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Card Description */
+.card-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #374151;
+    -fx-wrap-text: true;
+}
+
+/* Card Info (duration, reservations) */
+.card-info {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Card Price */
+.card-price {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #10b981;
+}
+
+/* Status Badge - Active */
+.badge-active {
+    -fx-background-color: #d1fae5;
+    -fx-text-fill: #065f46;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+}
+
+/* Status Badge - Inactive */
+.badge-inactive {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-text-fill: #6b7280;
+}
+
+.action-button:hover {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #111827;
+    -fx-background-radius: 6;
+}
+
+.delete-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-text-fill: #6b7280;
+}
+
+.delete-button:hover {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #dc2626;
+    -fx-background-radius: 6;
+}
+
+/* ===== TOP BAR ===== */
+.top-bar {
+    -fx-background-color: white;
+    -fx-padding: 20;
+    -fx-border-color: #e5e5e5;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* ===== MENU NAVIGATION ===== */
+.menu-item {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+    -fx-cursor: hand;
+}
+
+.menu-item:hover {
+    -fx-text-fill: #10b981;
+}
+
+.menu-item-active {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #10b981;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #6b7280;
+    -fx-padding: 60;
+    -fx-text-alignment: center;
+}
+
+/* ===== ALERTS ===== */
+.alert {
+    -fx-background-color: white;
+}
+
+.alert .header-panel {
+    -fx-background-color: #10b981;
+}
+
+.alert .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* ===== TEXT FIELDS & TEXT AREAS ===== */
+.text-field, .text-area {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: #10b981;
+    -fx-border-width: 2;
+}
