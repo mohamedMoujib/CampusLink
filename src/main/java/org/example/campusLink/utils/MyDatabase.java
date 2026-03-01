@@ -7,29 +7,32 @@ import java.sql.SQLException;
 public class MyDatabase {
 
     private static MyDatabase instance;
-    private Connection connection;
+    private volatile Connection connection;
 
     private final String URL = "jdbc:mysql://localhost:3306/campusLink";
     private final String USER = "root";
     private final String PASSWORD = "";
 
     private MyDatabase() {
-        try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Connection to database established");
-        } catch (SQLException e) {
-            throw new RuntimeException("Error connecting to database", e);
-        }
     }
 
-    public static MyDatabase getInstance() {
+    public static synchronized MyDatabase getInstance() {
         if (instance == null) {
             instance = new MyDatabase();
         }
         return instance;
     }
 
-    public Connection getConnection() {
+    /**
+     * Retourne une connexion valide. Si la connexion existante est fermée
+     * (ex. après un try-with-resources dans un service), une nouvelle est créée.
+     * Ne pas fermer cette connexion dans les appels — elle est partagée.
+     */
+    public synchronized Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            System.out.println("Connection to database established");
+        }
         return connection;
     }
 }

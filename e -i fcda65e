@@ -1,0 +1,10 @@
+[33mfaaefd1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mModule_User[m[33m)[m forgetPassword , mailConfirmation , conexiongoogle
+[33m8eb8511[m forgetPassword , mailConfirmation ,conexiongoogle
+[33mfcda65e[m[33m ([m[1;31morigin/Module_User[m[33m)[m interface profile fixed
+[33mb773bca[m Remove unwanted files
+[33m79902b0[m interface profil
+[33m8eef206[m alert added
+[33m6a7db95[m[33m ([m[1;32mbackup-safe[m[33m)[m interface login + interface signup
+[33me057924[m crud with test
+[33me9c51ff[m[33m ([m[1;31mother/main[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m Singleton added
+[33m15411a3[m project creation

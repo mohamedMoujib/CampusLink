@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Gestion_publication {
-    private final Connection connection;
 
-    public Gestion_publication() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
     }
 
     public void ajouterPublication(Publications pub) throws SQLException {
@@ -28,7 +27,7 @@ public class Gestion_publication {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, pub.getStudentId());
             ps.setString(2, pub.getTypePublication().name());
             ps.setString(3, pub.getTitre());
@@ -86,7 +85,7 @@ public class Gestion_publication {
         if (statusFilter != null) sql.append(" AND p.status = '").append(statusFilter.name()).append("'");
         sql.append(" ORDER BY p.created_at DESC");
 
-        try (Statement stmt = connection.createStatement();
+        try (Statement stmt = getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(sql.toString())) {
             while (rs.next()) {
                 publications.add(mapResultSetToPublication(rs));
@@ -112,7 +111,7 @@ public class Gestion_publication {
         """;
 
         List<Publications> publications = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, studentId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -137,7 +136,7 @@ public class Gestion_publication {
             WHERE p.id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -164,7 +163,7 @@ public class Gestion_publication {
         """;
 
         List<Publications> publications = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             String pattern = "%" + keyword + "%";
             ps.setString(1, pattern);
             ps.setString(2, pattern);
@@ -178,7 +177,7 @@ public class Gestion_publication {
 
     public void modifierStatut(int id, StatusPublication statut) throws SQLException {
         String sql = "UPDATE publications SET status = ? WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, statut.name());
             ps.setInt(2, id);
             ps.executeUpdate();
@@ -187,7 +186,7 @@ public class Gestion_publication {
 
     public void incrementerVues(int id) throws SQLException {
         String sql = "UPDATE publications SET vues = vues + 1 WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
@@ -195,7 +194,7 @@ public class Gestion_publication {
 
     public void supprimerPublication(int id) throws SQLException {
         String sql = "DELETE FROM publications WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
@@ -203,7 +202,7 @@ public class Gestion_publication {
 
     public int compterPublicationsParStatut(StatusPublication status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM publications WHERE status = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status.name());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(1);
@@ -213,7 +212,7 @@ public class Gestion_publication {
 
     public int compterPublicationsParType(TypePublication type) throws SQLException {
         String sql = "SELECT COUNT(*) FROM publications WHERE type_publication = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, type.name());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(1);

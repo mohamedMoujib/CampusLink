@@ -21,7 +21,9 @@ import java.util.Properties;
  */
 public class Gestion_Notification {
 
-    private final Connection connection;
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
+    }
 
     // ── SMTP config (fallback email) ───────────────────────────────────────────
     private static final String SMTP_HOST      = "smtp.gmail.com";
@@ -33,7 +35,6 @@ public class Gestion_Notification {
     private final NotificationCache cache = NotificationCache.getInstance();
 
     public Gestion_Notification() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -228,7 +229,7 @@ public class Gestion_Notification {
                                      String status) throws SQLException {
         String sql = "INSERT INTO email_logs (recipient, subject, status, sent_at) " +
                 "VALUES (?, ?, ?, NOW())";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, destinataire);
             ps.setString(2, sujet);
             ps.setString(3, status);

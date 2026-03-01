@@ -89,7 +89,11 @@ public class EmailService_publication {
             return true;
 
         } catch (MessagingException e) {
-            e.printStackTrace();
+            if (EMAIL_PASSWORD == null || EMAIL_PASSWORD.isEmpty()) {
+                System.err.println("⚠️ Email non envoyé: CAMPUSLINK_GMAIL_APP_PASSWORD non défini");
+            } else {
+                e.printStackTrace();
+            }
             return false;
         }
     }

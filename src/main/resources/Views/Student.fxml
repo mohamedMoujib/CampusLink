@@ -11,69 +11,9 @@
             stylesheets="/Styles/student.css"
             styleClass="root">
 
-    <!-- TOP BAR -->
+    <!-- Navbar commune -->
     <top>
-        <VBox>
-            <!-- Header principal -->
-            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
-
-                <!-- Logo -->
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="📚" styleClass="logo-box"/>
-                    <VBox>
-                        <Label text="Campuslink" styleClass="logo-title"/>
-                        <Label text="Espace Étudiant" styleClass="logo-subtitle"/>
-                    </VBox>
-                </HBox>
-
-                <Region HBox.hgrow="ALWAYS"/>
-
-                <!-- User info -->
-                <HBox spacing="15" alignment="CENTER">
-                    <Button text="🔔" styleClass="notification-btn"/>
-                    <VBox alignment="CENTER_RIGHT">
-                        <Label text="Marie Dubois" styleClass="user-name"/>
-                        <Label text="marie.dubois@univ.fr" styleClass="user-email"/>
-                    </VBox>
-                    <Label text="👤" styleClass="user-avatar"/>
-                    <Button text="⎋" styleClass="logout-btn"/>
-                </HBox>
-            </HBox>
-
-            <!-- Menu Navigation -->
-            <HBox spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item-active">
-                    <Label text="🔍" styleClass="menu-icon"/>
-                    <Label text="Rechercher des services"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToPublications" style="-fx-cursor: hand;">
-                    <Label text="📢" styleClass="menu-icon"/>
-                    <Label text="Publications"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
-                    <Label text="📅" styleClass="menu-icon"/>
-                    <Label text="Mes réservations"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
-                    <Label text="💳" styleClass="menu-icon"/>
-                    <Label text="Paiements"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
-                    <Label text="⭐" styleClass="menu-icon"/>
-                    <Label text="Mes avis"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER" styleClass="menu-item">
-                    <Label text="👤" styleClass="menu-icon"/>
-                    <Label text="Mon profil"/>
-                </HBox>
-            </HBox>
-        </VBox>
+        <fx:include source="NavBar.fxml"/>
     </top>
 
     <!-- CONTENT -->

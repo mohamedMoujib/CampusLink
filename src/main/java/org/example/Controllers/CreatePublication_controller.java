@@ -552,7 +552,7 @@ public class CreatePublication_controller implements Initializable {
         } else {
             try {
                 javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                        getClass().getResource("/Views/Publications.fxml"));
+                        getClass().getResource("/Views/Publication.fxml"));
                 stage.setScene(new javafx.scene.Scene(loader.load()));
                 stage.setTitle("Publications");
             } catch (Exception e) {

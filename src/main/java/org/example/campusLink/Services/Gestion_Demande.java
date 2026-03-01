@@ -16,10 +16,8 @@ import java.util.List;
  */
 public class Gestion_Demande {
 
-    private final Connection connection;
-
-    public Gestion_Demande() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
     }
 
     /**
@@ -31,7 +29,7 @@ public class Gestion_Demande {
 
         // Vérifier que le service existe
         String checkService = "SELECT id FROM services WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(checkService)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(checkService)) {
             ps.setInt(1, d.getServiceId());
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) {
@@ -47,7 +45,7 @@ public class Gestion_Demande {
             AND status IN ('EN_ATTENTE','CONFIRMEE')
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(checkDuplicate)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(checkDuplicate)) {
             ps.setInt(1, d.getStudentId());
             ps.setInt(2, d.getServiceId());
             ResultSet rs = ps.executeQuery();
@@ -63,7 +61,7 @@ public class Gestion_Demande {
             VALUES (?, ?, ?, ?, ?, ?, 'EN_ATTENTE')
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, d.getStudentId());
             ps.setInt(2, d.getServiceId());
             ps.setInt(3, d.getPrestataireId());
@@ -110,7 +108,7 @@ public class Gestion_Demande {
         String getCurrent = "SELECT status FROM demandes WHERE id = ?";
         String currentStatus = null;
 
-        try (PreparedStatement ps = connection.prepareStatement(getCurrent)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(getCurrent)) {
             ps.setInt(1, demandeId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -138,7 +136,7 @@ public class Gestion_Demande {
 
         // Update status
         String update = "UPDATE demandes SET status = ? WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(update)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(update)) {
             ps.setString(1, nouveauStatut);
             ps.setInt(2, demandeId);
             ps.executeUpdate();
@@ -179,7 +177,7 @@ public class Gestion_Demande {
 
         sql += " ORDER BY d.created_at DESC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             if (statusFilter != null && !statusFilter.equals("TOUS")) {
                 ps.setString(1, statusFilter);
             }
@@ -248,7 +246,7 @@ public class Gestion_Demande {
             ORDER BY d.created_at DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, studentId);
             ResultSet rs = ps.executeQuery();
 
@@ -289,7 +287,7 @@ public class Gestion_Demande {
             ORDER BY d.created_at DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, prestataireId);
             ResultSet rs = ps.executeQuery();
 
@@ -330,7 +328,7 @@ public class Gestion_Demande {
             ORDER BY d.created_at DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, serviceId);
             ResultSet rs = ps.executeQuery();
 
@@ -349,7 +347,7 @@ public class Gestion_Demande {
     public void supprimerDemande(int demandeId) throws SQLException {
         String sql = "DELETE FROM demandes WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, demandeId);
             int rowsAffected = ps.executeUpdate();
 
@@ -384,7 +382,7 @@ public class Gestion_Demande {
             WHERE d.id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, demandeId);
             ResultSet rs = ps.executeQuery();
 
@@ -402,7 +400,7 @@ public class Gestion_Demande {
     public int compterDemandesParStatut(String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM demandes WHERE status = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ResultSet rs = ps.executeQuery();
 
@@ -422,7 +420,7 @@ public class Gestion_Demande {
 
         String sql = "SELECT status, COUNT(*) as count FROM demandes GROUP BY status";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -439,7 +437,7 @@ public class Gestion_Demande {
     public void modifierPrixPropose(int demandeId, BigDecimal nouveauPrix) throws SQLException {
         String sql = "UPDATE demandes SET proposed_price = ? WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setBigDecimal(1, nouveauPrix);
             ps.setInt(2, demandeId);
 
@@ -456,7 +454,7 @@ public class Gestion_Demande {
     public void modifierDateDemandee(int demandeId, Timestamp nouvelleDate) throws SQLException {
         String sql = "UPDATE demandes SET requested_date = ? WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setTimestamp(1, nouvelleDate);
             ps.setInt(2, demandeId);
 

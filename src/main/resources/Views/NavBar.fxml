@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.NavBarController"
+      fx:id="root">
+
+    <!-- Header: logo + user + déconnexion -->
+    <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
+        <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#goToHome" style="-fx-cursor: hand;">
+            <Label text="📚" styleClass="logo-box"/>
+            <VBox>
+                <Label text="CampusLink" styleClass="logo-title"/>
+                <Label fx:id="spaceLabel" text="Espace Étudiant" styleClass="logo-subtitle"/>
+            </VBox>
+        </HBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox spacing="15" alignment="CENTER">
+            <Button text="🔔" styleClass="notification-btn"/>
+            <VBox alignment="CENTER_RIGHT">
+                <Label fx:id="userNameLabel" text="Utilisateur" styleClass="user-name"/>
+                <Label fx:id="userEmailLabel" text="email@exemple.fr" styleClass="user-email"/>
+            </VBox>
+            <Label text="👤" styleClass="user-avatar"/>
+            <Button text="Déconnexion" styleClass="logout-btn" onAction="#goToLogin"/>
+        </HBox>
+    </HBox>
+
+    <!-- Menu Étudiant (Rechercher, Publications, Avis, Profil) -->
+    <HBox fx:id="studentMenu" spacing="30" alignment="CENTER_LEFT" styleClass="menu-container">
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToStudent" style="-fx-cursor: hand;">
+            <Label text="🔍" styleClass="menu-icon"/>
+            <Label text="Rechercher des services"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToPublications" style="-fx-cursor: hand;">
+            <Label text="📢" styleClass="menu-icon"/>
+            <Label text="Publications"/>
+        </HBox>
+        <!-- ✅ AJOUTÉ : Mes avis (étudiant) -->
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToStudentReviews" style="-fx-cursor: hand;">
+            <Label text="⭐" styleClass="menu-icon"/>
+            <Label text="Mes avis"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToProfile" style="-fx-cursor: hand;">
+            <Label text="👤" styleClass="menu-icon"/>
+            <Label text="Mon profil"/>
+        </HBox>
+    </HBox>
+
+    <!-- Menu Tuteur (Tableau de bord, Mes services, Avis reçus, Profil) -->
+    <HBox fx:id="tuteurMenu" spacing="30" alignment="CENTER_LEFT" styleClass="menu-container" visible="false" managed="false">
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToTutorDashboard" style="-fx-cursor: hand;">
+            <Label text="📊" styleClass="menu-icon"/>
+            <Label text="Tableau de bord"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToService" style="-fx-cursor: hand;">
+            <Label text="📋" styleClass="menu-icon"/>
+            <Label text="Mes services"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToTutorReviews" style="-fx-cursor: hand;">
+            <Label text="⭐" styleClass="menu-icon"/>
+            <Label text="Avis reçus"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER" styleClass="menu-item" onMouseClicked="#goToProfile" style="-fx-cursor: hand;">
+            <Label text="👤" styleClass="menu-icon"/>
+            <Label text="Mon profil"/>
+        </HBox>
+    </HBox>
+</VBox>

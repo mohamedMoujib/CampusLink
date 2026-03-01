@@ -13,10 +13,8 @@ import java.util.List;
  */
 public class Gestion_Service {
 
-    private final Connection connection;
-
-    public Gestion_Service() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
     }
 
     // ==================== CREATE ====================
@@ -38,7 +36,7 @@ public class Gestion_Service {
         VALUES (?, ?, ?, ?, ?, ?)
     """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, s.getTitle());
 
             // Handle NULL description
@@ -103,7 +101,7 @@ public class Gestion_Service {
             ORDER BY s.id DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -136,7 +134,7 @@ public class Gestion_Service {
             WHERE s.id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, serviceId);
             ResultSet rs = ps.executeQuery();
 
@@ -172,7 +170,7 @@ public class Gestion_Service {
             ORDER BY s.id DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, prestataireId);
             ResultSet rs = ps.executeQuery();
 
@@ -208,7 +206,7 @@ public class Gestion_Service {
             ORDER BY s.id DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, categoryId);
             ResultSet rs = ps.executeQuery();
 
@@ -244,7 +242,7 @@ public class Gestion_Service {
             ORDER BY s.id DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             String searchPattern = "%" + keyword + "%";
             ps.setString(1, searchPattern);
             ps.setString(2, searchPattern);
@@ -308,7 +306,7 @@ public class Gestion_Service {
 
         sql.append(" ORDER BY s.id DESC");
 
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
@@ -383,7 +381,7 @@ public class Gestion_Service {
             WHERE id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, s.getTitle().trim());
 
             if (s.getDescription() != null && !s.getDescription().isEmpty()) {
@@ -435,7 +433,7 @@ public class Gestion_Service {
             WHERE id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, serviceId);
 
@@ -460,7 +458,7 @@ public class Gestion_Service {
             AND status IN ('EN_ATTENTE','CONFIRMEE')
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(checkSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(checkSql)) {
             ps.setInt(1, serviceId);
             ResultSet rs = ps.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
@@ -471,7 +469,7 @@ public class Gestion_Service {
         }
 
         String deleteSql = "DELETE FROM services WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(deleteSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(deleteSql)) {
             ps.setInt(1, serviceId);
             int rowsAffected = ps.executeUpdate();
 
@@ -489,7 +487,7 @@ public class Gestion_Service {
     public int compterServices() throws SQLException {
         String sql = "SELECT COUNT(*) FROM services";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
@@ -505,7 +503,7 @@ public class Gestion_Service {
     public int compterServicesParStatut(String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM services WHERE status = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ResultSet rs = ps.executeQuery();
 
@@ -524,7 +522,7 @@ public class Gestion_Service {
 
         String sql = "SELECT status, COUNT(*) as count FROM services GROUP BY status";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -564,7 +562,7 @@ public class Gestion_Service {
             LIMIT 10
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -580,7 +578,7 @@ public class Gestion_Service {
     private boolean serviceExists(int serviceId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM services WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, serviceId);
             ResultSet rs = ps.executeQuery();
 
@@ -594,7 +592,7 @@ public class Gestion_Service {
     private boolean prestataireExists(int prestataireId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM users WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, prestataireId);
             ResultSet rs = ps.executeQuery();
 
@@ -608,7 +606,7 @@ public class Gestion_Service {
     private boolean categoryExists(int categoryId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM categories WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, categoryId);
             ResultSet rs = ps.executeQuery();
 

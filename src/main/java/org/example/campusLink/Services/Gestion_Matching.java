@@ -7,14 +7,16 @@ import java.util.*;
 
 public class Gestion_Matching {
 
-    private final Connection connection;
     private final Gestion_Notification notificationService;
-    private final EmailService emailService;
+    private final EmailService_publication emailService;
+
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
+    }
 
     public Gestion_Matching() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
         notificationService = new Gestion_Notification();
-        emailService = new EmailService();
+        emailService = new EmailService_publication();
     }
     /**
      * Analyser les nouvelles publications et notifier les tuteurs compatibles.
@@ -88,7 +90,7 @@ public class Gestion_Matching {
             ORDER BY p.created_at DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 PublicationData pub = new PublicationData();
@@ -124,11 +126,11 @@ public class Gestion_Matching {
             FROM services s
             LEFT JOIN categories c ON s.category_id = c.id
             LEFT JOIN users u ON s.prestataire_id = u.id
-            WHERE s.status IN ('EN_ATTENTE', 'CONFIRMEE')
+            WHERE s.status IN ('EN_ATTENTE', 'CONFIRMEE', 'ACTIF')
             ORDER BY s.id DESC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 ServiceData svc = new ServiceData();
@@ -286,7 +288,7 @@ public class Gestion_Matching {
                 notified = TRUE,
                 updated_at = NOW()
         """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, publicationId);
             ps.setInt(2, serviceId);
             ps.setDouble(3, score);
@@ -297,7 +299,7 @@ public class Gestion_Matching {
     private boolean matchDejaExistant(int publicationId, int serviceId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM matching_history " +
                 "WHERE publication_id = ? AND service_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, publicationId);
             ps.setInt(2, serviceId);
             ResultSet rs = ps.executeQuery();

@@ -1,5 +1,6 @@
 package org.example.mains;
 
+import org.example.campusLink.Services.EmailService_publication;
 import org.example.campusLink.Services.Gestion_Matching;
 import org.example.campusLink.Services.Gestion_Notification;
 import org.example.campusLink.utils.NotificationCache;
@@ -10,14 +11,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 🧪 TEST GLOBAL — Notifications + Matching + Novu
+ * 🧪 TEST GLOBAL — EmailService_publication + Notifications + Matching + Novu
  *
  * Tests couverts :
+ * 0. EmailService_publication (code vérif + email compatible)
  * 1. Cache local
  * 2. TTL expiration
  * 3. Novu connectivity
  * 4. Notification service
- * 5. Matching réel DB
+ * 5. Matching réel DB + notification tuteur
  */
 public class TestMatchingSystem {
 
@@ -27,6 +29,7 @@ public class TestMatchingSystem {
         System.out.println("🧪 TEST COMPLET NOTIFICATION SYSTEM");
         System.out.println("═══════════════════════════════════════\n");
 
+        testEmailServicePublication();
         testNovuConnection();
         testCacheBasic();
         testCacheTTL();
@@ -34,6 +37,37 @@ public class TestMatchingSystem {
         testMatchingReal();
 
         System.out.println("\n✅ TOUS LES TESTS TERMINÉS");
+    }
+
+    // =========================================================
+    // TEST 0 — EMAIL SERVICE PUBLICATION
+    // =========================================================
+    private static void testEmailServicePublication() {
+        System.out.println("📧 TEST EmailService_publication");
+
+        EmailService_publication emailService = new EmailService_publication();
+
+        String code = emailService.generateVerificationCode();
+        System.out.println("→ Code vérification (6 chiffres): " + code);
+        if (code != null && code.matches("\\d{6}")) {
+            System.out.println("✅ Format code OK");
+        } else {
+            System.out.println("⚠️ Format code invalide");
+        }
+
+        boolean sent = emailService.sendCompatiblePublicationEmail(
+                "test@example.com",
+                "Tuteur Test",
+                "Cours Java",
+                "Étudiant Demo",
+                "Besoin aide Java",
+                "Description courte.",
+                50.0,
+                82.0
+        );
+        System.out.println("→ Envoi email compatible publication: " + (sent ? "OK" : "échoué (normal si CAMPUSLINK_GMAIL_APP_PASSWORD non défini)"));
+
+        System.out.println("✅ EmailService_publication testé\n");
     }
 
     // =========================================================
@@ -132,15 +166,21 @@ public class TestMatchingSystem {
     }
 
     // =========================================================
-    // TEST 4 — MATCHING RÉEL
+    // TEST 5 — MATCHING RÉEL + NOTIFICATION TUTEUR
     // =========================================================
     private static void testMatchingReal() throws Exception {
-        System.out.println("🎯 TEST MATCHING RÉEL");
-        System.out.println("⚠️ Nécessite données en base\n");
+        System.out.println("🎯 TEST MATCHING RÉEL + NOTIFICATION");
+        System.out.println("⚠️ Nécessite publications DEMANDE_SERVICE EN_ATTENTE et services actifs en base\n");
 
         Gestion_Matching matching = new Gestion_Matching();
         matching.analyserNouvellesPublications();
 
-        System.out.println("✅ Matching exécuté\n");
+        // Vérification rapide : si un tuteur a été notifié, il doit avoir une entrée dans le cache
+        NotificationCache cache = NotificationCache.getInstance();
+        List<CachedNotification> forUser5 = cache.getForUser(5);
+        List<CachedNotification> forUser1 = cache.getForUser(1);
+        System.out.println("→ Notifications en cache (user 1): " + forUser1.size() + " | (user 5): " + forUser5.size());
+
+        System.out.println("✅ Matching et notification testés\n");
     }
 }

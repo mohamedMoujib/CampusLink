@@ -13,10 +13,8 @@ import java.util.List;
  */
 public class Gestion_Categorie {
 
-    private final Connection connection;
-
-    public Gestion_Categorie() throws SQLException {
-        connection = MyDatabase.getInstance().getConnection();
+    private Connection getConnection() throws SQLException {
+        return MyDatabase.getInstance().getConnection();
     }
 
     /**
@@ -37,7 +35,7 @@ public class Gestion_Categorie {
             VALUES (?, ?)
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, c.getName().trim());
             ps.setString(2, c.getDescription() != null ? c.getDescription().trim() : null);
 
@@ -59,7 +57,7 @@ public class Gestion_Categorie {
         List<Categorie> list = new ArrayList<>();
         String sql = "SELECT * FROM categories ORDER BY name ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -79,7 +77,7 @@ public class Gestion_Categorie {
     public Categorie getCategorieById(int id) throws SQLException {
         String sql = "SELECT * FROM categories WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
 
@@ -101,7 +99,7 @@ public class Gestion_Categorie {
     public Categorie getCategorieByName(String name) throws SQLException {
         String sql = "SELECT * FROM categories WHERE name = ? LIMIT 1";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
 
@@ -140,7 +138,7 @@ public class Gestion_Categorie {
             WHERE id = ?
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, c.getName().trim());
             ps.setString(2, c.getDescription() != null ? c.getDescription().trim() : null);
             ps.setInt(3, c.getId());
@@ -161,7 +159,7 @@ public class Gestion_Categorie {
         // Check if category is used by services
         String checkSql = "SELECT COUNT(*) FROM services WHERE category_id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(checkSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(checkSql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
 
@@ -174,7 +172,7 @@ public class Gestion_Categorie {
 
         String deleteSql = "DELETE FROM categories WHERE id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(deleteSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(deleteSql)) {
             ps.setInt(1, id);
             int rowsAffected = ps.executeUpdate();
 
@@ -190,7 +188,7 @@ public class Gestion_Categorie {
     public int compterCategories() throws SQLException {
         String sql = "SELECT COUNT(*) FROM categories";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
@@ -207,7 +205,7 @@ public class Gestion_Categorie {
         List<Categorie> list = new ArrayList<>();
         String sql = "SELECT * FROM categories WHERE name LIKE ? OR description LIKE ? ORDER BY name ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             String searchPattern = "%" + keyword + "%";
             ps.setString(1, searchPattern);
             ps.setString(2, searchPattern);
@@ -237,7 +235,7 @@ public class Gestion_Categorie {
             ORDER BY c.name ASC
         """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {

@@ -8,33 +8,13 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.example.Controllers.CreatePublication_controller"
-            prefWidth="1100" prefHeight="850"
+            prefWidth="1400" prefHeight="900"
             stylesheets="/Styles/student.css"
             styleClass="root">
 
-    <!-- TOP BAR -->
+    <!-- Navbar commune -->
     <top>
-        <VBox>
-            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header-container">
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="📚" styleClass="logo-box"/>
-                    <VBox>
-                        <Label text="CampusLink" styleClass="logo-title"/>
-                        <Label text="Espace Étudiant" styleClass="logo-subtitle"/>
-                    </VBox>
-                </HBox>
-                <Region HBox.hgrow="ALWAYS"/>
-                <HBox spacing="15" alignment="CENTER">
-                    <Button text="🔔" styleClass="notification-btn"/>
-                    <VBox alignment="CENTER_RIGHT">
-                        <Label text="Marie Dubois" styleClass="user-name"/>
-                        <Label text="marie.dubois@univ.fr" styleClass="user-email"/>
-                    </VBox>
-                    <Label text="👤" styleClass="user-avatar"/>
-                    <Button text="⎋" styleClass="logout-btn"/>
-                </HBox>
-            </HBox>
-        </VBox>
+        <fx:include source="NavBar.fxml"/>
     </top>
 
     <!-- MAIN CONTENT -->

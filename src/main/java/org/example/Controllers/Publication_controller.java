@@ -44,6 +44,10 @@ public class Publication_controller {
     private boolean showingMyPublications = false;
     private List<Publications> basePublications = new ArrayList<>();
 
+    public void setCurrentStudentId(int id) {
+        this.currentStudentId = id;
+    }
+
     @FXML
     public void initialize() {
         System.out.println("Initializing Publication_controller...");

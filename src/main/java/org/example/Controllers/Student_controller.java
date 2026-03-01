@@ -15,7 +15,9 @@ import javafx.stage.Stage;
 import javafx.scene.Node;
 
 import org.example.campusLink.Services.Gestion_Service;
+import org.example.campusLink.entities.User;
 import org.example.campusLink.entities.Services;
+import org.example.campusLink.utils.AppSession;
 
 import java.io.File;
 import java.util.Comparator;
@@ -29,21 +31,39 @@ public class Student_controller {
     @FXML private ComboBox<String> tarifCombo;
     @FXML private ComboBox<String> trierCombo;
     @FXML private GridPane servicesGrid;
+    @FXML private Label userNameLabel;
+    @FXML private Label userEmailLabel;
 
     private Gestion_Service gestionService;
+    private User currentUser;
+    private int currentStudentId = 1;
 
-    private int currentStudentId = 1; // TODO: Replace with session
+    /** Appelé après login ou quand la vue est rechargée (ex. retour depuis Publications). */
+    public void setUser(User user) {
+        this.currentUser = user;
+        if (user != null) {
+            currentStudentId = user.getId();
+            AppSession.setCurrentUser(user);
+            if (userNameLabel != null) userNameLabel.setText(user.getName());
+            if (userEmailLabel != null) userEmailLabel.setText(user.getEmail());
+        }
+    }
 
     @FXML
     public void initialize() {
         System.out.println("Initializing Student_controller (Search Page)...");
-
         try {
             gestionService = new Gestion_Service();
+            User sessionUser = AppSession.getCurrentUser();
+            if (sessionUser != null) {
+                currentStudentId = sessionUser.getId();
+                currentUser = sessionUser;
+                if (userNameLabel != null) userNameLabel.setText(sessionUser.getName());
+                if (userEmailLabel != null) userEmailLabel.setText(sessionUser.getEmail());
+            }
             setupFilters();
             loadServices();
             System.out.println("Student_controller initialized successfully");
-
         } catch (Exception e) {
             System.err.println("Error initializing Student_controller: " + e.getMessage());
             e.printStackTrace();
@@ -367,17 +387,31 @@ public class Student_controller {
     @FXML
     private void goToPublications(MouseEvent event) {
         try {
-            System.out.println("Navigating to publications...");
-
-            Parent root = FXMLLoader.load(getClass().getResource("/Views/Publication.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/Publication.fxml"));
+            Parent root = loader.load();
+            Publication_controller controller = loader.getController();
+            controller.setCurrentStudentId(currentStudentId);
             Stage stage = (Stage) servicesGrid.getScene().getWindow();
             stage.setScene(new Scene(root));
-            stage.setTitle("Publications Étudiantes");
-
+            stage.setTitle("Publications");
         } catch (Exception e) {
             System.err.println("Error navigating to publications: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Impossible de naviguer vers Publications: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    private void goToLogin() {
+        try {
+            AppSession.clear();
+            Parent root = FXMLLoader.load(getClass().getResource("/Views/Login.fxml"));
+            Stage stage = (Stage) (servicesGrid != null ? servicesGrid.getScene().getWindow() : searchField.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.setTitle("CampusLink - Connexion");
+        } catch (Exception e) {
+            System.err.println("Error logging out: " + e.getMessage());
+            showAlert("Erreur", "Impossible de se déconnecter.", Alert.AlertType.ERROR);
         }
     }
 }
