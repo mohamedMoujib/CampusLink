@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.campusLink.controllers.PaymentController"
+            styleClass="root"
+            prefWidth="1000"
+            prefHeight="750"
+            stylesheets="@../../../../../../../../Downloads/CampusLink/CampusLink/src/main/resources/Style/PaymentForm.css">
+
+    <top>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="📚" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2">
+                        <Label text="CampusLink" styleClass="logo"/>
+                        <Label text="Espace Étudiant" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                </HBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="20" alignment="CENTER_RIGHT">
+                    <Label text="🔔" style="-fx-font-size: 20px;"/>
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label text="Marie Dubois" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                        <Label text="marie.dubois@univ.fr" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                    </VBox>
+                    <Label text="👤" style="-fx-font-size: 24px;"/>
+                </HBox>
+            </HBox>
+
+            <HBox spacing="0" styleClass="nav-tabs">
+                <Button text="🔍 Rechercher des services" styleClass="nav-tab"/>
+                <Button text="📅 Mes réservations" styleClass="nav-tab"/>
+                <Button text="📍 Suivi de transaction" styleClass="nav-tab-active"/>
+                <Button text="⭐ Mes avis" styleClass="nav-tab"/>
+                <Button text="👤 Mon profil" styleClass="nav-tab"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    hbarPolicy="NEVER"
+                    vbarPolicy="AS_NEEDED">
+            <VBox styleClass="form-card" spacing="25" alignment="TOP_LEFT">
+                <padding>
+                    <Insets top="40" right="60" bottom="40" left="60"/>
+                </padding>
+
+                <Label text="Coordination de Transaction" styleClass="form-title"/>
+
+                <VBox spacing="5">
+                    <Label text="Nom Prestataire" style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#374151;"/>
+                    <TextField fx:id="providerNameField" editable="false"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Montant convenu (€)" style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#374151;"/>
+                    <TextField fx:id="amountField" editable="false"/>
+                    <Label text="Prix convenu entre les deux parties. Le paiement est effectué hors plateforme."
+                           wrapText="true"
+                           style="-fx-font-size:11px; -fx-text-fill:#6b7280;"/>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Méthode de paiement externe" style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#374151;"/>
+                    <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb; -fx-border-radius:8; -fx-background-radius:8; -fx-padding:12 20 12 20;">
+                        <RadioButton fx:id="cashRadio" text="💵 Cash" style="-fx-font-size:13px; -fx-text-fill:#000000;"/>
+                        <RadioButton fx:id="d17Radio" text="📱 D17" style="-fx-font-size:13px; -fx-text-fill:#000000;"/>
+                    </HBox>
+                    <Label text="⚠️ Le paiement est effectué en dehors de la plateforme. Cette action permet uniquement d'enregistrer l'engagement."
+                           wrapText="true"
+                           style="-fx-text-fill:#d97706; -fx-font-size:12px;"/>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Lieu de rencontre" style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#374151;"/>
+                    <StackPane fx:id="mapContainer"
+                               prefHeight="450"
+                               minHeight="450"
+                               minWidth="800"
+                               style="-fx-border-color:#ccc; -fx-border-radius:6; -fx-background-color:#e8e0d8;"/>
+                </VBox>
+
+                <HBox spacing="15">
+                    <Button fx:id="submitButton"
+                            text="Valider l'engagement de transaction"
+                            styleClass="primary-button"/>
+                </HBox>
+
+                <Label fx:id="messageLabel"/>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

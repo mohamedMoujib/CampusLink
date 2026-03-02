@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/23.0.2"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.campusLink.controllers.reservations.ReservationCreateController"
+           stylesheets="@../../Styles/app.css"
+           style="-fx-background-color: rgba(0,0,0,0.55);">
+
+    <VBox spacing="12" styleClass="modal" maxWidth="420">
+        <padding>
+            <Insets top="18" right="18" bottom="18" left="18"/>
+        </padding>
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT">
+            <Label text="Réserver une session" style="-fx-font-size:16px; -fx-font-weight:800;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="✕" styleClass="icon-btn" onAction="#onClose"/>
+        </HBox>
+
+        <!-- Sélection du service -->
+        <Label text="Service souhaité" style="-fx-font-weight:700;"/>
+        <ComboBox fx:id="cbService" promptText="Sélectionner un service"/>
+
+        <!-- Carte détail du service (visible seulement si un service est sélectionné) -->
+        <VBox fx:id="serviceDetailCard" spacing="6" style="-fx-background-color:#EEF2FF; -fx-background-radius:12; -fx-padding:14;" managed="${serviceDetailCard.visible}">
+            <HBox>
+                <VBox spacing="2">
+                    <Label fx:id="lblServiceTitle" text="" style="-fx-font-weight:800;"/>
+                    <Label fx:id="lblTutor" text="" styleClass="muted"/>
+                    <Label fx:id="lblDuration" text="" styleClass="muted"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblPrice" text="" style="-fx-font-weight:900; -fx-text-fill:#4F46E5;"/>
+            </HBox>
+        </VBox>
+
+        <!-- Date -->
+        <Label text="Date souhaitée" style="-fx-font-weight:700;"/>
+        <DatePicker fx:id="dpDate" promptText="mm/dd/yyyy"/>
+
+        <!-- Heure -->
+        <Label text="Heure souhaitée" style="-fx-font-weight:700;"/>
+        <ComboBox fx:id="cbTime" promptText="Sélectionner une heure"/>
+
+        <!-- Besoins spécifiques -->
+        <Label text="Besoins spécifiques (optionnel)" style="-fx-font-weight:700;"/>
+        <TextArea fx:id="taNote" promptText="Décrivez les sujets que vous souhaitez aborder..." prefRowCount="4"/>
+
+
+
+
+        <!-- Note d'information -->
+        <Label text="Note: Le paiement sera retenu en dépôt de garantie et libéré au tuteur après la session."
+               style="-fx-background-color:#FEF9C3; -fx-padding:10; -fx-background-radius:10; -fx-text-fill:#7C5B00;"/>
+
+        <!-- Boutons -->
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Annuler" styleClass="btn-outline" onAction="#onClose"/>
+            <Button fx:id="btnConfirm" text="Confirmer la réservation" styleClass="primary-btn" onAction="#onConfirm"/>
+        </HBox>
+    </VBox>
+</StackPane>
