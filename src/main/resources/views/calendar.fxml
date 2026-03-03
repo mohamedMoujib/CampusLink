@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns="http://javafx.com/javafx/23.0.2"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.campusLink.controllers.CalendarController"
+      stylesheets="@../styles/app.css"
+      prefWidth="500" prefHeight="400">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <HBox alignment="CENTER_LEFT">
+        <Label text="Calendrier des réservations" styleClass="page-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="✕" styleClass="icon-btn" onAction="#onClose"/>
+    </HBox>
+
+    <DatePicker fx:id="datePicker" promptText="Choisir une date"/>
+
+    <Label fx:id="selectedDateLabel" style="-fx-font-weight: bold;"/>
+
+    <ListView fx:id="reservationListView" VBox.vgrow="ALWAYS"/>
+
+</VBox>

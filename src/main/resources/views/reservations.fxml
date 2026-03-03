@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.campusLink.controllers.ReservationsController"
+            stylesheets="@../styles/app.css">
+
+    <fx:define>
+        <ToggleGroup fx:id="navGroup"/>
+    </fx:define>
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox styleClass="topbar">
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="topbar-inner">
+                <!-- Logo -->
+                <ImageView fx:id="imgLogo" fitHeight="26" preserveRatio="true"/>
+
+
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnNotification" text="🔔" styleClass="icon-circle"/>
+                    <Button fx:id="btnCalendar" text="📅" styleClass="icon-circle" onAction="#onOpenCalendar"/>
+
+                    <VBox spacing="0" alignment="CENTER_RIGHT">
+                        <Label fx:id="lblUserName" text="hamadi" styleClass="user-name"/>
+                        <Label fx:id="lblUserEmail" text="hamadiprestataire@gmail.com" styleClass="user-email"/>
+                    </VBox>
+                    <Button text="⎋" styleClass="icon-circle"/>
+                </HBox>
+            </HBox>
+
+            <!-- NAV -->
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="nav-row">
+                <ToggleButton text="Mes services" toggleGroup="$navGroup" styleClass="nav-btn" onAction="#onNavServices"/>
+                <ToggleButton text="Réservations" toggleGroup="$navGroup" styleClass="nav-btn" selected="true"/>
+                <ToggleButton text="Revenus" toggleGroup="$navGroup" styleClass="nav-btn" onAction="#onNavRevenus"/>
+                <ToggleButton text="Avis" toggleGroup="$navGroup" styleClass="nav-btn" onAction="#onNavAvis"/>
+                <ToggleButton text="Profil" toggleGroup="$navGroup" styleClass="nav-btn" onAction="#onNavProfil"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button text="+ Ajouter" styleClass="primary-btn" onAction="#onAddReservation"/>
+
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CENTER -->
+    <center>
+        <VBox spacing="16" styleClass="page" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets top="22" right="22" bottom="22" left="22"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Réservations reçues" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="8">
+                    <Button text="Toutes" styleClass="chip chip-active" onAction="#onFilterAll"/>
+                    <Button text="À venir" styleClass="chip" onAction="#onFilterUpcoming"/>
+                    <Button text="Passées" styleClass="chip" onAction="#onFilterPast"/>
+                </HBox>
+            </HBox>
+
+            <ListView fx:id="listReservations" VBox.vgrow="ALWAYS" styleClass="clean-list"/>
+        </VBox>
+    </center>
+
+</BorderPane>

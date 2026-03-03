@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Insets?>
+<BorderPane
+        xmlns:fx="http://javafx.com/fxml"
+        fx:controller="org.example.campusLink.controllers.StudentDashboardController"
+        stylesheets="@../styles/app.css">
+    <top>
+        <HBox spacing="20" alignment="CENTER_LEFT" styleClass="topbar">
+            <Label text="🎓 Dashboard Étudiant" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="+ Nouvelle réservation"
+                    onAction="#openCreateModal"
+                    styleClass="primary-btn"/>
+        </HBox>
+    </top>
+
+
+
+    <center>
+        <VBox spacing="20">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <TableView fx:id="reservationsTable" styleClass="table-view">
+                <columns>
+                    <TableColumn text="Service" fx:id="serviceCol" prefWidth="160"/>
+                    <TableColumn text="Date" fx:id="dateCol" prefWidth="150"/>
+                    <TableColumn text="Statut" fx:id="statusCol" prefWidth="120"/>
+                    <TableColumn text="Prestataire" fx:id="providerCol" prefWidth="150"/>
+                    <TableColumn text="Prix" fx:id="priceCol" prefWidth="80"/>
+                    <TableColumn text="Actions" fx:id="actionsCol" prefWidth="260"/>
+                </columns>
+            </TableView>
+
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.campusLink.controllers.RevenusController"
+            stylesheets="@../styles/app.css"
+            prefWidth="900" prefHeight="600">
+
+    <!-- Top: Titre et contrôles -->
+    <top>
+        <VBox spacing="10" styleClass="revenus-header">
+            <padding>
+                <Insets top="20" right="20" bottom="10" left="20"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Revenus" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Période :" styleClass="revenus-label"/>
+                <ComboBox fx:id="yearCombo" styleClass="revenus-combo" prefWidth="120"/>
+                <Button fx:id="refreshBtn" text="Actualiser" styleClass="primary-btn"/>
+            </HBox>
+            <Label fx:id="totalRevenuLabel" styleClass="revenus-total"/>
+        </VBox>
+    </top>
+
+    <!-- Center: Graphique -->
+    <center>
+        <LineChart fx:id="lineChart" VBox.vgrow="ALWAYS" styleClass="revenus-chart"
+                   title="Évolution des revenus mensuels"
+                   legendVisible="false"
+                   animated="false">
+            <xAxis>
+                <CategoryAxis label="Mois" styleClass="revenus-axis"/>
+            </xAxis>
+            <yAxis>
+                <NumberAxis fx:id="yAxis" label="Revenus (DT)" styleClass="revenus-axis"/>
+            </yAxis>
+        </LineChart>
+    </center>
+
+    <!-- Bottom: Pied de page (optionnel) -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" styleClass="revenus-footer">
+            <padding>
+                <Insets top="10" right="20" bottom="20" left="20"/>
+            </padding>
+            <Label text="Les revenus sont basés sur les réservations confirmées." styleClass="muted"/>
+        </HBox>
+    </bottom>
+</BorderPane>
