@@ -1,0 +1,80 @@
+/* ===============================================
+   MODERN SERVICE.CSS - Style EduMarket
+   =============================================== */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ===== SCROLLBAR ===== */
+.scroll-pane { -fx-background-color: transparent; }
+.scroll-pane > .viewport { -fx-background-color: transparent; }
+.scroll-bar:vertical .track { -fx-background-color: #f3f4f6; -fx-background-radius: 4; }
+.scroll-bar:vertical .thumb { -fx-background-color: #d1d5db; -fx-background-radius: 4; }
+.scroll-bar:vertical .thumb:hover { -fx-background-color: #9ca3af; }
+
+/* ===== BUTTONS ===== */
+.button { -fx-cursor: hand; }
+.button:hover { -fx-opacity: 0.9; }
+
+.create-button {
+    -fx-background-color: #5D5FEF;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+.create-button:hover { -fx-background-color: #4338CA; }
+
+/* ===== SERVICE CARDS ===== */
+.service-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);
+}
+.service-card:hover {
+    -fx-border-color: #5D5FEF;
+    -fx-effect: dropshadow(gaussian, rgba(93,95,239,0.15), 15, 0, 0, 4);
+    -fx-cursor: hand;
+}
+
+.card-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #111827; }
+.card-category { -fx-font-size: 13px; -fx-text-fill: #6b7280; }
+.card-description { -fx-font-size: 14px; -fx-text-fill: #374151; -fx-wrap-text: true; }
+.card-info { -fx-font-size: 13px; -fx-text-fill: #6b7280; }
+.card-price { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #5D5FEF; }
+
+.badge-active { -fx-background-color: #EDECFD; -fx-text-fill: #4338CA; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12; }
+.badge-inactive { -fx-background-color: #f3f4f6; -fx-text-fill: #6b7280; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12; }
+
+/* ===== ACTION BUTTONS ===== */
+.action-button { -fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand; -fx-text-fill: #6b7280; }
+.action-button:hover { -fx-background-color: #f3f4f6; -fx-text-fill: #111827; -fx-background-radius: 6; }
+.delete-button { -fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand; -fx-text-fill: #6b7280; }
+.delete-button:hover { -fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-background-radius: 6; }
+
+/* ===== MENU ===== */
+.menu-item { -fx-font-size: 14px; -fx-text-fill: #6b7280; -fx-cursor: hand; }
+.menu-item:hover { -fx-text-fill: #5D5FEF; }
+.menu-item-active { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #5D5FEF; }
+
+/* ===== ALERTS ===== */
+.alert { -fx-background-color: white; }
+.alert .header-panel { -fx-background-color: #5D5FEF; }
+.alert .header-panel .label { -fx-text-fill: white; -fx-font-weight: bold; }
+
+/* ===== TEXT FIELDS ===== */
+.text-field, .text-area {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+}
+.text-field:focused, .text-area:focused { -fx-border-color: #5D5FEF; -fx-border-width: 2; }

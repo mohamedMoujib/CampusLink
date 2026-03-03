@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.Student_controller"
+      spacing="25"
+      style="-fx-background-color: #f8f9fa;"
+      stylesheets="/Styles/student.css">
+
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+    <!-- Barre de recherche -->
+    <HBox styleClass="search-container">
+        <Label text="🔍" styleClass="search-icon"/>
+        <TextField fx:id="searchField"
+                   promptText="Rechercher un service, une matière, un tuteur..."
+                   styleClass="search-input"/>
+    </HBox>
+
+    <!-- Filtres + Translate button -->
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <VBox spacing="8" styleClass="filter-group" visible="false" managed="false">
+            <Label text="Catégorie" styleClass="filter-label"/>
+            <ComboBox fx:id="categorieCombo"
+                      promptText="Tous"
+                      styleClass="filter-combo"
+                      prefWidth="280"/>
+        </VBox>
+
+        <VBox spacing="8" styleClass="filter-group">
+            <Label text="Tarif" styleClass="filter-label"/>
+            <ComboBox fx:id="tarifCombo"
+                      promptText="Tous les tarifs"
+                      styleClass="filter-combo"
+                      prefWidth="280"/>
+        </VBox>
+
+        <VBox spacing="8" styleClass="filter-group">
+            <Label text="Trier par" styleClass="filter-label"/>
+            <ComboBox fx:id="trierCombo"
+                      promptText="Meilleure note"
+                      styleClass="filter-combo"
+                      prefWidth="280"/>
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- ✅ Global translation button -->
+        <Button fx:id="translateBtn"
+                text="🌐 Traduire"
+                onAction="#toggleTranslation"
+                style="-fx-background-color: #eff6ff; -fx-text-fill: #2563eb;
+                       -fx-font-size: 13px; -fx-font-weight: bold;
+                       -fx-padding: 12 20; -fx-background-radius: 8;
+                       -fx-cursor: hand; -fx-border-color: #bfdbfe;
+                       -fx-border-width: 1; -fx-border-radius: 8;"/>
+
+    </HBox>
+
+    <!-- Container des services -->
+    <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+        <GridPane fx:id="servicesGrid"
+                  hgap="20"
+                  vgap="20"
+                  styleClass="services-grid"/>
+    </ScrollPane>
+
+</VBox>

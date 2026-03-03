@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:100%; height:100%; overflow:hidden; background:#e8e0d8; }
+        canvas { display:block; cursor:grab; }
+        canvas:active { cursor:grabbing; }
+        #ui {
+            position:absolute; top:10px; left:10px;
+            display:flex; flex-direction:column; gap:4px; z-index:10;
+        }
+        .btn {
+            width:30px; height:30px; background:white;
+            border:1px solid #ccc; border-radius:4px;
+            font-size:18px; font-weight:bold; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 1px 4px rgba(0,0,0,0.2);
+            user-select:none;
+        }
+        .btn:hover { background:#f0f0f0; }
+        #minfo {
+            position:absolute; bottom:30px; left:10px; right:10px;
+            background:white; padding:8px 12px; border-radius:6px;
+            font-size:12px; font-family:sans-serif; line-height:1.6;
+            box-shadow:0 1px 4px rgba(0,0,0,0.2);
+            display:none; max-width:500px;
+        }
+        #minfo .coords { color:#6b7280; font-size:11px; margin-top:2px; }
+        #attrib {
+            position:absolute; bottom:5px; right:5px;
+            font-size:10px; font-family:sans-serif; color:#333;
+            background:rgba(255,255,255,0.7); padding:2px 4px; border-radius:2px;
+        }
+    </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+    <div class="btn" id="zin">+</div>
+    <div class="btn" id="zout">−</div>
+</div>
+<div id="minfo"></div>
+<div id="attrib">© OpenStreetMap contributors</div>
+
+<script>
+    var canvas = document.getElementById('c');
+    var ctx = canvas.getContext('2d');
+
+    var zoom = 13;
+    var centerLat = 36.8065;
+    var centerLng = 10.1815;
+    var markerLat = null, markerLng = null;
+    var tileCache = {};
+    var pendingTiles = {};
+    var TILE_SIZE = 256;
+
+    function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        draw();
+    }
+
+    function lat2tile(lat, z) {
+        return (1 - Math.log(Math.tan(lat * Math.PI/180) + 1/Math.cos(lat * Math.PI/180)) / Math.PI) / 2 * Math.pow(2, z);
+    }
+    function lng2tile(lng, z) {
+        return (lng + 180) / 360 * Math.pow(2, z);
+    }
+    function tile2lat(y, z) {
+        var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+        return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+    }
+    function tile2lng(x, z) {
+        return x / Math.pow(2, z) * 360 - 180;
+    }
+    function pixelToLatLng(px, py) {
+        var cx = canvas.width / 2, cy = canvas.height / 2;
+        var tileX = lng2tile(centerLng, zoom) + (px - cx) / TILE_SIZE;
+        var tileY = lat2tile(centerLat, zoom) + (py - cy) / TILE_SIZE;
+        return { lat: tile2lat(tileY, zoom), lng: tile2lng(tileX, zoom) };
+    }
+
+    function getTile(tx, ty, z) {
+        var key = z + '/' + tx + '/' + ty;
+        if (tileCache[key]) return tileCache[key];
+        if (pendingTiles[key]) return null;
+        pendingTiles[key] = true;
+        var subs = ['a','b','c'];
+        var sub = subs[(Math.abs(tx) + Math.abs(ty)) % 3];
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() { tileCache[key] = img; delete pendingTiles[key]; draw(); };
+        img.onerror = function() { delete pendingTiles[key]; };
+        img.src = 'https://' + sub + '.tile.openstreetmap.org/' + z + '/' + tx + '/' + ty + '.png';
+        return null;
+    }
+
+    function draw() {
+        var W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#e8e0d8';
+        ctx.fillRect(0, 0, W, H);
+
+        var centerTileX = lng2tile(centerLng, zoom);
+        var centerTileY = lat2tile(centerLat, zoom);
+        var cx = W / 2, cy = H / 2;
+        var maxTile = Math.pow(2, zoom);
+        var tilesX = Math.ceil(W / TILE_SIZE) + 2;
+        var tilesY = Math.ceil(H / TILE_SIZE) + 2;
+        var startTX = Math.floor(centerTileX - tilesX / 2);
+        var startTY = Math.floor(centerTileY - tilesY / 2);
+
+        for (var ty = startTY; ty <= startTY + tilesY; ty++) {
+            for (var tx = startTX; tx <= startTX + tilesX; tx++) {
+                var wtx = ((tx % maxTile) + maxTile) % maxTile;
+                var wty = ty;
+                if (wty < 0 || wty >= maxTile) continue;
+                var drawX = Math.round(cx + (tx - centerTileX) * TILE_SIZE);
+                var drawY = Math.round(cy + (ty - centerTileY) * TILE_SIZE);
+                var img = getTile(wtx, wty, zoom);
+                if (img) {
+                    ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
+                } else {
+                    ctx.fillStyle = '#d8d0c8';
+                    ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = '#c8c0b8';
+                    ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        if (markerLat !== null) {
+            var mx = cx + (lng2tile(markerLng, zoom) - centerTileX) * TILE_SIZE;
+            var my = cy + (lat2tile(markerLat, zoom) - centerTileY) * TILE_SIZE;
+            ctx.beginPath();
+            ctx.arc(mx, my - 12, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(mx, my - 2);
+            ctx.lineTo(mx, my + 4);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    }
+
+    // Called by Java after geocoding completes to update the info box
+    function updateInfoBox(address, lat, lng) {
+        var info = document.getElementById('minfo');
+        info.style.display = 'block';
+        info.innerHTML = '📍 <strong>' + address + '</strong>' +
+            '<div class="coords">' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</div>';
+    }
+
+    var dragging = false, lastX = 0, lastY = 0, didDrag = false;
+
+    canvas.addEventListener('mousedown', function(e) {
+        dragging = true; didDrag = false;
+        lastX = e.clientX; lastY = e.clientY;
+    });
+    window.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastX;
+        var dy = e.clientY - lastY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) didDrag = true;
+        lastX = e.clientX; lastY = e.clientY;
+        centerLng = tile2lng(lng2tile(centerLng, zoom) - dx / TILE_SIZE, zoom);
+        centerLat = tile2lat(lat2tile(centerLat, zoom) - dy / TILE_SIZE, zoom);
+        draw();
+    });
+    window.addEventListener('mouseup', function() { dragging = false; });
+
+    canvas.addEventListener('click', function(e) {
+        if (didDrag) return;
+        var ll = pixelToLatLng(e.clientX, e.clientY);
+        markerLat = ll.lat;
+        markerLng = ll.lng;
+        draw();
+
+        // Show loading state immediately
+        var info = document.getElementById('minfo');
+        info.style.display = 'block';
+        info.innerHTML = '📍 <em style="color:#9ca3af">Recherche de l\'adresse...</em>' +
+            '<div class="coords">' + ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6) + '</div>';
+
+
+        try {
+            window.javaBridge.saveLocation(ll.lat, ll.lng);
+        } catch(err) {
+            document.getElementById('minfo').innerHTML += '<br>Error: ' + err;
+        }
+    });
+
+    canvas.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        var delta = e.deltaY < 0 ? 1 : -1;
+        var newZoom = Math.max(1, Math.min(19, zoom + delta));
+        if (newZoom === zoom) return;
+        var ll = pixelToLatLng(e.clientX, e.clientY);
+        zoom = newZoom;
+        var newTX = lng2tile(ll.lng, zoom);
+        var newTY = lat2tile(ll.lat, zoom);
+        var cx = canvas.width / 2, cy = canvas.height / 2;
+        centerLng = tile2lng(newTX - (e.clientX - cx) / TILE_SIZE, zoom);
+        centerLat = tile2lat(newTY - (e.clientY - cy) / TILE_SIZE, zoom);
+        draw();
+    }, { passive: false });
+
+    document.getElementById('zin').addEventListener('click', function() { zoom = Math.min(19, zoom + 1); draw(); });
+    document.getElementById('zout').addEventListener('click', function() { zoom = Math.max(1, zoom - 1); draw(); });
+
+    function fixSize() { resize(); }
+    window.addEventListener('resize', resize);
+    resize();
+</script>
+</body>
+</html>

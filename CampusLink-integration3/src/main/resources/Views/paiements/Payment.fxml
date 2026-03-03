@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.campusLink.controllers.paiements.PaymentController"
+            prefWidth="1000"
+            prefHeight="750"
+            stylesheets="@../../Styles/PaymentForm.css">
+
+    <!-- Header -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12"
+              style="-fx-background-color:white; -fx-padding:16 24;
+                     -fx-border-color:#e5e7eb; -fx-border-width:0 0 1 0;">
+            <Label text="📍" style="-fx-font-size:20px;"/>
+            <Label text="Coordination de Transaction"
+                   style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Reservation info pills -->
+            <Label fx:id="lblServiceBadge" text=""
+                   style="-fx-background-color:#e0e7ff; -fx-text-fill:#4f46e5;
+                          -fx-background-radius:20; -fx-padding:4 12;
+                          -fx-font-size:12px; -fx-font-weight:bold;"/>
+            <Label fx:id="lblStatusBadge" text="✅ Confirmée"
+                   style="-fx-background-color:#dcfce7; -fx-text-fill:#16a34a;
+                          -fx-background-radius:20; -fx-padding:4 12;
+                          -fx-font-size:12px; -fx-font-weight:bold;"/>
+
+            <!-- Close button -->
+            <Button text="✕ Fermer" onAction="#onClose"
+                    style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                           -fx-background-radius:8; -fx-padding:7 16; -fx-cursor:hand;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    style="-fx-background-color:#f8f9fa;">
+            <VBox spacing="24" style="-fx-background-color:#f8f9fa;">
+                <padding>
+                    <Insets top="28" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <!-- Reservation summary card -->
+                <VBox spacing="12"
+                      style="-fx-background-color:white; -fx-background-radius:12;
+                             -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                             -fx-padding:20;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.04),6,0,0,2);">
+                    <Label text="Récapitulatif de la réservation"
+                           style="-fx-font-weight:bold; -fx-font-size:14px; -fx-text-fill:#111827;"/>
+                    <Separator/>
+                    <HBox spacing="32">
+                        <VBox spacing="4">
+                            <Label text="Prestataire"
+                                   style="-fx-font-size:12px; -fx-text-fill:#6b7280;"/>
+                            <Label fx:id="lblProviderName" text="—"
+                                   style="-fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Service"
+                                   style="-fx-font-size:12px; -fx-text-fill:#6b7280;"/>
+                            <Label fx:id="lblServiceName" text="—"
+                                   style="-fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Date"
+                                   style="-fx-font-size:12px; -fx-text-fill:#6b7280;"/>
+                            <Label fx:id="lblDate" text="—"
+                                   style="-fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Montant"
+                                   style="-fx-font-size:12px; -fx-text-fill:#6b7280;"/>
+                            <Label fx:id="lblAmount" text="—"
+                                   style="-fx-font-weight:bold; -fx-font-size:18px;
+                                          -fx-text-fill:#4f46e5;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Payment method -->
+                <VBox spacing="10"
+                      style="-fx-background-color:white; -fx-background-radius:12;
+                             -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                             -fx-padding:20;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.04),6,0,0,2);">
+                    <Label text="Méthode de paiement externe"
+                           style="-fx-font-weight:bold; -fx-font-size:14px; -fx-text-fill:#111827;"/>
+                    <Separator/>
+                    <HBox spacing="20" alignment="CENTER_LEFT"
+                          style="-fx-background-color:#f9fafb; -fx-background-radius:8;
+                                 -fx-border-color:#e5e7eb; -fx-border-radius:8;
+                                 -fx-padding:14 20; ">
+                        <RadioButton fx:id="cashRadio" text="💵 Cash"
+                                     style="-fx-font-size:14px; -fx-text-fill: #000000 ; "/>
+                        <RadioButton fx:id="d17Radio"  text="📱 D17"
+                                     style="-fx-font-size:14px; -fx-text-fill: #000000 ;"/>
+                    </HBox>
+                    <Label text="⚠️ Le paiement est effectué en dehors de la plateforme. Cette action enregistre uniquement votre engagement."
+                           wrapText="true"
+                           style="-fx-text-fill:#d97706; -fx-font-size:12px;"/>
+                </VBox>
+
+                <!-- Map -->
+                <VBox spacing="10"
+                      style="-fx-background-color:white; -fx-background-radius:12;
+                             -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                             -fx-padding:20;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.04),6,0,0,2);">
+                    <Label text="Lieu de rencontre"
+                           style="-fx-font-weight:bold; -fx-font-size:14px; -fx-text-fill:#111827;"/>
+                    <Label text="Cliquez sur la carte pour choisir un lieu"
+                           style="-fx-font-size:12px; -fx-text-fill:#6b7280;"/>
+                    <Separator/>
+                    <StackPane fx:id="mapContainer"
+                               prefHeight="420" minHeight="420"
+                               style="-fx-border-color:#e5e7eb; -fx-border-radius:8;
+                                      -fx-background-color:#e8e0d8; -fx-border-width:1;"/>
+                </VBox>
+
+                <!-- Submit -->
+                <VBox spacing="10"
+                      style="-fx-background-color:white; -fx-background-radius:12;
+                             -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                             -fx-padding:20;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.04),6,0,0,2);">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Button fx:id="submitButton"
+                                text="✅ Valider l'engagement de transaction"
+                                onAction="#handleSubmit"
+                                style="-fx-background-color:#4f46e5; -fx-text-fill:white;
+                                       -fx-font-weight:bold; -fx-background-radius:8;
+                                       -fx-padding:11 24; -fx-cursor:hand; -fx-font-size:14px;"/>
+                        <Button text="Annuler" onAction="#onClose"
+                                style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                                       -fx-background-radius:8; -fx-padding:11 20;
+                                       -fx-cursor:hand;"/>
+                    </HBox>
+                    <Label fx:id="messageLabel"
+                           style="-fx-font-size:13px; -fx-font-weight:bold;"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
