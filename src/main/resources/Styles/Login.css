@@ -1,0 +1,412 @@
+/* ============================================
+   CAMPUSLINK - LOGIN & SIGNUP STYLES
+   ============================================ */
+
+/* Root and Background */
+.root-pane {
+    -fx-background-color: #E8EEF6;
+}
+
+.background {
+    -fx-background-color: linear-gradient(to bottom, #E8EEF6, #D5E1F2);
+    -fx-padding: 40;
+}
+
+/* Card Container */
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 20, 0, 0, 5);
+    -fx-padding: 40;
+}
+
+/* Logo Circle */
+.logo-circle {
+    -fx-background-color: #5D5FEF;
+    -fx-background-radius: 50;
+    -fx-pref-width: 80;
+    -fx-pref-height: 80;
+}
+
+.logo-icon {
+    -fx-font-size: 40;
+    -fx-fill: white;
+}
+
+/* Typography */
+.title {
+    -fx-font-size: 28;
+    -fx-font-weight: bold;
+    -fx-fill: #1a1a1a;
+}
+
+.subtitle {
+    -fx-font-size: 14;
+    -fx-fill: #6B7280;
+}
+
+.label-text {
+    -fx-font-size: 13;
+    -fx-font-weight: 600;
+    -fx-fill: #374151;
+}
+
+.footer-text {
+    -fx-font-size: 13;
+    -fx-fill: #6B7280;
+}
+
+.checkbox-text {
+    -fx-font-size: 12;
+    -fx-fill: #6B7280;
+}
+
+/* ============================================
+   ERROR STYLES
+   ============================================ */
+
+/* Error Label - Sous les champs */
+.error-label {
+    -fx-text-fill: #EF4444;
+    -fx-font-size: 11px;
+    -fx-padding: 2 0 0 5;
+}
+
+/* Input Fields - Error State */
+.input-field-full.error,
+.input-field-compact.error {
+    -fx-border-color: #EF4444 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* ComboBox - Error State */
+.combo-box.error {
+    -fx-border-color: #EF4444 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* ============================================
+   ROLE TOGGLE BUTTONS
+   ============================================ */
+
+.role-btn {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #6B7280;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-font-size: 13;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.role-btn:hover {
+    -fx-background-color: #E5E7EB;
+}
+
+.role-btn-selected {
+    -fx-background-color: #5D5FEF !important;
+    -fx-text-fill: white !important;
+}
+
+.role-btn-wide {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #6B7280;
+    -fx-background-radius: 8;
+    -fx-padding: 12 15;
+    -fx-font-size: 12;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-pref-width: 200;
+}
+
+.role-btn-wide:hover {
+    -fx-background-color: #E5E7EB;
+}
+
+/* ============================================
+   INPUT FIELDS
+   ============================================ */
+
+/* Input Container (avec icône) */
+.input-container {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 15;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.input-container:focused-within {
+    -fx-border-color: #5D5FEF;
+}
+
+.input-icon {
+    -fx-font-size: 16;
+    -fx-fill: #9CA3AF;
+}
+
+.input-field {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-size: 14;
+    -fx-text-fill: #1F2937;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+
+.input-field:focused {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+/* Input Field Full (Login) */
+.input-field-full {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 15;
+    -fx-font-size: 14;
+    -fx-text-fill: #1F2937;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+
+.input-field-full:focused {
+    -fx-border-color: #5D5FEF;
+    -fx-border-width: 2;
+}
+
+/* Input Field Compact (Signup) */
+.input-field-compact {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12;
+    -fx-font-size: 13;
+    -fx-text-fill: #1F2937;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+
+.input-field-compact:focused {
+    -fx-border-color: #5D5FEF;
+    -fx-border-width: 2;
+}
+
+/* ComboBox */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12;
+}
+
+.combo-box:focused {
+    -fx-border-color: #5D5FEF;
+    -fx-border-width: 2;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #1F2937;
+    -fx-padding: 8 12;
+}
+
+.combo-box .list-cell:hover {
+    -fx-background-color: #F3F4F6;
+}
+
+.combo-box .list-cell:selected {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: black;
+}
+
+/* ============================================
+   CHECKBOX
+   ============================================ */
+
+.checkbox {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13;
+}
+
+.checkbox .box {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.checkbox:selected .box {
+    -fx-background-color: #5D5FEF;
+    -fx-border-color: #5D5FEF;
+}
+
+.checkbox:selected .mark {
+    -fx-background-color: white;
+}
+
+.checkbox .text {
+    -fx-fill: #6B7280;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary {
+    -fx-background-color: #5D5FEF;
+    -fx-text-fill: white;
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 14 0;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #4C4ED9;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #3D3FB8;
+}
+
+.btn-primary:disabled {
+    -fx-background-color: #9CA3AF;
+    -fx-cursor: default;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+
+.link {
+    -fx-text-fill: #5D5FEF;
+    -fx-font-size: 13;
+    -fx-underline: false;
+    -fx-cursor: hand;
+}
+
+.link:hover {
+    -fx-underline: true;
+}
+
+.link-primary {
+    -fx-text-fill: #5D5FEF;
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-underline: false;
+    -fx-cursor: hand;
+}
+
+.link-primary:hover {
+    -fx-underline: true;
+}
+
+.link-inline {
+    -fx-text-fill: #5D5FEF;
+    -fx-font-size: 12;
+    -fx-underline: false;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.link-inline:hover {
+    -fx-underline: true;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #D1D5DB;
+    -fx-background-radius: 5;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: #F3F4F6;
+    -fx-background-radius: 5;
+}
+
+/* ============================================
+   LEGACY STYLES (Compatibility)
+   ============================================ */
+
+.error-text {
+    -fx-fill: #EF4444;
+    -fx-font-size: 12;
+}
+
+.input-container.error {
+    -fx-border-color: #EF4444;
+}
+
+.input-container.success {
+    -fx-border-color: #10B981;
+}
+.btn-google {
+    -fx-background-color: white;
+    -fx-border-color: #dadce0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4, 0, 0, 1);
+}
+
+.btn-google:hover {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #c1c7cd;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 6, 0, 0, 2);
+}
+
+.btn-google:pressed {
+    -fx-background-color: #f1f3f4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2, 0, 0, 1);
+}
+
+.google-letter {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-fill: #4285F4;
+    -fx-font-family: "Georgia";
+}
+
+.google-btn-text {
+    -fx-font-size: 13px;
+    -fx-fill: #3c4043;
+    -fx-font-weight: 500;
+}
+
+.divider-line {
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-pref-height: 1px;
+}
+
+.divider-text {
+    -fx-fill: #9e9e9e;
+    -fx-font-size: 12px;
+}

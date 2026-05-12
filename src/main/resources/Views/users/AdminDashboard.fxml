@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.image.ImageView?>
+<?import java.lang.String?>
+
+<StackPane fx:id="rootPane"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.users.AdminDashboardController">
+
+    <fx:define>
+        <ToggleGroup fx:id="userTypeFilter"/>
+    </fx:define>
+
+    <BorderPane styleClass="root" stylesheets="@/Styles/AdminDashboard.css">
+
+        <!-- TOP NAVBAR -->
+        <top>
+            <VBox>
+                <!-- Header avec logo et admin info -->
+                <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📚" style="-fx-font-size: 24px;"/>
+                        <VBox spacing="2">
+                            <Label text="CampusLink" styleClass="logo"/>
+                            <Label text="Panel Admin" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <HBox spacing="20" alignment="CENTER_RIGHT">
+                        <VBox alignment="CENTER_RIGHT" spacing="2">
+                            <Label fx:id="lblAdminName" text="Admin Principal" style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                            <Label fx:id="lblAdminEmail" text="admin@campuslink.tn" style="-fx-font-size:11px; -fx-text-fill:#666;"/>
+                        </VBox>
+
+                        <StackPane style="-fx-pref-width: 35; -fx-pref-height: 35;">
+                            <Label text="👨‍💼" style="-fx-font-size: 24px;"/>
+                        </StackPane>
+                    </HBox>
+                </HBox>
+
+                <!-- Navigation tabs ADMIN avec Profil -->
+                <HBox spacing="0" styleClass="nav-tabs">
+                    <Button text="👥 Gestion Utilisateurs" styleClass="nav-tab-active" onAction="#handleNavigateToDashboard"/>
+                    <Button text="⭐ Gestion des avis" styleClass="nav-tab" onAction="#handleNavigateToAdminReviews"/>
+                    <Button text="👤 Mon Profil" styleClass="nav-tab" onAction="#handleNavigateToProfile"/>
+                    <Button text="🚪 Déconnexion" styleClass="nav-tab" onAction="#handleLogout"/>
+
+                </HBox>
+            </VBox>
+        </top>
+
+        <!-- MAIN CONTENT -->
+        <center>
+            <ScrollPane fitToWidth="true"
+                        hbarPolicy="NEVER"
+                        vbarPolicy="NEVER"
+                        styleClass="no-scrollbar">
+
+                <content>
+                    <VBox spacing="20" style="-fx-padding: 40 60 40 60;">
+
+                        <!-- Page Title & Actions -->
+                        <HBox alignment="CENTER_LEFT" spacing="20">
+                            <Label text="Gestion des Utilisateurs" styleClass="page-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="lblTotalUsers" text="Total: 0 utilisateurs" styleClass="stats-label"/>
+                        </HBox>
+
+                        <!-- Filters Card -->
+                        <HBox spacing="15" styleClass="filter-card">
+                            <Label text="Filtrer par:" styleClass="filter-label"/>
+
+                            <ToggleButton fx:id="btnFilterAll" text="Tous" styleClass="filter-button" selected="true"
+                                          toggleGroup="$userTypeFilter" onAction="#handleFilterChange"/>
+                            <ToggleButton fx:id="btnFilterEtudiants" text="Étudiants" styleClass="filter-button"
+                                          toggleGroup="$userTypeFilter" onAction="#handleFilterChange"/>
+                            <ToggleButton fx:id="btnFilterPrestataires" text="Prestataires" styleClass="filter-button"
+                                          toggleGroup="$userTypeFilter" onAction="#handleFilterChange"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <TextField fx:id="txtSearch" promptText="🔍 Rechercher par nom ou email..."
+                                       styleClass="search-field" prefWidth="300"/>
+                            <Button text="Actualiser" styleClass="secondary-button" onAction="#handleRefresh"/>
+                        </HBox>
+
+                        <!-- Users Table -->
+                        <TableView fx:id="tableUsers" styleClass="users-table" >
+                            <columns>
+                                <TableColumn fx:id="colName" text="Nom" prefWidth="180" styleClass="table-column"/>
+                                <TableColumn fx:id="colEmail" text="Email" prefWidth="220" styleClass="table-column"/>
+                                <TableColumn fx:id="colType" text="Type" prefWidth="120" styleClass="table-column"/>
+                                <TableColumn fx:id="colInfo" text="Info" prefWidth="180" styleClass="table-column"/>
+                                <TableColumn fx:id="colPhone" text="Téléphone" prefWidth="130" styleClass="table-column"/>
+                                <TableColumn fx:id="colStatus" text="Statut" prefWidth="100" styleClass="table-column"/>
+                                <TableColumn fx:id="colActions" text="Actions" prefWidth="200" styleClass="table-column"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="10">
+                                    <Label text="📭" style="-fx-font-size: 48px;"/>
+                                    <Label text="Aucun utilisateur trouvé" styleClass="empty-state"/>
+                                </VBox>
+                            </placeholder>
+                        </TableView>
+
+                        <!-- Statistics Cards -->
+                        <HBox spacing="20">
+                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                <Label text="👨‍🎓" style="-fx-font-size: 32px;"/>
+                                <Label fx:id="lblTotalEtudiants" text="0" styleClass="stat-number"/>
+                                <Label text="Étudiants" styleClass="stat-label"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                <Label text="👨‍💼" style="-fx-font-size: 32px;"/>
+                                <Label fx:id="lblTotalPrestataires" text="0" styleClass="stat-number"/>
+                                <Label text="Prestataires" styleClass="stat-label"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                <Label text="✅" style="-fx-font-size: 32px;"/>
+                                <Label fx:id="lblActiveUsers" text="0" styleClass="stat-number"/>
+                                <Label text="Actifs" styleClass="stat-label"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                <Label text="⏸️" style="-fx-font-size: 32px;"/>
+                                <Label fx:id="lblInactiveUsers" text="0" styleClass="stat-number"/>
+                                <Label text="Inactifs" styleClass="stat-label"/>
+                            </VBox>
+                        </HBox>
+
+                    </VBox>
+                </content>
+            </ScrollPane>
+        </center>
+
+    </BorderPane>
+
+</StackPane>

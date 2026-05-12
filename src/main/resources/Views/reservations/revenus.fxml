@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.reservations.RevenusController"
+      spacing="16"
+      style="-fx-background-color: #f8f9fa;"
+      stylesheets="/Styles/app.css">
+
+    <padding>
+        <Insets top="22" right="22" bottom="22" left="22"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Button text="← Réservations" onAction="#onBack"
+                style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                       -fx-background-radius:8; -fx-padding:8 16; -fx-cursor:hand;"/>
+        <Label text="Revenus"
+               style="-fx-font-size:22px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Période :" style="-fx-text-fill:#6b7280;"/>
+        <ComboBox fx:id="yearCombo" prefWidth="120"/>
+        <Button fx:id="refreshBtn" text="Actualiser"
+                style="-fx-background-color:#4f46e5; -fx-text-fill:white;
+                       -fx-background-radius:8; -fx-padding:8 16; -fx-cursor:hand;"/>
+    </HBox>
+
+    <!-- Total card -->
+    <Label fx:id="totalRevenuLabel"
+           style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:#059669;"/>
+
+    <!-- Chart -->
+    <LineChart fx:id="lineChart" VBox.vgrow="ALWAYS"
+               title="Évolution des revenus mensuels"
+               legendVisible="false" animated="false"
+               style="-fx-background-color:white; -fx-background-radius:12;">
+        <xAxis><CategoryAxis label="Mois"/></xAxis>
+        <yAxis><NumberAxis fx:id="yAxis" label="Revenus (DT)"/></yAxis>
+    </LineChart>
+
+    <Label text="Les revenus sont basés sur les réservations confirmées."
+           style="-fx-text-fill:#9ca3af; -fx-font-size:12px;"/>
+
+</VBox>

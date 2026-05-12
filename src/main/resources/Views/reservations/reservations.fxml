@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.reservations.ReservationsController"
+      spacing="16"
+      style="-fx-background-color: #f8f9fa;"
+      stylesheets="/Styles/app.css">
+
+    <padding>
+        <Insets top="22" right="22" bottom="22" left="22"/>
+    </padding>
+
+    <!-- Header row -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Réservations reçues"
+               style="-fx-font-size:22px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Filters -->
+        <HBox spacing="8">
+            <Button fx:id="btnAll"      text="Toutes"  onAction="#onFilterAll"
+                    style="-fx-background-color:#4f46e5; -fx-text-fill:white;
+                           -fx-background-radius:20; -fx-padding:6 16; -fx-cursor:hand;"/>
+            <Button fx:id="btnUpcoming" text="À venir"  onAction="#onFilterUpcoming"
+                    style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                           -fx-background-radius:20; -fx-padding:6 16; -fx-cursor:hand;"/>
+            <Button fx:id="btnPast"     text="Passées"  onAction="#onFilterPast"
+                    style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                           -fx-background-radius:20; -fx-padding:6 16; -fx-cursor:hand;"/>
+        </HBox>
+
+        <!-- Calendar button -->
+        <Button text="📅 Calendrier" onAction="#onOpenCalendar"
+                style="-fx-background-color:#6366f1; -fx-text-fill:white;
+                       -fx-font-weight:bold; -fx-background-radius:8;
+                       -fx-padding:8 18; -fx-cursor:hand;"/>
+
+        <!-- Revenus button -->
+        <Button text="📈 Revenus" onAction="#onOpenRevenus"
+                style="-fx-background-color:#10b981; -fx-text-fill:white;
+                       -fx-font-weight:bold; -fx-background-radius:8;
+                       -fx-padding:8 18; -fx-cursor:hand;"/>
+    </HBox>
+
+    <!-- Stats bar -->
+    <HBox spacing="16">
+        <VBox spacing="4" alignment="CENTER"
+              style="-fx-background-color:white; -fx-background-radius:10;
+                     -fx-border-color:#e5e7eb; -fx-border-radius:10;
+                     -fx-padding:14 24; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),6,0,0,2);">
+            <Label fx:id="lblTotalCount" text="0"
+                   style="-fx-font-size:28px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+            <Label text="Total" style="-fx-text-fill:#6b7280; -fx-font-size:13px;"/>
+        </VBox>
+        <VBox spacing="4" alignment="CENTER"
+              style="-fx-background-color:white; -fx-background-radius:10;
+                     -fx-border-color:#e5e7eb; -fx-border-radius:10;
+                     -fx-padding:14 24; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),6,0,0,2);">
+            <Label fx:id="lblPendingCount" text="0"
+                   style="-fx-font-size:28px; -fx-font-weight:bold; -fx-text-fill:#f59e0b;"/>
+            <Label text="En attente" style="-fx-text-fill:#6b7280; -fx-font-size:13px;"/>
+        </VBox>
+        <VBox spacing="4" alignment="CENTER"
+              style="-fx-background-color:white; -fx-background-radius:10;
+                     -fx-border-color:#e5e7eb; -fx-border-radius:10;
+                     -fx-padding:14 24; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),6,0,0,2);">
+            <Label fx:id="lblConfirmedCount" text="0"
+                   style="-fx-font-size:28px; -fx-font-weight:bold; -fx-text-fill:#10b981;"/>
+            <Label text="Confirmées" style="-fx-text-fill:#6b7280; -fx-font-size:13px;"/>
+        </VBox>
+        <VBox spacing="4" alignment="CENTER"
+              style="-fx-background-color:white; -fx-background-radius:10;
+                     -fx-border-color:#e5e7eb; -fx-border-radius:10;
+                     -fx-padding:14 24; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),6,0,0,2);">
+            <Label fx:id="lblTotalRevenu" text="0 DT"
+                   style="-fx-font-size:24px; -fx-font-weight:bold; -fx-text-fill:#4f46e5;"/>
+            <Label text="Revenus total" style="-fx-text-fill:#6b7280; -fx-font-size:13px;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Reservations list -->
+    <ListView fx:id="listReservations" VBox.vgrow="ALWAYS"
+              style="-fx-background-color:transparent; -fx-border-color:transparent;"/>
+
+</VBox>

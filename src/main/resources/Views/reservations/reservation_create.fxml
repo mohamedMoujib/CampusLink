@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/23.0.2"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.campusLink.controllers.reservations.ReservationCreateController"
+           stylesheets="@../../Styles/app.css"
+           style="-fx-background-color: rgba(15, 12, 41, 0.72);">
+
+    <VBox spacing="0" styleClass="reserve-modal" maxWidth="460">
+
+        <!-- Accent top bar -->
+        <HBox styleClass="reserve-accent-bar" minHeight="5" />
+
+        <!-- Inner content -->
+        <VBox spacing="0" style="-fx-padding: 28 30 28 30;">
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" style="-fx-padding: 0 0 22 0;">
+                <VBox spacing="3">
+                    <Label text="Nouvelle réservation" styleClass="reserve-title"/>
+                    <Label text="Remplissez les détails de votre session" styleClass="reserve-subtitle"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="✕" styleClass="reserve-close-btn" onAction="#onClose"/>
+            </HBox>
+
+            <!-- Service -->
+            <Label text="SERVICE" styleClass="reserve-field-label"/>
+            <VBox style="-fx-padding: 0 0 18 0;">
+                <ComboBox fx:id="cbService" promptText="Choisir un service…" styleClass="reserve-combo" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Service detail card -->
+            <VBox fx:id="serviceDetailCard" styleClass="reserve-service-card" spacing="10"
+                  managed="${serviceDetailCard.visible}" style="-fx-padding: 0 0 18 0;">
+                <HBox spacing="0" alignment="CENTER_LEFT">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label fx:id="lblServiceTitle" text="" styleClass="reserve-service-name"/>
+                        <Label fx:id="lblTutor" text="" styleClass="reserve-service-meta"/>
+                        <Label fx:id="lblDuration" text="" styleClass="reserve-service-meta"/>
+                    </VBox>
+                    <Label fx:id="lblPrice" text="" styleClass="reserve-price-tag"/>
+                </HBox>
+            </VBox>
+
+            <!-- Date + Time row -->
+            <HBox spacing="14" style="-fx-padding: 0 0 18 0;">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="DATE" styleClass="reserve-field-label"/>
+                    <DatePicker fx:id="dpDate" promptText="jj/mm/aaaa" styleClass="reserve-datepicker" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="HEURE" styleClass="reserve-field-label"/>
+                    <ComboBox fx:id="cbTime" promptText="-- : --" styleClass="reserve-combo" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <!-- Notes -->
+            <Label text="BESOINS SPÉCIFIQUES" styleClass="reserve-field-label"/>
+            <VBox style="-fx-padding: 0 0 18 0;">
+                <TextArea fx:id="taNote"
+                          promptText="Sujets à aborder, objectifs, niveau actuel…"
+                          prefRowCount="4"
+                          styleClass="reserve-textarea"/>
+            </VBox>
+
+            <!-- Info note -->
+            <HBox styleClass="reserve-info-note" spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 24 0;">
+                <Label text="ⓘ" style="-fx-font-size:14px; -fx-text-fill:#C4893A;"/>
+                <Label text="Le paiement sera retenu en dépôt de garantie et libéré au tuteur après la session."
+                       style="-fx-text-fill:#7A5020; -fx-font-size:12px; -fx-wrap-text:true;" HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <!-- Actions -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Annuler" styleClass="reserve-btn-ghost" onAction="#onClose"/>
+                <Button fx:id="btnConfirm" text="Confirmer →" styleClass="reserve-btn-primary" onAction="#onConfirm"/>
+            </HBox>
+
+        </VBox>
+    </VBox>
+</StackPane>

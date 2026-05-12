@@ -1,0 +1,230 @@
+{
+  "name": "CampusLink - Créer Service via Description (OpenRouter)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "creer-service",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-001",
+      "name": "Webhook - Créer Service",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-900, 200],
+      "webhookId": "campuslink-creer-service"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Extraire le body ────────────────────────────────────────────────────────\nconst body = $input.item.json.body || $input.item.json;\n\nconst prestataire_id = body.prestataire_id || null;\nconst prompt        = body.prompt || body.description || body.idee || '';\nconst prix_input    = parseFloat(body.prix || body.price || 0);\nconst image_url     = body.image_url || null;\nconst category_id   = parseInt(body.category_id) || null;\n\n// ── Validation ───────────────────────────────────────────────────────────────\nconst errors = [];\n\nif (!prestataire_id || isNaN(parseInt(prestataire_id))) {\n  errors.push('prestataire_id est requis (entier)');\n}\nif (!prompt || prompt.trim().length < 5) {\n  errors.push('prompt/description est requis (minimum 5 caractères)');\n}\nif (prix_input < 0) {\n  errors.push('prix doit être >= 0');\n}\n\nif (errors.length > 0) {\n  return { json: { valid: false, errors, message: 'Validation échouée' } };\n}\n\n// ── Image : extraire le filename si path complet ──────────────────────────────\nlet imageValue = image_url;\nif (image_url && typeof image_url === 'string' && image_url.includes('/')) {\n  const parts = image_url.split('/');\n  imageValue = parts[parts.length - 1] || image_url;\n}\n\n// ── Prompt Claude pour service (tuteur) ───────────────────────────────────────\nconst promptText = `Tu es un assistant pour CampusLink, plateforme de services entre étudiants et tuteurs.\n\nUn tuteur veut créer une offre de service sur la plateforme.\nPrix indicatif : ${prix_input > 0 ? prix_input + '€' : 'non précisé'}.\n\nVoici sa description en langage naturel :\n\"\"\"${prompt}\"\"\"\n\nGénère une offre de service structurée et professionnelle (titre + description).\nRéponds UNIQUEMENT avec ce JSON brut (sans markdown, sans backticks) :\n{\n  \"title\": \"[titre clair du service, ex: Cours de maths niveau lycée, 10 à 80 caractères]\",\n  \"description\": \"[description complète, méthode, objectifs, 3 à 6 phrases]\",\n  \"prix\": ${prix_input > 0 ? prix_input : 'nombre décimal suggéré selon le contexte (ex: 25.00)'}\n}\n\nRègles strictes :\n- title : court, accrocheur, max 100 caractères\n- description : professionnelle, attirante pour des étudiants\n- prix : nombre décimal uniquement, jamais de texte\n- Réponds UNIQUEMENT avec le JSON, rien d'autre`;\n\nreturn {\n  json: {\n    valid: true,\n    prompt: promptText,\n    meta: {\n      prestataire_id:  parseInt(prestataire_id),\n      image:           imageValue,\n      category_id:     category_id || null,\n      prix_input\n    }\n  }\n};"
+      },
+      "id": "node-002",
+      "name": "Valider & Préparer Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-660, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            { "value1": "={{ $json.valid }}", "value2": true }
+          ]
+        }
+      },
+      "id": "node-003",
+      "name": "Données valides ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [-420, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "HTTP-Referer", "value": "https://campuslink.app" },
+            { "name": "X-Title", "value": "CampusLink" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"anthropic/claude-3.5-sonnet\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ],\n  \"temperature\": 0.6,\n  \"max_tokens\": 600\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "node-004",
+      "name": "OpenRouter - Structurer Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-180, 80],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "VOTRE_CREDENTIAL_OPENROUTER_ID",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Extraire le texte brut d'OpenRouter ─────────────────────────────────────\nconst body = $input.item.json;\nlet rawText = '';\n\ntry {\n  rawText = body.choices[0].message.content || '';\n} catch (e) {\n  throw new Error('Réponse OpenRouter invalide : ' + JSON.stringify(body).substring(0, 300));\n}\n\nconst meta = $('Valider & Préparer Prompt').item.json.meta;\n\ntry {\n  let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const start = cleaned.indexOf('{');\n  const end   = cleaned.lastIndexOf('}');\n\n  if (start === -1 || end === -1) {\n    throw new Error('Aucun JSON dans la réponse');\n  }\n\n  const parsed = JSON.parse(cleaned.substring(start, end + 1));\n  const title = String(parsed.title || parsed.titre || 'Service').substring(0, 200).trim();\n  const desc  = String(parsed.description || parsed.message || '').trim();\n  const prix  = parseFloat(parsed.prix || parsed.price) || meta.prix_input || 10;\n\n  if (prix <= 0) throw new Error('Prix invalide');\n\n  return {\n    json: {\n      ok: true,\n      title,\n      description: desc || title,\n      price: prix,\n      prestataire_id: meta.prestataire_id,\n      image: meta.image || null,\n      category_id: meta.category_id\n    }\n  };\n} catch (e) {\n  return {\n    json: {\n      ok: true,\n      title: 'Service CampusLink',\n      description: rawText.substring(0, 500),\n      price: meta.prix_input > 0 ? meta.prix_input : 10,\n      prestataire_id: meta.prestataire_id,\n      image: meta.image || null,\n      category_id: meta.category_id\n    }\n  };\n}"
+      },
+      "id": "node-005",
+      "name": "Parser Réponse Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [60, 80]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO services\n  (title, description, image, price, prestataire_id, category_id, status)\nVALUES\n  (\n    '{{ $json.title.replace(/'/g, \"''\") }}',\n    {{ $json.description ? (\"'\" + $json.description.replace(/'/g, \"''\") + \"'\") : 'NULL' }},\n    {{ $json.image ? (\"'\" + $json.image.replace(/'/g, \"''\") + \"'\") : 'NULL' }},\n    {{ $json.price }},\n    {{ $json.prestataire_id }},\n    {{ $json.category_id || 'NULL' }},\n    'EN_ATTENTE'\n  );\nSELECT LAST_INSERT_ID() AS service_id;",
+        "additionalFields": {}
+      },
+      "id": "node-006",
+      "name": "MySQL - INSERT services",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [300, 80],
+      "credentials": {
+        "mySql": {
+          "id": "VOTRE_CREDENTIAL_MYSQL_ID",
+          "name": "CampusLink MySQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const db  = $input.item.json;\nconst svc = $('Parser Réponse Claude').item.json;\nconst pubId = db['LAST_INSERT_ID()'] || db.service_id || db.insertId || null;\n\nreturn {\n  json: {\n    success:    true,\n    service_id: pubId,\n    message:    'Service créé et enregistré avec succès',\n    service: {\n      id:            pubId,\n      title:         svc.title,\n      description:   svc.description,\n      price:         svc.price,\n      prestataire_id: svc.prestataire_id,\n      status:        'EN_ATTENTE'\n    }\n  }\n};"
+      },
+      "id": "node-007",
+      "name": "Formater Réponse Succès",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 80]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\nreturn {\n  json: {\n    success: false,\n    message: data.message || 'Validation échouée',\n    errors:  data.errors  || []\n  }\n};"
+      },
+      "id": "node-008",
+      "name": "Erreur Validation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 360]
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $input.item.json;\nconst svc = $('Parser Réponse Claude').item.json;\nreturn {\n  json: {\n    success: false,\n    message: 'Erreur lors de l\\'insertion en base de données',\n    error:   JSON.stringify(err),\n    service_genere: { title: svc.title, description: svc.description }\n  }\n};"
+      },
+      "id": "node-009",
+      "name": "Erreur DB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 201,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node-010",
+      "name": "Respond 201 - Succès",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [780, 80]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node-011",
+      "name": "Respond 400 - Validation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [60, 360]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node-012",
+      "name": "Respond 500 - Erreur DB",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [780, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Créer Service": {
+      "main": [[{ "node": "Valider & Préparer Prompt", "type": "main", "index": 0 }]]
+    },
+    "Valider & Préparer Prompt": {
+      "main": [[{ "node": "Données valides ?", "type": "main", "index": 0 }]]
+    },
+    "Données valides ?": {
+      "main": [
+        [{ "node": "OpenRouter - Structurer Service", "type": "main", "index": 0 }],
+        [{ "node": "Erreur Validation", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenRouter - Structurer Service": {
+      "main": [[{ "node": "Parser Réponse Claude", "type": "main", "index": 0 }]]
+    },
+    "Parser Réponse Claude": {
+      "main": [[{ "node": "MySQL - INSERT services", "type": "main", "index": 0 }]]
+    },
+    "MySQL - INSERT services": {
+      "main": [
+        [{ "node": "Formater Réponse Succès", "type": "main", "index": 0 }],
+        [{ "node": "Erreur DB", "type": "main", "index": 1 }]
+      ]
+    },
+    "Formater Réponse Succès": {
+      "main": [[{ "node": "Respond 201 - Succès", "type": "main", "index": 0 }]]
+    },
+    "Erreur Validation": {
+      "main": [[{ "node": "Respond 400 - Validation", "type": "main", "index": 0 }]]
+    },
+    "Erreur DB": {
+      "main": [[{ "node": "Respond 500 - Erreur DB", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" },
+  "tags": []
+}
