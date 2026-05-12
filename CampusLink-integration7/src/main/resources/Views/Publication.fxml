@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.Publication_controller"
+      spacing="25"
+      style="-fx-background-color: #f8f9fa;"
+      stylesheets="/Styles/student.css">
+
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+    <!-- Tabs and Create Button -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <Button fx:id="allPublicationsTab"
+                text="📋 Toutes les publications"
+                onAction="#showAllPublications"
+                style="-fx-background-color: #5D5FEF; -fx-text-fill: white;
+                       -fx-font-size: 14px; -fx-padding: 10 20;
+                       -fx-cursor: hand; -fx-background-radius: 8;
+                       -fx-border-width: 0; -fx-font-weight: bold;"/>
+
+        <Button fx:id="myPublicationsTab"
+                text="👤 Mes publications"
+                onAction="#showMyPublications"
+                style="-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280;
+                       -fx-font-size: 14px; -fx-padding: 10 20;
+                       -fx-cursor: hand; -fx-background-radius: 8;
+                       -fx-border-color: #e5e7eb; -fx-border-width: 1;"/>
+
+        <Button text="+ Ajouter une publication"
+                onAction="#goToCreatePublication"
+                style="-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280;
+                       -fx-font-size: 14px; -fx-padding: 10 20;
+                       -fx-cursor: hand; -fx-background-radius: 8;
+                       -fx-border-color: #e5e7eb; -fx-border-width: 1;"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Filters -->
+    <HBox spacing="15" alignment="CENTER">
+        <TextField fx:id="searchField"
+                   promptText="Rechercher une publication..."
+                   prefWidth="300"
+                   style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                          -fx-border-radius: 8; -fx-background-radius: 8;
+                          -fx-padding: 10 15; -fx-font-size: 14px;"/>
+
+        <ComboBox fx:id="typeFilter"
+                  promptText="Type"
+                  prefWidth="200"
+                  style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                         -fx-border-radius: 8; -fx-background-radius: 8;"/>
+
+        <ComboBox fx:id="statusFilter"
+                  promptText="Statut"
+                  prefWidth="200"
+                  style="-fx-background-color: white; -fx-border-color: #d1d5db;
+                         -fx-border-radius: 8; -fx-background-radius: 8;"/>
+    </HBox>
+
+    <!-- Publications -->
+    <ScrollPane VBox.vgrow="ALWAYS"
+                fitToWidth="true"
+                fitToHeight="false"
+                style="-fx-background-color: transparent;
+                       -fx-background: transparent;
+                       -fx-border-width: 0;">
+        <FlowPane fx:id="publicationsContainer"
+                  hgap="20"
+                  vgap="20"
+                  prefWrapLength="1340"
+                  style="-fx-background-color: transparent;
+                         -fx-text-fill: black;
+                         -fx-padding: 0 0 20 0;"/>
+    </ScrollPane>
+
+</VBox>

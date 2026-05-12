@@ -1,0 +1,408 @@
+/* ===============================================
+   STUDENT.CSS - Page de Recherche de Services
+   Design moderne EduMarket
+   =============================================== */
+
+/* ===== ROOT & GENERAL ===== */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-background-color: #f5f7fa;
+}
+
+/* ===== TOP BAR & HEADER ===== */
+.header-container {
+    -fx-background-color: white;
+    -fx-padding: 20;
+    -fx-border-color: #e5e5e5;
+    -fx-border-width: 0 0 1 0;
+}
+
+.logo-box {
+    -fx-font-size: 28px;
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-padding: 8;
+    -fx-background-radius: 8;
+}
+
+.logo-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.logo-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+}
+
+.notification-btn {
+    -fx-background-color: transparent;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+}
+
+.user-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.user-email {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6b7280;
+}
+
+.user-avatar {
+    -fx-font-size: 24px;
+    -fx-background-color: #e5e7eb;
+    -fx-padding: 8;
+    -fx-background-radius: 20;
+}
+
+.logout-btn {
+    -fx-background-color: transparent;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+}
+
+/* ===== NAVIGATION MENU ===== */
+.menu-container {
+    -fx-background-color: white;
+    -fx-padding: 15 30;
+    -fx-border-color: #e5e5e5;
+    -fx-border-width: 0 0 1 0;
+}
+
+.menu-item {
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+
+.menu-item:hover .label {
+    -fx-text-fill: #5B5FED;
+}
+
+.menu-item-active {
+    -fx-padding: 8 16;
+}
+
+.menu-item-active .label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5B5FED;
+    -fx-underline: true;
+}
+
+.menu-icon {
+    -fx-font-size: 16px;
+}
+
+.services-btn {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.services-btn:hover {
+    -fx-background-color: #5D5FEF;
+}
+
+/* ===== SEARCH BAR ===== */
+.search-container {
+    -fx-background-color: white;
+    -fx-padding: 12 20;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.search-container:focused-within {
+    -fx-border-color: #5B5FED;
+    -fx-border-width: 2;
+}
+
+.search-icon {
+    -fx-font-size: 18px;
+    -fx-text-fill: #9ca3af;
+}
+
+.search-input {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-size: 15px;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-text-fill: #111827;
+}
+
+.search-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+/* ===== FILTERS ===== */
+.filter-group {
+    -fx-spacing: 8;
+}
+
+.filter-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.filter-combo {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+}
+
+.filter-combo .list-cell {
+    -fx-text-fill: #374151;
+}
+
+.filter-combo:focused {
+    -fx-border-color: #5B5FED;
+    -fx-border-width: 2;
+}
+
+/* ===== SERVICE CARDS ===== */
+.service-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);
+    -fx-pref-width: 400;
+    -fx-min-height: 300;
+}
+
+.service-card:hover {
+    -fx-border-color: #5B5FED;
+    -fx-effect: dropshadow(gaussian, rgba(91,95,237,0.15), 12, 0, 0, 3);
+    -fx-cursor: hand;
+}
+
+/* ===== PUBLICATION CARDS (used in Publication.fxml) ===== */
+.publication-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);
+    -fx-pref-width: 400;
+    -fx-min-height: 300;
+}
+
+.publication-card:hover {
+    -fx-border-color: #5B5FED;
+    -fx-effect: dropshadow(gaussian, rgba(91,95,237,0.15), 12, 0, 0, 3);
+    -fx-cursor: hand;
+}
+
+/* Badges (Type/Status) */
+.type-badge, .status-badge {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12;
+    -fx-background-radius: 20;
+    -fx-text-fill: #111827; /* évite le texte blanc invisible */
+}
+
+.type-vente {
+    -fx-background-color: #667eea;
+}
+
+.type-demande {
+    -fx-background-color: #f5576c;
+}
+
+.status-active {
+    -fx-background-color: #d1fae5;
+}
+
+.status-en_cours {
+    -fx-background-color: #bfdbfe;
+}
+
+.status-terminee {
+    -fx-background-color: #fde68a;
+}
+
+.status-annulee {
+    -fx-background-color: #fecaca;
+}
+
+.card-views {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9ca3af;
+}
+
+/* Card Header */
+.card-header {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 10;
+}
+
+.card-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+    -fx-wrap-text: true;
+}
+
+.card-rating {
+    -fx-spacing: 5;
+    -fx-alignment: CENTER;
+}
+
+.rating-star {
+    -fx-font-size: 14px;
+    -fx-text-fill: #fbbf24;
+}
+
+.rating-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+/* Card Provider */
+.card-provider {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Card Info */
+.card-info-row {
+    -fx-spacing: 8;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.card-info-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+
+.card-info-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Card Description */
+.card-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #4b5563;
+    -fx-wrap-text: true;
+}
+
+/* Card Footer */
+.card-footer {
+    -fx-alignment: CENTER;
+    -fx-spacing: 15;
+    -fx-padding: 15 0 0 0;
+}
+
+.card-price-container {
+    -fx-alignment: BASELINE_LEFT;
+    -fx-spacing: 0;
+}
+
+.card-price {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5B5FED;
+}
+
+.card-reviews {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9ca3af;
+}
+
+/* Reserve Button */
+.btn-reserve {
+    -fx-background-color: #5B5FED;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.btn-reserve:hover {
+    -fx-background-color: #4a4ed8;
+}
+
+/* ===== GRID ===== */
+.services-grid {
+    -fx-background-color: transparent;
+}
+
+/* ===== SCROLLBAR ===== */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: #f3f4f6;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #d1d5db;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9ca3af;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    -fx-font-size: 16px;
+    -fx-text-fill: #6b7280;
+    -fx-padding: 60;
+    -fx-alignment: CENTER;
+}
+
+/* ===== COMBO BOX CUSTOMIZATION ===== */
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-padding: 10 15;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #f3f4f6;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #EEF2FF;
+    -fx-text-fill: #5B5FED;
+}

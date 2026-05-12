@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.campusLink.controllers.reservations.MessageController"
+      style="-fx-background-color:#f8f9fa;"
+      spacing="0" VBox.vgrow="ALWAYS">
+
+    <!-- LEFT: Contacts list -->
+    <VBox prefWidth="280" minWidth="240"
+          style="-fx-background-color:white;
+                 -fx-border-color:#e5e7eb;
+                 -fx-border-width:0 1 0 0;">
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="10"
+              style="-fx-padding:20 16 16 16;
+                     -fx-border-color:#e5e7eb;
+                     -fx-border-width:0 0 1 0;">
+            <Label text="💬 Messages"
+                   style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblUnreadBadge" text="0"
+                   style="-fx-background-color:#ef4444; -fx-text-fill:white;
+                          -fx-background-radius:10; -fx-padding:2 7;
+                          -fx-font-size:11px; -fx-font-weight:bold;"
+                   visible="false" managed="false"/>
+        </HBox>
+
+        <!-- Contact list -->
+        <ListView fx:id="contactList" VBox.vgrow="ALWAYS"
+                  style="-fx-background-color:transparent;
+                         -fx-border-color:transparent;"/>
+    </VBox>
+
+    <!-- RIGHT: Chat area -->
+    <VBox HBox.hgrow="ALWAYS">
+
+        <!-- Empty state -->
+        <VBox fx:id="emptyState" VBox.vgrow="ALWAYS"
+              alignment="CENTER" spacing="12">
+            <Label text="💬" style="-fx-font-size:52px;"/>
+            <Label text="Sélectionnez une conversation"
+                   style="-fx-font-size:16px; -fx-text-fill:#9ca3af;"/>
+            <Label text="Vos échanges apparaîtront ici."
+                   style="-fx-font-size:13px; -fx-text-fill:#d1d5db;"/>
+        </VBox>
+
+        <!-- Chat header -->
+        <HBox fx:id="chatHeader" alignment="CENTER_LEFT" spacing="12"
+              style="-fx-background-color:white; -fx-padding:14 20;
+                     -fx-border-color:#e5e7eb; -fx-border-width:0 0 1 0;"
+              visible="false" managed="false">
+            <StackPane>
+                <Circle radius="20" style="-fx-fill:#e0e7ff;"/>
+                <Label fx:id="lblContactAvatar" text="?"
+                       style="-fx-font-size:15px; -fx-font-weight:bold; -fx-text-fill:#6366f1;"/>
+            </StackPane>
+            <VBox spacing="2">
+                <Label fx:id="lblContactName" text=""
+                       style="-fx-font-size:15px; -fx-font-weight:bold; -fx-text-fill:#111827;"/>
+                <Label fx:id="lblContactEmail" text=""
+                       style="-fx-font-size:11px; -fx-text-fill:#6b7280;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Messages -->
+        <ListView fx:id="messageList" VBox.vgrow="ALWAYS"
+                  style="-fx-background-color:#f8f9fa;
+                         -fx-border-color:transparent;"
+                  visible="false" managed="false"/>
+
+        <!-- Input -->
+        <HBox fx:id="inputArea" spacing="10" alignment="CENTER"
+              style="-fx-background-color:white; -fx-padding:12 16;
+                     -fx-border-color:#e5e7eb; -fx-border-width:1 0 0 0;"
+              visible="false" managed="false">
+            <TextField fx:id="messageField" HBox.hgrow="ALWAYS"
+                       promptText="Écrire un message..."
+                       style="-fx-background-color:#f3f4f6;
+                              -fx-background-radius:20;
+                              -fx-border-color:transparent;
+                              -fx-padding:10 16; -fx-font-size:13px;"/>
+            <Button text="➤" onAction="#sendMessage"
+                    style="-fx-background-color:#6366f1; -fx-text-fill:white;
+                           -fx-font-size:16px; -fx-background-radius:50;
+                           -fx-min-width:42; -fx-min-height:42; -fx-cursor:hand;"/>
+        </HBox>
+    </VBox>
+</HBox>

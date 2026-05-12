@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane fx:id="rootPane"
+           xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.campusLink.controllers.users.VerifyCodeController"
+           styleClass="root-pane"
+           stylesheets="@/Styles/Login.css">
+
+    <VBox alignment="CENTER" styleClass="background">
+
+        <VBox styleClass="login-card"
+              alignment="CENTER"
+              spacing="20"
+              maxWidth="400">
+
+            <!-- Logo -->
+            <StackPane styleClass="logo-circle">
+                <Text text="✉️" styleClass="logo-icon"/>
+            </StackPane>
+
+            <!-- Title -->
+            <VBox alignment="CENTER" spacing="5">
+                <Text text="Vérification" styleClass="title"/>
+                <Text fx:id="txtMessage"
+                      text="Entrez le code envoyé à votre email"
+                      styleClass="subtitle" textAlignment="CENTER"/>
+            </VBox>
+
+            <!-- Email Display -->
+            <HBox alignment="CENTER" spacing="5"
+                  style="-fx-background-color: #f3f4f6; -fx-padding: 10; -fx-background-radius: 8;">
+                <Text text="📧" style="-fx-font-size: 16px;"/>
+                <Text fx:id="txtEmailDisplay"
+                      text="exemple@email.com"
+                      style="-fx-fill: #4f46e5; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- Code Input -->
+            <VBox spacing="5">
+                <Text text="Code de vérification" styleClass="label-text"/>
+                <TextField fx:id="txtCode"
+                           promptText="123456"
+                           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-alignment: center; -fx-pref-height: 60px;"
+                           styleClass="input-field-full"
+                           />
+                <Label fx:id="lblCodeError"
+                       styleClass="error-label"
+                       managed="false"
+                       visible="false"/>
+            </VBox>
+
+            <!-- Timer -->
+            <HBox alignment="CENTER" spacing="5">
+                <Text text="⏱️" style="-fx-font-size: 14px;"/>
+                <Text text="Le code expire dans" styleClass="footer-text"/>
+                <Text fx:id="txtTimer" text="15:00"
+                      style="-fx-fill: #dc2626; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- Verify Button -->
+            <Button fx:id="btnVerify"
+                    text="Vérifier le code"
+                    maxWidth="Infinity"
+                    styleClass="btn-primary"
+                    onAction="#handleVerifyCode"/>
+
+            <!-- Resend Code -->
+            <HBox alignment="CENTER" spacing="5">
+                <Text text="Code non reçu?"
+                      styleClass="footer-text"/>
+
+                <Hyperlink fx:id="linkResend"
+                           text="Renvoyer"
+                           styleClass="link-primary"
+                           onAction="#handleResendCode"/>
+            </HBox>
+
+            <!-- Back -->
+            <Hyperlink fx:id="linkBack"
+                       text="← Retour"
+                       styleClass="link"
+                       onAction="#handleBack"/>
+
+            <VBox.margin>
+                <Insets top="20" right="40" bottom="20" left="40"/>
+            </VBox.margin>
+
+        </VBox>
+    </VBox>
+</StackPane>
